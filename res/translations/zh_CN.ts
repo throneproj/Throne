@@ -4967,8 +4967,8 @@ Close without saving?</source>
         <translation>此网络拦截了普通 WireGuard，但附带 AmneziaWG 垃圾数据包时可以通过。使用端点时会开启它们。</translation>
     </message>
     <message>
-        <source>HTTP/3 is blocked on this network, but HTTP/2 gets through. Using an endpoint switches the profile to HTTP/2.</source>
-        <translation>此网络拦截了 HTTP/3，但 HTTP/2 可以通过。使用端点时会将配置档切换为 HTTP/2。</translation>
+        <source>HTTP/3 is blocked on this network, but HTTP/2 gets through. Using an endpoint turns on the fallback to HTTP/2.</source>
+        <translation>此网络拦截了 HTTP/3，但 HTTP/2 可以通过。使用端点时会开启 HTTP/2 回退。</translation>
     </message>
     <message>
         <source>This profile dials %1 instead of its own address. Using an endpoint switches it back to its own address.</source>
@@ -13041,8 +13041,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>HTTP/3 在此没有应答；改用 HTTP/2 继续</translation>
     </message>
     <message>
-        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/2</source>
-        <translation>这些端点需要 HTTP/2：请将配置档的 HTTP 版本设为 HTTP/2</translation>
+        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/3 (fallback to HTTP/2)</source>
+        <translation>这些端点需要 HTTP/2：请将配置档的 HTTP 版本设为 HTTP/3 (回退到 HTTP/2)</translation>
     </message>
 </context>
 <context>

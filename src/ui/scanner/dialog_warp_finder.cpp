@@ -243,7 +243,7 @@ void DialogWarpFinder::refresh() {
                       "turns them on.");
     }
     if (live.warpHttp2) {
-        notices << tr("HTTP/3 is blocked on this network, but HTTP/2 gets through. Using an endpoint switches the profile to HTTP/2.");
+        notices << tr("HTTP/3 is blocked on this network, but HTTP/2 gets through. Using an endpoint turns on the fallback to HTTP/2.");
     }
     if (!overrideOrigin.isEmpty()) {
         notices << tr("This profile dials %1 instead of its own address. Using an endpoint switches it back to its own address.")

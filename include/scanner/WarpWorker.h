@@ -95,7 +95,6 @@ namespace Scanner {
         QString knownGood();
         QString discoverPorts(QList<Target> &seeds);
         QString tryJunk(const QList<Target> &targets, QList<Candidate> &found);
-        void checkHttp3(const QList<Candidate> &found);
         void tryHttp2(const QList<Target> &targets, QList<Candidate> &found);
         void useHttp2(const std::shared_ptr<Configs::Profile> &copy, const QString &json);
         QString sampleRounds(const QList<Target> &seeds);
@@ -154,7 +153,7 @@ namespace Scanner {
 
         // Run thread only.
         Configs::IpScan scan_;
-        // A deep copy; junk and HTTP/2 mode swap in a copy with that setting.
+        // A deep copy; junk and HTTP/2 mode swap in a copy with junk or the HTTP/2 fallback on.
         std::shared_ptr<Configs::Profile> base_;
         QString stage_;
         QString carrier_;

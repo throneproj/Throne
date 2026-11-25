@@ -5017,8 +5017,8 @@ Close without saving?</source>
         <translation>Обычный WireGuard в этой сети заблокирован, но проходит с мусорными пакетами AmneziaWG. При использовании конечной точки они будут включены.</translation>
     </message>
     <message>
-        <source>HTTP/3 is blocked on this network, but HTTP/2 gets through. Using an endpoint switches the profile to HTTP/2.</source>
-        <translation>HTTP/3 в этой сети заблокирован, но HTTP/2 проходит. При использовании конечной точки профиль переключится на HTTP/2.</translation>
+        <source>HTTP/3 is blocked on this network, but HTTP/2 gets through. Using an endpoint turns on the fallback to HTTP/2.</source>
+        <translation>HTTP/3 в этой сети заблокирован, но HTTP/2 проходит. При использовании конечной точки будет включён резервный переход на HTTP/2.</translation>
     </message>
     <message>
         <source>This profile dials %1 instead of its own address. Using an endpoint switches it back to its own address.</source>
@@ -13145,8 +13145,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>HTTP/3 здесь не получает ответа; сканирование продолжается через HTTP/2</translation>
     </message>
     <message>
-        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/2</source>
-        <translation>Этим конечным точкам нужен HTTP/2: выберите HTTP/2 в качестве версии HTTP в профиле</translation>
+        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/3 (fallback to HTTP/2)</source>
+        <translation>Этим конечным точкам нужен HTTP/2: выберите HTTP/3 (с откатом на HTTP/2) в качестве версии HTTP в профиле</translation>
     </message>
 </context>
 <context>

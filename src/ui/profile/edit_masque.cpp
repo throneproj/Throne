@@ -146,6 +146,6 @@ void EditMasque::applyWarpEndpoint(const Configs::IpListEntry &entry, bool http2
         set_edit_text_sni(previous);
     if (set_edit_text_serverAddress) set_edit_text_serverAddress(entry.cidr);
     if (set_edit_text_serverPort) set_edit_text_serverPort(QString::number(entry.port > 0 ? entry.port : kEditMasqueDefaultPort));
-    if (http2) ui->http_version->setCurrentIndex(kHttp2);
+    if (http2 && ui->http_version->currentIndex() == kHttp3Only) ui->http_version->setCurrentIndex(kHttp3Fallback);
     if (ownAddress && use_own_endpoint) use_own_endpoint();
 }

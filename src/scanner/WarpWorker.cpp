@@ -45,7 +45,6 @@ namespace Scanner {
         constexpr int kWarpWorkerAttempts = 3;
         constexpr int kWarpWorkerDiscoveryAddresses = 12;
         constexpr int kWarpWorkerFallbackAddresses = 4;
-        constexpr int kWarpWorkerHttp3Checks = 8;
         // The core dials MASQUE on 443 when the profile has no port.
         constexpr int kWarpWorkerMasqueDefaultPort = 443;
         constexpr int kWarpWorkerPerPrefix = 16;
@@ -146,7 +145,7 @@ namespace Scanner {
             return copy;
         }
 
-        // MASQUE on HTTP/2 or HTTP/3 alone.
+        // MASQUE with http_version set to version; only 3 turns the HTTP/2 fallback off.
         std::shared_ptr<Configs::Profile> warpWorkerHttpCopy(const std::shared_ptr<Configs::Profile> &base, int version) {
             auto copy = warpWorkerCopy(base);
             auto *masque = copy != nullptr ? copy->Masque() : nullptr;
@@ -571,7 +570,6 @@ namespace Scanner {
             return error;
 
         if (masque) {
-            checkHttp3(found);
             tryHttp2(usual, found);
             if (stop_) return {};
         } else {
@@ -645,36 +643,12 @@ namespace Scanner {
         return {};
     }
 
-    // A raced MASQUE profile passes on HTTP/2 alone, yet its tunnels wait out HTTP/3 first, often past the data check bound.
-    void WarpWorker::checkHttp3(const QList<Candidate> &found) {
-        const auto *masque = base_->Masque();
-        if (found.isEmpty() || masque == nullptr || masque->http_version == 2 || masque->disable_version_fallback) return;
-        const auto http3 = warpWorkerProbeJson(warpWorkerHttpCopy(base_, 3));
-        if (http3.isEmpty()) return;
-        auto ranked = found;
-        std::stable_sort(ranked.begin(), ranked.end(), &WarpWorker::better);
-        QList<Target> targets;
-        for (const auto &candidate : std::as_const(ranked)) {
-            if (targets.size() >= kWarpWorkerHttp3Checks) break;
-            if (ipv6Allowed_ || !warpWorkerIsIpv6(candidate.address)) targets << Target{candidate.address, candidate.port};
-        }
-        if (targets.isEmpty()) return;
-        // Straight to the core, past guard(): these just answered, so silence says nothing about the network.
-        const auto raced = std::exchange(probeJson_, http3);
-        const auto batch = probe(targets, kWarpWorkerDiscoveryAttempts);
-        probeJson_ = raced;
-        // Without a clear no, the raced profile stays: it works either way.
-        if (stop_ || batch.aborted || !batch.error.isEmpty() || batch.answered > 0 || batch.failures.isEmpty()) return;
-        const auto copy = warpWorkerHttpCopy(base_, 2);
-        if (const auto json = warpWorkerProbeJson(copy); !json.isEmpty()) useHttp2(copy, json);
-    }
-
-    // An HTTP/3-only profile nothing answered: HTTP/2 over TCP may get through where QUIC is blocked.
+    // An HTTP/3-only profile nothing answered: with the fallback on, HTTP/2 over TCP may get through where QUIC is blocked.
     void WarpWorker::tryHttp2(const QList<Target> &targets, QList<Candidate> &found) {
         const auto *masque = base_->Masque();
         if (!found.isEmpty() || masque == nullptr || masque->http_version == 2 || !masque->disable_version_fallback || stopRuleMet())
             return;
-        const auto copy = warpWorkerHttpCopy(base_, 2);
+        const auto copy = warpWorkerHttpCopy(base_, 0);
         const auto json = warpWorkerProbeJson(copy);
         if (json.isEmpty()) return;
         pushLog(ScanManager::tr("Trying HTTP/2"));
@@ -690,6 +664,7 @@ namespace Scanner {
         useHttp2(copy, json);
     }
 
+    // The copy turns the HTTP/2 fallback on rather than forcing HTTP/2, so HTTP/3 stays in use wherever it works.
     void WarpWorker::useHttp2(const std::shared_ptr<Configs::Profile> &copy, const QString &json) {
         base_ = copy;
         probeJson_ = json;
@@ -1233,7 +1208,7 @@ namespace Scanner {
                            .arg(WarpPresets::kJunkMin)
                            .arg(WarpPresets::kJunkMax);
             else if (http2Mode_)
-                line = ScanManager::tr("These endpoints need HTTP/2: set the profile's HTTP version to HTTP/2");
+                line = ScanManager::tr("These endpoints need HTTP/2: set the profile's HTTP version to HTTP/3 (fallback to HTTP/2)");
             if (!line.isEmpty()) {
                 pushLog(line);
                 mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));

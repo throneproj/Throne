@@ -89,8 +89,8 @@ namespace Scanner {
         out.SetAddress(canonical.section(QLatin1Char('/'), 0, 0));
         if (entry.port > 0 && entry.port <= 65535) out.SetPort(entry.port);
         if (auto *wireguard = profile.Wireguard(); wireguard != nullptr && junk && !wireguard->enable_amnezia) ApplyWarpJunk(*wireguard);
-        if (auto *masque = profile.Masque(); masque != nullptr && http2) {
-            masque->http_version = 2;
+        if (auto *masque = profile.Masque(); masque != nullptr && http2 && masque->http_version != 2) {
+            masque->http_version = 0;
             masque->disable_version_fallback = false;
         }
         if (!Configs::ResolveEndpointSource(Configs::EffectiveEndpointSource(profile)).address.isEmpty())
