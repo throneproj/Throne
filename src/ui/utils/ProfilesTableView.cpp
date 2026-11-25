@@ -4,6 +4,7 @@
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/utils/ServiceIcons.h"
+#include "include/ui/utils/ItemViewFit.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include <QApplication>
 #include <QDragMoveEvent>
@@ -53,9 +54,10 @@ namespace {
 
         QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override {
             const auto items = profilesTableServiceItems(index);
-            if (items.isEmpty()) return QStyledItemDelegate::sizeHint(option, index);
-            const QStyleOptionViewItem cell = serviceCell(option, index, items.size());
-            return profilesTableCellStyle(option)->sizeFromContents(QStyle::CT_ItemViewItem, &cell, QSize(), option.widget);
+            QStyleOptionViewItem cell(option);
+            if (items.isEmpty()) initStyleOption(&cell, index);
+            else cell = serviceCell(option, index, items.size());
+            return ItemViewFit::SizeHint(cell);
         }
 
         bool helpEvent(QHelpEvent *event, QAbstractItemView *view, const QStyleOptionViewItem &option, const QModelIndex &index) override {

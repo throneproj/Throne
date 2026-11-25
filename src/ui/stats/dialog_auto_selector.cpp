@@ -1,6 +1,7 @@
 #include "include/ui/stats/dialog_auto_selector.h"
 
 #include "include/ui/utils/GuiUtils.hpp"
+#include "include/ui/utils/ItemViewFit.h"
 
 #include <QCheckBox>
 #include <QDateTime>
@@ -193,6 +194,7 @@ DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent)
     layout->addLayout(controls);
 
     m_table = new QTableWidget(this);
+    m_table->setItemDelegate(new ItemViewFit::Delegate(m_table));
     m_table->setColumnCount(ColCount);
     m_table->setHorizontalHeaderLabels({"#", tr("Tier"), tr("Profile"), tr("Status"), tr("Latency"),
                                         tr("Checks"), tr("Connects"), tr("Real traffic"), tr("Last OK"), tr("Notes")});

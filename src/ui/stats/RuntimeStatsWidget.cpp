@@ -15,6 +15,7 @@
 #include "include/global/Utils.hpp"
 #include "include/global/ExitLookup.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/utils/ItemViewFit.h"
 #include "include/ui/utils/ServiceCheckHtml.h"
 #include "include/ui/utils/ServiceIcons.h"
 #include "include/ui/widget/LiveChart.h"
@@ -148,6 +149,7 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
 
     ui->groupEndpoints->setVisible(false);
     auto* endpoints = ui->endpointsTable;
+    endpoints->setItemDelegate(new ItemViewFit::Delegate(endpoints));
     endpoints->verticalHeader()->setVisible(false);
     endpoints->setEditTriggers(QAbstractItemView::NoEditTriggers);
     endpoints->setSelectionBehavior(QAbstractItemView::SelectRows);

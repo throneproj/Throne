@@ -674,16 +674,23 @@ namespace Engine::RouteService {
         return std::nullopt;
     }
 
-    std::optional<ServiceError> Commit(const QList<std::shared_ptr<Configs::RouteProfile>> &changed, const QList<int> &removedIds) {
+    std::optional<ServiceError> Commit(const QList<std::shared_ptr<Configs::RouteProfile>> &changed, const QList<int> &removedIds,
+                                       const QList<std::shared_ptr<Configs::RouteProfile>> &order) {
         ENGINE_CHECK_MAIN_THREAD();
-        if (changed.isEmpty() && removedIds.isEmpty()) return std::nullopt;
+        const bool edited = !changed.isEmpty() || !removedIds.isEmpty();
+        if (!edited && order.isEmpty()) return std::nullopt;
         // Read before a delete moves current_route_id elsewhere.
         const int activeId = Configs::ActiveRouteId();
         const bool active = removedIds.contains(activeId) ||
                             std::any_of(changed.cbegin(), changed.cend(), [activeId](const std::shared_ptr<RouteProfile> &route) {
                                 return route->id == activeId;
                             });
-        Configs::dataManager->routesRepo->UpdateRouteProfiles(changed, removedIds);
+        if (edited) Configs::dataManager->routesRepo->UpdateRouteProfiles(changed, removedIds);
+        // After the save, which gives the new ones their ids.
+        QList<int> orderIds;
+        for (const auto &route : order) orderIds << route->id;
+        const bool reordered = !orderIds.isEmpty() && Configs::dataManager->routesRepo->SetRouteProfilesOrder(orderIds);
+        if (!edited && !reordered) return std::nullopt;
         if (auto *engine = host(); engine != nullptr && active) engine->noteRestartNeeded(RestartReason::Routing);
         EngineEvents::RoutesChanged();
         return std::nullopt;

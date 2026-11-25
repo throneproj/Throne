@@ -43,7 +43,8 @@ namespace Engine::RouteService {
     std::optional<ServiceError> Save(const std::shared_ptr<Configs::RouteProfile> &route);
 
     // Main thread, under the Routes edit lock the Routing Settings window holds. Adds the new ones (id < 0, ids assigned),
-    // saves the edited ones and deletes removedIds; notes a Routing restart when the active route is among them, and emits
-    // one RoutesChanged when anything changed.
-    std::optional<ServiceError> Commit(const QList<std::shared_ptr<Configs::RouteProfile>> &changed, const QList<int> &removedIds);
+    // saves the edited ones, deletes removedIds and, given an order, puts the profiles in it; notes a Routing restart when the
+    // active route is among the edited or deleted ones, and emits one RoutesChanged when anything changed.
+    std::optional<ServiceError> Commit(const QList<std::shared_ptr<Configs::RouteProfile>> &changed, const QList<int> &removedIds,
+                                       const QList<std::shared_ptr<Configs::RouteProfile>> &order = {});
 } // namespace Engine::RouteService

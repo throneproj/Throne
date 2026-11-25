@@ -1,5 +1,7 @@
 #include "include/ui/stats/dialog_endpoint_details.h"
 
+#include "include/ui/utils/ItemViewFit.h"
+
 #include <QBrush>
 #include <QClipboard>
 #include <QDateTime>
@@ -25,6 +27,8 @@ DialogEndpointDetails::DialogEndpointDetails(const Stats::VpnEndpointView &view,
     ui->setupUi(this);
 
     auto *table = ui->table;
+    // The value column wraps, and its rows must fit what the style leaves it.
+    table->setItemDelegate(new ItemViewFit::Delegate(table));
     table->setColumnCount(2);
     table->horizontalHeader()->setVisible(false);
     table->verticalHeader()->setVisible(false);

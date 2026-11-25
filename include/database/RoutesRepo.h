@@ -83,9 +83,13 @@ namespace Configs {
         // Saves the list and deletes removedIds; a profile created elsewhere meanwhile is left alone.
         void UpdateRouteProfiles(const QList<std::shared_ptr<RouteProfile>>& routeProfiles, const QList<int>& removedIds);
 
+        // In the user's order, which every list and menu of routing profiles follows.
         QList<int> GetAllRouteProfileIds() const;
 
         QList<std::shared_ptr<RouteProfile>> GetAllRouteProfiles() const;
+
+        // Unknown ids are skipped and unlisted profiles follow in their current order; returns whether the order changed.
+        bool SetRouteProfilesOrder(const QList<int>& ids);
         
         // No-op unless id >= 0.
         bool Save(const std::shared_ptr<RouteProfile>& routeProfile);

@@ -91,6 +91,9 @@ DialogWarpFinder::DialogWarpFinder(std::shared_ptr<Configs::Profile> base_, cons
     resultsView->setUniformRowHeights(true);
     resultsView->setSelectionMode(QAbstractItemView::SingleSelection);
     resultsView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    // windows11 fills a selected row with the accent only in a striped view; unstriped it gets a faint tint.
+    resultsView->setAlternatingRowColors(true);
+    resultsView->setAllColumnsShowFocus(true);
     auto *header = resultsView->header();
     header->setStretchLastSection(false);
     header->setSectionResizeMode(kWarpFinderEndpointColumn, QHeaderView::Stretch);

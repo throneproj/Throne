@@ -82,7 +82,7 @@
           <item row="0" column="0">
            <layout class="QHBoxLayout" name="route_profiles_row">
             <item>
-             <widget class="QListWidget" name="route_profiles"/>
+             <widget class="ReorderListWidget" name="route_profiles"/>
             </item>
             <item>
              <layout class="QVBoxLayout" name="route_buttons">
@@ -767,6 +767,11 @@
    <class>DnsServerListEdit</class>
    <extends>QWidget</extends>
    <header>include/ui/widget/DnsServerListEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ReorderListWidget</class>
+   <extends>QListWidget</extends>
+   <header>include/ui/utils/ReorderListWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

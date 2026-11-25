@@ -686,6 +686,13 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     predefined_dns_text = snapshot_.dns_predefined_rules.join("\n");
     connect(ui->predefined_dns, &QPushButton::clicked, this, &DialogManageRoutes::show_predefined_dns_editor);
     ui->route_profiles->setItemDelegate(new ManageRoutesRadioDelegate(ui->route_profiles));
+    // The order is saved on OK, with the rest of the window.
+    connect(ui->route_profiles, &ReorderListWidget::reorderRequested, this, [this](int from, int to) {
+        if (from < 0 || from >= chainList.size() || to < 0 || to >= chainList.size()) return;
+        chainList.move(from, to);
+        reloadProfileItems();
+        ui->route_profiles->setCurrentRow(to);
+    });
     reloadProfileItems();
 
     connect(ui->route_profiles, &QListWidget::itemDoubleClicked, this, [=,this](const QListWidgetItem* item){
@@ -962,7 +969,7 @@ void DialogManageRoutes::accept() {
     for (const auto &route : chainList) {
         if (route->id < 0 || editedIds.contains(route->id)) changed << route;
     }
-    if (const auto error = Engine::RouteService::Commit(changed, removedIds)) {
+    if (const auto error = Engine::RouteService::Commit(changed, removedIds, chainList)) {
         MessageBoxWarning(windowTitle(), error->message);
         return;
     }
