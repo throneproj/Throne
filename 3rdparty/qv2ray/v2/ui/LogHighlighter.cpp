@@ -2,8 +2,6 @@
 
 namespace Qv2ray::ui {
     namespace {
-        enum class TagKind : quint8 { None, Inbound, Outbound, Dns, Router, App, Other };
-
         struct Span {
             int start = -1;
             int length = 0;
@@ -11,22 +9,22 @@ namespace Qv2ray::ui {
 
         struct Prefix {
             LogLevel level = LogLevel::Info;
-            TagKind kind = TagKind::None;
-            Span time, levelWord, counter, connection, tag;
+            Span time, levelWord, counter, connection, id;
+            quint64 connectionId = 0;
             int bodyStart = 0;
         };
 
         // sing-box: optional "-0700 date time", LEVEL, optional "[secs]" counter, optional "[id duration]", optional "tag: ".
         const QRegularExpression &singBoxPrefix() {
             static const QRegularExpression re(QStringLiteral(
-                R"re(^(?:([+-]\d{4} \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?) )?(TRACE|DEBUG|INFO|WARN|ERROR|FATAL|PANIC)(?=[\[ ]|$)(\[\d+\])? ?(?:(\[\d+ \d[\d.m]*s\]) )?(?:([a-z][\w-]*(?:/[\w-]+)?(?:\[[^\]]*\])?): )?)re"));
+                R"re(^(?:([+-]\d{4} \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?) )?(TRACE|DEBUG|INFO|WARN|ERROR|FATAL|PANIC)(?=[\[ ]|$)(\[\d+\])? ?(?:(\[(\d+) \d[\d.m]*s\]) )?(?:[a-z][\w-]*(?:/[\w-]+)?(?:\[[^\]]*\])?: )?)re"));
             return re;
         }
 
         // Xray and Go's standard logger: "yyyy/mm/dd hh:mm:ss[.us]", optional "[Level]", "[id]" and "component/path: ".
         const QRegularExpression &xrayPrefix() {
             static const QRegularExpression re(QStringLiteral(
-                R"re(^(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?) (?:\[(Debug|Info|Warning|Error)\] )?(?:(\[\d+\]) )?(?:((?:[\w-]+/)+[\w-]+): )?)re"));
+                R"re(^(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?) (?:\[(Debug|Info|Warning|Error)\] )?(?:(\[(\d+)\]) )?(?:(?:[\w-]+/)+[\w-]+: )?)re"));
             return re;
         }
 
@@ -37,12 +35,7 @@ namespace Qv2ray::ui {
 
         const QRegularExpression &bodyTokens() {
             static const QRegularExpression re(QStringLiteral(
-                R"re((\b(?:NOERROR|NXDOMAIN|SERVFAIL|REFUSED|FORMERR|NOTIMP)\b))re"
-                R"re(|(=> (?:route|route-options|resolve|sniff)(?:\([^)]*\))?|=> (?:reject|direct|block|bypass|hijack-dns)\b|\b(?:accepted|rejected)\b))re"
-                R"re(|(\b(?:tcp|udp):(?=[\w\[])))re"
-                R"re(|((?:\[[0-9A-Fa-f:.]+(?:%\w+)?\]|\b(?:\d{1,3}\.){3}\d{1,3}|\b(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z][A-Za-z0-9-]{1,62}))re"
-                R"re(:(?:6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|[1-9]\d{0,3})(?![\w.])))re"
-                R"re(|(\b(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z][A-Za-z0-9-]{1,62}\b))re"));
+                R"re((\b(?:NXDOMAIN|SERVFAIL|REFUSED|FORMERR|NOTIMP)\b)|(=> (?:reject|block)\b|\brejected\b))re"));
             return re;
         }
 
@@ -61,12 +54,13 @@ namespace Qv2ray::ui {
             return LogLevel::Info;
         }
 
-        TagKind kindOf(QStringView tag) {
-            if (tag.startsWith(u"inbound")) return TagKind::Inbound;
-            if (tag.contains(u"outbound") || tag.startsWith(u"proxy/")) return TagKind::Outbound;
-            if (tag.startsWith(u"dns") || tag.contains(u"/dns")) return TagKind::Dns;
-            if (tag.startsWith(u"router") || tag.contains(u"/router") || tag.contains(u"dispatcher")) return TagKind::Router;
-            return TagKind::Other;
+        void readConnection(Prefix &p, const QRegularExpressionMatch &match, int bracketGroup, int idGroup) {
+            if (match.capturedStart(idGroup) < 0) return;
+            p.connection = span(match, bracketGroup);
+            p.id = span(match, idGroup);
+            bool ok = false;
+            p.connectionId = match.capturedView(idGroup).toULongLong(&ok);
+            if (!ok) p.connectionId = qHash(match.capturedView(idGroup));
         }
 
         Prefix parsePrefix(const QString &text) {
@@ -77,8 +71,7 @@ namespace Qv2ray::ui {
                 const auto match = throneParts().match(text);
                 if (match.hasMatch()) {
                     p.level = levelFromWord(match.capturedView(1));
-                    p.kind = TagKind::App;
-                    p.tag = {0, static_cast<int>(match.capturedLength(0)) - 1};
+                    p.levelWord = {0, static_cast<int>(match.capturedLength(0)) - 1};
                     p.bodyStart = static_cast<int>(match.capturedLength(0));
                 }
                 return p;
@@ -91,11 +84,7 @@ namespace Qv2ray::ui {
                         p.level = levelFromWord(match.capturedView(2));
                         p.levelWord = span(match, 2);
                     }
-                    p.connection = span(match, 3);
-                    if (match.capturedStart(4) >= 0) {
-                        p.tag = span(match, 4);
-                        p.kind = kindOf(match.capturedView(4));
-                    }
+                    readConnection(p, match, 3, 4);
                     p.bodyStart = static_cast<int>(match.capturedLength(0));
                 }
                 return p;
@@ -107,11 +96,7 @@ namespace Qv2ray::ui {
                     p.level = levelFromWord(match.capturedView(2));
                     p.levelWord = span(match, 2);
                     p.counter = span(match, 3);
-                    p.connection = span(match, 4);
-                    if (match.capturedStart(5) >= 0) {
-                        p.tag = span(match, 5);
-                        p.kind = kindOf(match.capturedView(5));
-                    }
+                    readConnection(p, match, 4, 5);
                     p.bodyStart = static_cast<int>(match.capturedLength(0));
                 }
             }
@@ -132,22 +117,12 @@ namespace Qv2ray::ui {
 
     SyntaxHighlighter::SyntaxHighlighter(const LogColors &colors, QTextDocument *parent) : QSyntaxHighlighter(parent) {
         mutedFormat = makeFormat(colors.muted);
-        levelWordFormats = {makeFormat(colors.muted), makeFormat(colors.info, QFont::DemiBold),
-                            makeFormat(colors.warn, QFont::Bold), makeFormat(colors.error, QFont::Bold)};
+        levelWordFormats = {makeFormat(colors.muted), makeFormat(colors.info), makeFormat(colors.warn, QFont::Bold),
+                            makeFormat(colors.error, QFont::Bold)};
         levelTextFormats = {QTextCharFormat(), QTextCharFormat(), makeFormat(colors.warn), makeFormat(colors.error)};
-        inboundFormat = makeFormat(colors.inbound, QFont::DemiBold);
-        outboundFormat = makeFormat(colors.outbound, QFont::DemiBold);
-        dnsFormat = makeFormat(colors.dns, QFont::DemiBold);
-        routerFormat = makeFormat(colors.router, QFont::DemiBold);
-        appFormat = makeFormat(colors.text, QFont::Bold);
-        otherFormat = makeFormat(colors.other, QFont::DemiBold);
-        hostPortFormat = makeFormat(colors.host, QFont::DemiBold);
-        hostFormat = makeFormat(colors.host);
-        protocolFormat = makeFormat(colors.muted, QFont::DemiBold);
-        okFormat = makeFormat(colors.ok, QFont::DemiBold);
-        warnTokenFormat = makeFormat(colors.warn, QFont::DemiBold);
-        errorTokenFormat = makeFormat(colors.error, QFont::DemiBold);
-        infoTokenFormat = makeFormat(colors.info, QFont::DemiBold);
+        for (const auto &color : colors.connections) connectionFormats.append(makeFormat(color));
+        warnTokenFormat = makeFormat(colors.warn);
+        errorTokenFormat = makeFormat(colors.error);
         searchFormat.setBackground(colors.searchBackground);
         searchFormat.setForeground(colors.searchForeground);
     }
@@ -165,15 +140,7 @@ namespace Qv2ray::ui {
         paint(p.levelWord, levelWordFormats[static_cast<int>(p.level)]);
         paint(p.counter, mutedFormat);
         paint(p.connection, mutedFormat);
-        switch (p.kind) {
-            case TagKind::Inbound: paint(p.tag, inboundFormat); break;
-            case TagKind::Outbound: paint(p.tag, outboundFormat); break;
-            case TagKind::Dns: paint(p.tag, dnsFormat); break;
-            case TagKind::Router: paint(p.tag, routerFormat); break;
-            case TagKind::App: paint(p.tag, appFormat); break;
-            case TagKind::Other: paint(p.tag, otherFormat); break;
-            case TagKind::None: break;
-        }
+        if (!connectionFormats.isEmpty()) paint(p.id, connectionFormats[static_cast<qsizetype>(p.connectionId % connectionFormats.size())]);
 
         const int bodyStart = p.bodyStart;
         if (p.level == LogLevel::Warn || p.level == LogLevel::Error) {
@@ -183,28 +150,11 @@ namespace Qv2ray::ui {
             if (from < text.size()) setFormat(from, static_cast<int>(text.size()) - from, levelTextFormats[static_cast<int>(p.level)]);
         }
 
-        const bool bareHosts = p.kind == TagKind::Dns || text.indexOf(QLatin1String("domain"), bodyStart) >= 0;
         auto tokens = bodyTokens().globalMatch(text, bodyStart);
         while (tokens.hasNext()) {
             const auto match = tokens.next();
-            const int start = static_cast<int>(match.capturedStart(0));
-            const int length = static_cast<int>(match.capturedLength(0));
-            if (match.capturedStart(1) >= 0) {
-                const auto rcode = match.capturedView(1);
-                setFormat(start, length, rcode == u"NOERROR" ? okFormat : rcode == u"NXDOMAIN" ? warnTokenFormat : errorTokenFormat);
-            } else if (match.capturedStart(2) >= 0) {
-                const auto action = match.capturedView(2);
-                if (action.contains(u"reject") || action.contains(u"block")) setFormat(start, length, errorTokenFormat);
-                else if (action.contains(u"direct") || action.contains(u"accepted") || action.contains(u"bypass")) setFormat(start, length, okFormat);
-                else if (action.startsWith(u"=> route(")) setFormat(start, length, infoTokenFormat);
-                else setFormat(start, length, protocolFormat);
-            } else if (match.capturedStart(3) >= 0) {
-                setFormat(start, length, protocolFormat);
-            } else if (match.capturedStart(4) >= 0) {
-                setFormat(start, length, hostPortFormat);
-            } else if (bareHosts) {
-                setFormat(start, length, hostFormat);
-            }
+            const bool nxdomain = match.capturedView(1) == u"NXDOMAIN";
+            setFormat(static_cast<int>(match.capturedStart(0)), static_cast<int>(match.capturedLength(0)), nxdomain ? warnTokenFormat : errorTokenFormat);
         }
 
         // Last, so search hits paint over the syntax colors.

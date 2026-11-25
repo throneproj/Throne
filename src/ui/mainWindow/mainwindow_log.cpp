@@ -79,6 +79,18 @@ namespace {
                 calmLogColor(tokens.danger, tokens.onSurface, 0.55f)};
     }
 
+    // Evenly spaced hues at one lightness, each walked to the same contrast so no connection reads louder.
+    QList<QColor> connectionColors(const QColor &surface) {
+        constexpr int count = 16;
+        const float lightness = surface.lightnessF() < 0.5f ? 0.66f : 0.42f;
+        QList<QColor> colors;
+        colors.reserve(count);
+        for (int i = 0; i < count; ++i) {
+            colors.append(ContrastSeparated(QColor::fromHslF(static_cast<float>(i) / count, 0.5f, lightness), surface, 4.0));
+        }
+        return colors;
+    }
+
     QPixmap levelDotPixmap(const QColor &color, int size, qreal dpr) {
         QPixmap pixmap(QSize(size, size) * dpr);
         pixmap.setDevicePixelRatio(dpr);
@@ -121,18 +133,11 @@ void MainWindow::setLogHighlighter(bool darkMode) {
     const auto &tokens = themeManager()->tokens;
     const auto levels = logLevelColors(tokens);
     Qv2ray::ui::LogColors colors;
-    colors.text = tokens.onSurface;
     colors.muted = levels[0];
     colors.info = levels[1];
     colors.warn = levels[2];
     colors.error = levels[3];
-    colors.ok = tokens.success;
-    colors.host = mixColors(tokens.info, tokens.onSurface, 0.35f);
-    colors.inbound = tokens.chartSeries[2];
-    colors.outbound = tokens.chartSeries[4];
-    colors.dns = tokens.chartSeries[1];
-    colors.router = tokens.chartSeries[3];
-    colors.other = tokens.chartContext;
+    colors.connections = connectionColors(tokens.surface);
     colors.searchBackground = darkMode ? QColor(150, 110, 0) : QColor(255, 225, 90);
     colors.searchForeground = darkMode ? QColor(Qt::white) : QColor(Qt::black);
 

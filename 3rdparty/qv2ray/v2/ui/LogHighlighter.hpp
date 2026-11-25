@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QList>
 #include <QRegularExpression>
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
@@ -10,8 +11,9 @@ namespace Qv2ray::ui {
     enum class LogLevel : quint8 { Debug, Info, Warn, Error };
 
     struct LogColors {
-        QColor text, muted, info, warn, error, ok, host;
-        QColor inbound, outbound, dns, router, other;
+        QColor muted, info, warn, error;
+        // One is picked per connection id, so every line of a connection shares it.
+        QList<QColor> connections;
         QColor searchBackground, searchForeground;
     };
 
@@ -34,9 +36,8 @@ namespace Qv2ray::ui {
         QTextCharFormat mutedFormat;
         std::array<QTextCharFormat, 4> levelWordFormats;
         std::array<QTextCharFormat, 4> levelTextFormats;
-        QTextCharFormat inboundFormat, outboundFormat, dnsFormat, routerFormat, appFormat, otherFormat;
-        QTextCharFormat hostPortFormat, hostFormat, protocolFormat;
-        QTextCharFormat okFormat, warnTokenFormat, errorTokenFormat, infoTokenFormat;
+        QList<QTextCharFormat> connectionFormats;
+        QTextCharFormat warnTokenFormat, errorTokenFormat;
         QTextCharFormat searchFormat;
         QRegularExpression searchPattern;
     };
