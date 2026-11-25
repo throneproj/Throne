@@ -14,9 +14,9 @@ require (
 	github.com/sagernet/gomobile v0.1.13
 	github.com/sagernet/nftables v0.3.0-mod.4.0.20261114074246-0b310c3e010b
 	github.com/sagernet/quic-go v0.61.0-sing-box-mod.15
-	github.com/sagernet/sing v0.9.7-0.20261124080605-951be67f90df
+	github.com/sagernet/sing v0.9.7-0.20261125122036-9b11dbe28a7d
 	github.com/sagernet/sing-box v1.15.0-alpha.13
-	github.com/sagernet/sing-tun v0.9.7-0.20261124071936-e6de6ac90099
+	github.com/sagernet/sing-tun v0.9.7-0.20261125154233-2e93ae4ab5ab
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55
 	github.com/xtls/xray-core v1.260327.1-0.20260908222543-52a412d9e2f5
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
@@ -29,13 +29,13 @@ require (
 
 replace github.com/xtls/xray-core => github.com/throneproj/xray-core v1.251015.1-0.20261113120537-eea0cb078b79
 
-replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20261125001412-8f1c92bdcf35
+replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20261125173118-bb639805dbd4
 
-replace github.com/sagernet/wireguard-go => github.com/throneproj/wireguard-go v0.0.0-20261112143559-827ce83a4eed
+replace github.com/sagernet/wireguard-go => github.com/throneproj/wireguard-go v0.0.0-20261125171605-f0b599c95a2a
 
-replace github.com/sagernet/sing => github.com/throneproj/sing v0.9.4-0.20261124191429-42da4537a24e
+replace github.com/sagernet/sing => github.com/throneproj/sing v0.9.4-0.20261125171526-5979c7963e80
 
-replace github.com/sagernet/sing-openvpn => github.com/throneproj/sing-openvpn v0.1.1-0.20261124193421-24edd96c0581
+replace github.com/sagernet/sing-openvpn => github.com/throneproj/sing-openvpn v0.1.1-0.20261125171531-a4fa5f58f661
 
 replace github.com/metacubex/utls => github.com/throneproj/utls v0.0.0-20261122110438-55d28d9fd9a0
 
@@ -163,22 +163,22 @@ require (
 	github.com/sagernet/fswatch v0.1.2 // indirect
 	github.com/sagernet/gliderssh v0.3.4-0.20261023092853-e0cad6d28647 // indirect
 	github.com/sagernet/gvisor v0.0.0-20260727.0-sing-box-mod.1 // indirect
-	github.com/sagernet/netlink v0.0.0-20261116064630-4ea47d5d44b1 // indirect
+	github.com/sagernet/netlink v0.0.0-20261125120807-b006b90aa077 // indirect
 	github.com/sagernet/sing-anytls v0.0.0-20261124060518-f3865241cc12 // indirect
-	github.com/sagernet/sing-cloudflared v0.1.4-0.20261108120326-83391fb7b139 // indirect
-	github.com/sagernet/sing-mux v0.3.10-0.20261110064256-375087483ea2 // indirect
+	github.com/sagernet/sing-cloudflared v0.1.4-0.20261125132439-71e2e5ed8ed0 // indirect
+	github.com/sagernet/sing-mux v0.3.10-0.20261125130604-1dd833b8fc3a // indirect
 	github.com/sagernet/sing-openconnect v0.1.1-0.20261119021124-31db24231feb // indirect
-	github.com/sagernet/sing-openvpn v0.1.1-0.20261110111939-ad7a6ce7d11b // indirect
+	github.com/sagernet/sing-openvpn v0.1.1-0.20261125120933-28a40b4ceb1f // indirect
 	github.com/sagernet/sing-quic v0.7.2-0.20261124143824-14ca3448d44b // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.9-0.20260929204512-65740e0f0e3e // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.2-0.20261110092058-52ade8ab7e95 // indirect
-	github.com/sagernet/sing-shadowtls v0.2.2-0.20261124075649-a054b440e435 // indirect
-	github.com/sagernet/sing-snell v0.0.0-20261110094602-04667b0a321c // indirect
+	github.com/sagernet/sing-shadowtls v0.2.2-0.20261125124310-5028b2558ebf // indirect
+	github.com/sagernet/sing-snell v0.0.0-20261125120456-6dfe590430a8 // indirect
 	github.com/sagernet/sing-usbip v0.0.0-20260817040617-28bd42667eca // indirect
 	github.com/sagernet/sing-vmess v0.2.9-0.20261124075649-4acc92a6f6c6 // indirect
 	github.com/sagernet/smux v1.5.50-sing-box-mod.1 // indirect
 	github.com/sagernet/tailscale v1.102.1-sing-box-1.14-mod.5.0.20261028024127-670967df7dbf // indirect
-	github.com/sagernet/wireguard-go v0.0.8-0.20261022215849-fdf0ad046586 // indirect
+	github.com/sagernet/wireguard-go v0.0.8-0.20261125120826-57cdac3d7d2c // indirect
 	github.com/sagernet/ws v0.0.0-20231204124109-acfe8907c854 // indirect
 	github.com/smallstep/pkcs7 v0.1.1 // indirect
 	github.com/tailscale/certstore v0.1.1-0.20260409135935-3638fb84b77d // indirect
