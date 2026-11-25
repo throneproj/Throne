@@ -17,6 +17,7 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 	R "github.com/sagernet/sing-box/route/rule"
+	"github.com/sagernet/sing/common"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/json/badoption"
@@ -387,9 +388,26 @@ func strip(options *option.Options, keepCacheFile bool) strippedConfig {
 		kept = append(kept, rule)
 		stripped.indexes = append(stripped.indexes, i)
 	}
-	options.Route.Rules = kept
+	options.Route.Rules = common.Map(kept, withoutResolveServer)
 	stripped.rules = kept
 	return stripped
+}
+
+// sing-box refuses to start when a resolve action names a DNS server it does not have.
+func withoutResolveServer(rule option.Rule) option.Rule {
+	if rule.Type == C.RuleTypeLogical {
+		rule.LogicalOptions.ResolveOptions.Server = ""
+	} else {
+		rule.DefaultOptions.ResolveOptions.Server = ""
+	}
+	return rule
+}
+
+func resolveServerOf(rule option.Rule) string {
+	if rule.Type == C.RuleTypeLogical {
+		return rule.LogicalOptions.ResolveOptions.Server
+	}
+	return rule.DefaultOptions.ResolveOptions.Server
 }
 
 // sing-box names an untagged entry by its index.
@@ -592,7 +610,7 @@ func (w *ruleWalk) run(ctx context.Context, metadata *adapter.InboundContext) (s
 			notes = append(notes, w.sniff(metadata, action, step)...)
 		case *R.RuleActionResolve:
 			var note string
-			note, failed = w.resolveStep(ctx, metadata, action, step)
+			note, failed = w.resolveStep(ctx, metadata, action, w.resolveServer(i, action), step)
 			if note != "" {
 				notes = append(notes, note)
 			}
@@ -677,12 +695,20 @@ func (w *ruleWalk) sniff(metadata *adapter.InboundContext, action *R.RuleActionS
 	return nil
 }
 
-func (w *ruleWalk) resolveStep(ctx context.Context, metadata *adapter.InboundContext, action *R.RuleActionResolve, step *Step) (note string, failed bool) {
+// The stripped box was built without resolve servers, so the configured one comes from the rule's options.
+func (w *ruleWalk) resolveServer(i int, action *R.RuleActionResolve) string {
+	if w.stripped && i < len(w.options) {
+		return resolveServerOf(w.options[i])
+	}
+	return action.Server
+}
+
+func (w *ruleWalk) resolveStep(ctx context.Context, metadata *adapter.InboundContext, action *R.RuleActionResolve, server string, step *Step) (note string, failed bool) {
 	if !metadata.Destination.IsDomain() {
 		return "nothing to resolve: the destination is not a domain", false
 	}
-	if w.stripped && action.Server != "" {
-		note = "the stripped config has no DNS server " + action.Server + ", so the system resolver was asked"
+	if w.stripped && server != "" {
+		note = "the stripped config has no DNS server " + server + ", so the system resolver was asked"
 	}
 	addresses, err := w.resolve(ctx, metadata, action)
 	if err != nil {
