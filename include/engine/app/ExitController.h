@@ -42,7 +42,7 @@ namespace Engine {
         // it (#1961). Unattended takes only None and Restart. False while one is queued or an exit is in progress.
         bool requestExit(ExitReason reason, bool unattended = true);
 
-        // Idempotent; prepare_exit's order, KillSwitch::shutdown() last.
+        // Idempotent; prepare_exit's order, KillSwitch::shutdown() once the core is gone, then the profile writes drained.
         void shutdown(bool interactive = true);
 
         // remember_* from the live state, then Save(); a no-op for the database once noSave is set.

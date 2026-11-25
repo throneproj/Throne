@@ -3,7 +3,7 @@ module ThroneCore
 go 1.27
 
 require (
-	github.com/Mahdi-zarei/speedtest-go v1.7.13-0.20260107171856-79c565dfd83a
+	github.com/Mahdi-zarei/speedtest-go v1.7.13-0.20261125001431-254983598f6d
 	github.com/andybalholm/brotli v1.2.7
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-ole/go-ole v1.3.0
@@ -29,7 +29,7 @@ require (
 
 replace github.com/xtls/xray-core => github.com/throneproj/xray-core v1.251015.1-0.20261113120537-eea0cb078b79
 
-replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20261125000652-93a20d14b6e6
+replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20261125001412-8f1c92bdcf35
 
 replace github.com/sagernet/wireguard-go => github.com/throneproj/wireguard-go v0.0.0-20261112143559-827ce83a4eed
 

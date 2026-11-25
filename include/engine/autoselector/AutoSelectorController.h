@@ -26,9 +26,11 @@ namespace Engine {
         // Main thread, once the core's RPC is up; later calls are no-ops. The poll thread never exits.
         void startMonitorLoop();
 
-        // Main thread, from the start path. True when it went off-thread to rank; resume then runs on main, once enough members work or
-        // the sweep ends, and must re-enter start, which skips ranking.
-        bool rankBeforeStart(const std::shared_ptr<Configs::Profile> &ent, bool interactive, const std::function<void()> &resume);
+        // Main thread, from the start path. True when it went off-thread to plan or rank; resume then runs on main, once the plan
+        // needs no sweep, enough members work or the sweep ends, and must re-enter start, which skips ranking. No sweep starts
+        // once wanted() turns false.
+        bool rankBeforeStart(const std::shared_ptr<Configs::Profile> &ent, bool interactive, const std::function<bool()> &wanted,
+                             const std::function<void()> &resume);
 
         // Any thread (start worker), once the core accepted the config; an empty list puts the monitor back to sleep.
         void noteBuilt(const std::shared_ptr<Configs::Profile> &ent, const QList<Configs::AutoSelectorBuildInfo> &builds);

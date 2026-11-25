@@ -185,12 +185,50 @@ namespace Engine {
             }
             requestStart(resolved);
         };
-        if (m_autoSelector->rankBeforeStart(ent, resolved.interactive, resume)) return;
+        const auto wanted = [this, intent] { return intent == m_intentToken.load(); };
+        if (m_autoSelector->rankBeforeStart(ent, resolved.interactive, wanted, resume)) return;
+
+        if (m_startInFlight.exchange(true)) {
+            failStart(resolved, StartOutcome::Busy, QStringLiteral("Throne"), MainWindowTr::tr("Another profile is starting..."));
+            return;
+        }
+        // The previous start's body has ended, but its end has still to run on this thread.
+        if (m_state->connecting) {
+            m_startInFlight = false;
+            failStart(resolved, StartOutcome::Busy, QStringLiteral("Throne"), MainWindowTr::tr("Another profile is starting..."));
+            return;
+        }
+        if (m_stopInFlight) {
+            m_startInFlight = false;
+            failStart(resolved, StartOutcome::Busy, QStringLiteral("Throne"), MainWindowTr::tr("Another profile is stopping..."));
+            return;
+        }
 
         // Restart reasons noted after this point are newer than the config this start runs.
         const quint64 hintEpoch = m_state->restartEpoch;
-        const auto result = Configs::BuildSingBoxConfig(ent);
+        // Claimed through the build as through the body: another start is refused and a stop is held.
+        m_state->connecting = true;
+        syncState();
+        emit busyChanged();
+        runOnNewThread([=, this] {
+            const auto result = Configs::BuildSingBoxConfig(ent);
+            QMetaObject::invokeMethod(this, [=, this] { startBuilt(resolved, ent, intent, hintEpoch, result); }, Qt::QueuedConnection);
+        });
+    }
+
+    void StartCoordinator::startBuilt(const StartRequest &resolved, const std::shared_ptr<Configs::Profile> &ent, quint64 intent,
+                                      quint64 hintEpoch, const std::shared_ptr<Configs::BuildConfigResult> &result) {
+        ENGINE_CHECK_MAIN_THREAD();
+        const bool exiting = Configs::dataManager->settingsRepo->prepare_exit;
+        if (exiting || (m_heldStop.has_value() && m_heldStop->user)) {
+            m_startInFlight = false;
+            endStart(false);
+            emit startFinished(resolved.serial, resolved.profileId, exiting ? StartOutcome::Exiting : StartOutcome::Superseded, {});
+            return;
+        }
         if (!result->error.isEmpty()) {
+            m_startInFlight = false;
+            endStart(false);
             failStart(resolved, StartOutcome::BuildFailed, MainWindowTr::tr("BuildConfig return error"), result->error);
             return;
         }
@@ -324,24 +362,17 @@ namespace Engine {
             return true;
         };
 
-        if (m_startInFlight.exchange(true)) {
-            failStart(resolved, StartOutcome::Busy, QStringLiteral("Throne"), MainWindowTr::tr("Another profile is starting..."));
-            return;
-        }
-        // The previous start's body has ended, but its end has still to run on this thread.
-        if (m_state->connecting) {
-            m_startInFlight = false;
-            failStart(resolved, StartOutcome::Busy, QStringLiteral("Throne"), MainWindowTr::tr("Another profile is starting..."));
-            return;
-        }
+        // Crash stops are never held, so one can be accepted while the config builds.
         if (m_stopInFlight) {
             m_startInFlight = false;
+            endStart(false);
             failStart(resolved, StartOutcome::Busy, QStringLiteral("Throne"), MainWindowTr::tr("Another profile is stopping..."));
             return;
         }
 
         if (m_core->awaitingCoreStarted()) {
             m_startInFlight = false;
+            endStart(false);
             // coreStarted for the accepted core is still to come, and the start it carries would switch away from this one.
             deferToCore(resolved, Wake::AlreadyComing);
             return;
@@ -349,6 +380,7 @@ namespace Engine {
 
         if (!Configs::dataManager->settingsRepo->core_running) {
             m_startInFlight = false;
+            endStart(false);
             if (!m_core->canStartCore()) {
                 failStart(resolved, StartOutcome::CoreUnavailable, QStringLiteral("Throne"), m_core->lastFailure());
                 return;
@@ -366,12 +398,6 @@ namespace Engine {
             ? policy()->slowOperation(Engine::SlowOperationKind::Start, slowStartMs)
             : Engine::SlowOperation{};
 
-        runOnUiThread([this] {
-            m_state->connecting = true;
-            syncState();
-            emit busyChanged();
-        });
-
         // Queued first, so the previous profile's teardown has run before the Start RPC.
         const bool switching = m_state->running() != nullptr;
         if (switching) acceptStop({.manual = true, .interactive = resolved.interactive, .keepIntent = true}, true, {});
@@ -385,22 +411,27 @@ namespace Engine {
             m_startInFlight = false;
             runOnUiThread([=, this] {
                 slowStart.dismiss();
-                m_state->connecting = false;
-                // Before syncState(), so the state goes from Connecting straight to Stopping.
-                if (auto held = std::exchange(m_heldStop, std::nullopt)) {
-                    std::function<void()> done;
-                    if (!held->done.isEmpty()) {
-                        done = [callbacks = held->done] {
-                            for (const auto &callback : callbacks) callback();
-                        };
-                    }
-                    decideStop(held->options, done);
-                }
-                if (!started) clearRestartNeeded();
-                syncState();
-                emit busyChanged();
+                endStart(!started);
             });
         });
+    }
+
+    void StartCoordinator::endStart(bool clearReasons) {
+        ENGINE_CHECK_MAIN_THREAD();
+        m_state->connecting = false;
+        // Before syncState(), so the state goes from Connecting straight to Stopping.
+        if (auto held = std::exchange(m_heldStop, std::nullopt)) {
+            std::function<void()> done;
+            if (!held->done.isEmpty()) {
+                done = [callbacks = held->done] {
+                    for (const auto &callback : callbacks) callback();
+                };
+            }
+            decideStop(held->options, done);
+        }
+        if (clearReasons) clearRestartNeeded();
+        syncState();
+        emit busyChanged();
     }
 
     void StartCoordinator::requestStop(const StopOptions &options) {
@@ -479,7 +510,10 @@ namespace Engine {
             m_heldStop->options.interactive = m_heldStop->options.interactive || options.interactive;
         }
         if (done) m_heldStop->done.append(done);
-        if (userStop) applyUserStop();
+        if (userStop) {
+            m_heldStop->user = true;
+            applyUserStop();
+        }
         if (!first) return;
         MW_show_log(MainWindowTr::tr("Stop requested; the profile stops once its start finishes."));
         emit busyChanged();

@@ -9,6 +9,7 @@
 #include <QTextCursor>
 
 #include <algorithm>
+#include <memory>
 
 #include "3rdparty/qv2ray/v2/ui/LogHighlighter.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
@@ -414,14 +415,10 @@ void MainWindow::updateLogStatus() {
 }
 
 void MainWindow::on_masterLogBrowser_customContextMenuRequested(const QPoint &pos) {
-    QMenu *menu = ui->masterLogBrowser->createStandardContextMenu();
+    const std::unique_ptr<QMenu> menu(ui->masterLogBrowser->createStandardContextMenu());
+    menu->addSeparator();
 
-    auto sep = new QAction(this);
-    sep->setSeparator(true);
-    menu->addAction(sep);
-
-    auto action_clear = new QAction(this);
-    action_clear->setText(tr("Clear"));
+    auto *action_clear = menu->addAction(tr("Clear"));
     connect(action_clear, &QAction::triggered, this, [=,this] {
         {
             // Otherwise a flush already in flight repaints what was just cleared.
@@ -435,7 +432,6 @@ void MainWindow::on_masterLogBrowser_customContextMenuRequested(const QPoint &po
         m_logFollow = true;
         updateLogStatus();
     });
-    menu->addAction(action_clear);
 
     menu->exec(ui->masterLogBrowser->viewport()->mapToGlobal(pos));
 }

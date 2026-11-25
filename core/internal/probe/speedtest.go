@@ -18,7 +18,10 @@ import (
 var SpTQuerier SpeedTestResultQuerier
 var CountryResults resultBuffer[SpeedTestResult]
 
-const speedtestSampleInterval = 50 * time.Millisecond
+const (
+	speedtestSampleInterval = 50 * time.Millisecond
+	speedtestTimeout        = 5 * time.Second
+)
 
 type SpeedTestResult struct {
 	Tag           string
@@ -218,6 +221,9 @@ func simpleDownloadTest(ctx context.Context, dialer func(ctx context.Context, ne
 }
 
 func speedTestWithDialer(ctx context.Context, dialer func(ctx context.Context, network string, address string) (net.Conn, error), res *SpeedTestResult, testDl, testUl bool, timeout time.Duration) error {
+	if timeout <= 0 {
+		timeout = speedtestTimeout
+	}
 	srv, closeClient, err := getSpeedtestServer(ctx, dialer)
 	if err != nil {
 		return err

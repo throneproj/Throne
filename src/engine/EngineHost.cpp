@@ -137,6 +137,10 @@ namespace Engine {
             target(__func__)->testSessionBusy(text);
         }
 
+        void testsInconclusive(const QList<int> &profileIds) override {
+            target(__func__)->testsInconclusive(profileIds);
+        }
+
         void exitProgram(ExitReason reason, bool unattended) override {
             target(__func__)->exitProgram(reason, unattended);
         }

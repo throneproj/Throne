@@ -115,14 +115,17 @@ namespace Configs {
         QString buildAutoSelectorGroup(BuildContext &ctx, const std::shared_ptr<Profile> &selectorEnt, const SelectorGroupRequest &req)
         {
             const auto &settings = *dataManager->settingsRepo;
-            auto selector = selectorEnt->AutoSelector();
-            if (selector == nullptr)
+            auto *live = selectorEnt->AutoSelector();
+            if (live == nullptr)
             {
                 ctx.error = "Ent is nullptr after cast to auto selector, data is corrupted";
                 return {};
             }
-            selector->Normalize();
-            const auto plan = PlanAutoSelector(selectorEnt);
+            // A copy: Normalize() writes even when it changes nothing, and other threads read the live bean.
+            auto normalized = *live;
+            normalized.Normalize();
+            const auto *selector = &normalized;
+            const auto plan = selectorPlan(ctx, selectorEnt);
             if (!plan.error.isEmpty())
             {
                 ctx.error = plan.error;

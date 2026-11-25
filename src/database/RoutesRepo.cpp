@@ -434,6 +434,16 @@ namespace Configs {
         return RouteDns::FromJson(doc.object());
     }
 
+    std::optional<QString> RoutesRepo::GetRouteProfileName(int id) const {
+        QMutexLocker locker(&mutex);
+        if (auto it = identityMap.find(id); it != identityMap.end()) {
+            if (auto shared = it->second.lock()) return shared->name;
+        }
+        auto query = db.query("SELECT name FROM route_profiles WHERE id = ?", id);
+        if (!query || !query->executeStep()) return std::nullopt;
+        return QString::fromStdString(query->getColumn(0).getText());
+    }
+
     bool RoutesRepo::HasRouteProfile(int id) const {
         if (id < 0) return false;
         QMutexLocker locker(&mutex);

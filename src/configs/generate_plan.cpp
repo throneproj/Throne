@@ -135,25 +135,32 @@ namespace Configs {
             return nullptr;
         }
 
+        AutoSelectorPlan selectorPlan(BuildContext &ctx, const std::shared_ptr<Profile> &selectorEnt) {
+            if (const auto it = ctx.selectorPlans.constFind(selectorEnt->id); it != ctx.selectorPlans.cend()) return *it;
+            const auto plan = PlanAutoSelector(selectorEnt);
+            ctx.selectorPlans.insert(selectorEnt->id, plan);
+            return plan;
+        }
+
     } // namespace gen
 
     namespace {
 
         // Decided up front: the sidecar's DNS carve-outs must be in place before the first connection.
-        bool proxyPathUsesXray(const std::shared_ptr<Profile> &ent)
+        bool proxyPathUsesXray(BuildContext &ctx, const std::shared_ptr<Profile> &ent)
         {
             if (ent->type == "chain") {
                 if (auto chain = ent->Chain(); chain != nullptr) {
                     for (int pid : chain->list) {
                         auto hop = getProfile(pid);
                         if (hop == nullptr) continue;
-                        if (hop->type == "autoselector" ? proxyPathUsesXray(hop) : usesXrayCore(hop)) return true;
+                        if (hop->type == "autoselector" ? proxyPathUsesXray(ctx, hop) : usesXrayCore(hop)) return true;
                     }
                 }
                 return false;
             }
             if (ent->type == "autoselector") {
-                const auto plan = PlanAutoSelector(ent);
+                const auto plan = selectorPlan(ctx, ent);
                 for (int pid : plan.build) {
                     auto member = getProfile(pid);
                     if (member != nullptr && usesXrayCore(member)) return true;
@@ -201,7 +208,7 @@ namespace Configs {
             preReqs.routing.outboundMap[-2] = tags::direct;
             preReqs.routing.outboundMap[warpBypassID] = exitWrapperOn() ? tags::warpBypass : tags::proxy;
             int suffix = 0;
-            if (proxyPathUsesXray(ctx.ent)) ctx.proxyUsesXray = true;
+            if (proxyPathUsesXray(ctx, ctx.ent)) ctx.proxyUsesXray = true;
             for (const auto &item: *neededOutbounds) {
                 if (item < 0) continue;
                 auto neededEnt = getProfile(item);
@@ -271,10 +278,10 @@ namespace Configs {
                 const auto entHopIDs = unwrapChain(ctx.ent->id);
                 for (int hopID : entHopIDs) usedProfileIDs << hopID;
                 auto entGroupProxyIDs = ctx.ent->type == "autoselector"
-                                            ? memberGroupProxyIDs(PlanAutoSelector(ctx.ent).build)
+                                            ? memberGroupProxyIDs(selectorPlan(ctx, ctx.ent).build)
                                             : groupProxyIDs(ctx.ent->gid);
                 if (const auto selectorHop = chainSelectorHop(ctx.ent); selectorHop != nullptr)
-                    entGroupProxyIDs << memberGroupProxyIDs(PlanAutoSelector(selectorHop).build);
+                    entGroupProxyIDs << memberGroupProxyIDs(selectorPlan(ctx, selectorHop).build);
                 for (int proxyID : entGroupProxyIDs) usedProfileIDs << proxyID;
                 int auxSuffix = 0;
                 for (int endpointID : routeChain->endpointProfileIDs) {

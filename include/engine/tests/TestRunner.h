@@ -31,7 +31,8 @@ namespace Engine {
         // Any thread; the running profile, or null.
         using RunningSnapshot = std::function<std::shared_ptr<Configs::Profile>()>;
 
-        // Test threads, after each stored URL result (a profile may report twice); a late result poll can still call it after onFinished.
+        // Main thread, once per profile after its URL result is applied, never for an inconclusive one; a late result poll
+        // can still call it after onFinished.
         using ResultHook = std::function<void(const std::shared_ptr<Configs::Profile>&)>;
 
         struct ChainStepResult {
@@ -121,15 +122,6 @@ namespace Engine {
 
         void runServiceProbe(const Target& target, const std::shared_ptr<const ServiceChecks::Definitions>& definitions);
 
-        // These return false for an aborted result, which changes and saves nothing.
-        bool applyUrlResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::URLTestResp& res,
-                            const QHash<QString, bool>* vpnConnected = nullptr);
-
-        bool applyIpResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::IPTestRes& res);
-
-        void applyServiceResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::ServiceTestResult& res,
-                                const QList<ServiceChecks::Category>& categories);
-
         void reportSessionBusy(bool interactive) const;
 
         void reportProbeFailure(const QString& failedText, const QString& coreError, int contextID) const;
@@ -161,6 +153,10 @@ namespace Engine {
         std::atomic<bool> testingCurrent_ = false;
         // The running session's flag: an unattended session never prompts for geo assets.
         std::atomic<bool> interactive_ = true;
+
+        // The running URL session's profiles whose failure the core put down to the local network.
+        QMutex inconclusiveMu_;
+        QList<int> inconclusive_;
 
         // Tests bypass the clash tracker, so their bytes are counted only here, diffed per tag.
         QMutex creditMu_;

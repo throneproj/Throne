@@ -954,9 +954,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(qApp, &QGuiApplication::commitDataRequest, this, &MainWindow::on_commitDataRequest);
 
-    auto t = new QTimer;
-    connect(t, &QTimer::timeout, this, [=,this]() { refresh_status(); });
-    t->start(2000);
+    auto *statusTimer = new QTimer(this);
+    // Hidden or minimized, the window is not seen, so the poll keeps only the tray current.
+    connect(statusTimer, &QTimer::timeout, this, [this] {
+        if (isVisible() && !isMinimized()) {
+            refresh_status();
+        } else {
+            refresh_tray_tooltip();
+            refresh_startstop_button();
+        }
+    });
+    statusTimer->start(2000);
 
     m_proxyListRefreshDebounce = new QTimer(this);
     m_proxyListRefreshDebounce->setSingleShot(true);

@@ -13,6 +13,7 @@
 #include <memory>
 #include <optional>
 
+#include "include/configs/AutoSelectorPlan.h"
 #include "include/configs/generate.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/xrayStreamSetting.h"
@@ -199,6 +200,8 @@ namespace Configs {
             HopNeeds needs;
             QList<QString> vpnAuxTags;
             BridgeSet bridges;
+            // Filled by selectorPlan(): a selector is planned once per build, so the prerequisites and its group agree on members.
+            QHash<int, AutoSelectorPlan> selectorPlans;
             std::shared_ptr<BuildConfigResult> result = std::make_shared<BuildConfigResult>();
         };
 
@@ -293,6 +296,7 @@ namespace Configs {
         std::shared_ptr<Profile> scanDeepClone(const std::shared_ptr<Profile> &base);
 
         std::shared_ptr<Profile> chainSelectorHop(const std::shared_ptr<Profile> &ent);
+        AutoSelectorPlan selectorPlan(BuildContext &ctx, const std::shared_ptr<Profile> &selectorEnt);
         void calculatePrerequisites(BuildContext &ctx);
         QList<int> unwrapChain(int entID);
 

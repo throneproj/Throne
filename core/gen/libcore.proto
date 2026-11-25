@@ -12,6 +12,7 @@ service LibcoreService {
   rpc QueryURLTest(EmptyReq) returns (QueryURLTestResponse);
   rpc QueryStats(EmptyReq) returns (QueryStatsResp);
   rpc QueryConnections(EmptyReq) returns (QueryConnectionsResp);
+  rpc QueryConnectionCount(EmptyReq) returns (QueryConnectionCountResp);
   rpc CloseConnections(CloseConnectionsRequest) returns (CloseConnectionsResponse);
   rpc ListProcesses(EmptyReq) returns (ListProcessesResponse);
   //
@@ -97,6 +98,8 @@ message URLTestResp {
   optional string outbound_tag = 1 [default = ""];
   optional int32 latency_ms = 2 [default = 0 ];
   optional string error = 3 [default = ""];
+  // Failed because the local network did, so the error says nothing about the server.
+  optional bool inconclusive = 4 [default = false];
 }
 
 message TestReq {
@@ -221,6 +224,12 @@ message QueryStatsResp{
 message QueryConnectionsResp {
   repeated ConnectionMetaData active = 1;
   repeated ConnectionMetaData closed = 2;
+}
+
+// Live connections only.
+message QueryConnectionCountResp {
+  optional int32 tcp = 1 [default = 0];
+  optional int32 udp = 2 [default = 0];
 }
 
 message ConnectionMetaData {

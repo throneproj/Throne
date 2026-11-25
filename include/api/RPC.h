@@ -69,6 +69,8 @@ namespace API {
 
         [[nodiscard]] libcore::QueryConnectionsResp QueryConnections() const;
 
+        [[nodiscard]] libcore::QueryConnectionCountResp QueryConnectionCount(bool *rpcOK) const;
+
         // Ids already gone are a no-op; closedCount (optional) receives how many were actually live.
         QString CloseConnections(bool *rpcOK, const QStringList &ids, int *closedCount = nullptr) const;
 
@@ -84,7 +86,7 @@ namespace API {
         // IsPrivileged with the core's capability fields (IsPrivilegedResponse 2-5).
         PrivilegeInfo Privileges(bool *rpcOK, int timeoutMs = 0) const;
 
-        libcore::SpeedTestResponse SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request, QString *coreError = nullptr);
+        libcore::SpeedTestResponse SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request, QString *coreError = nullptr, int timeoutMs = 0);
 
         libcore::QuerySpeedTestResponse QueryCurrentSpeedTests(bool *rpcOK);
 

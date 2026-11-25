@@ -2,6 +2,7 @@ package probe
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -70,5 +71,8 @@ func urlTest(ctx context.Context, client *http.Client, url string, timeout time.
 	// A body closed before EOF costs the connection, and the timed request would dial cold again.
 	_, _ = io.CopyN(io.Discard, resp.Body, urlTestDrainLimit)
 	_ = resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		return 0, fmt.Errorf("unexpected status %s", resp.Status)
+	}
 	return duration, nil
 }

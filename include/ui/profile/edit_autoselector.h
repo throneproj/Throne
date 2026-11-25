@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QPointer>
+#include <QTimer>
 #include <QWidget>
 #include "profile_editor.h"
 #include "ui_edit_autoselector.h"
@@ -10,6 +11,10 @@ namespace Ui {
     class EditAutoSelector;
 }
 QT_END_NAMESPACE
+
+namespace Configs {
+    struct AutoSelectorPlan;
+}
 
 class EditAutoSelector : public QWidget, public ProfileEditor {
     Q_OBJECT
@@ -32,12 +37,20 @@ private:
     bool m_loading = false;
     // Stored groups that no longer exist: only previewed, saving drops them.
     QList<int> m_missingGids;
+    QTimer *m_planTimer = nullptr;
+    quint64 m_planGeneration = 0;
 
     [[nodiscard]] QList<int> checkedGroupIDs() const;
 
     void fillGroups(const QList<int> &tracked);
 
+    // Debounced planNow().
     void refreshPlanSummary();
+
+    // Plans the form's values on a worker thread; only the newest result reaches showPlan().
+    void planNow();
+
+    void showPlan(const Configs::AutoSelectorPlan &plan, bool prioritized);
 
     [[nodiscard]] bool prioritySelected() const;
 

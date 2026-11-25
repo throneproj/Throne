@@ -16,6 +16,7 @@
 
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QDeadlineTimer>
 #include <QSemaphore>
 #include <QSet>
 #include <QThread>
@@ -83,6 +84,112 @@ namespace Engine {
         int testRunnerResolveEntID(const QMap<QString, int>& tag2entID, const std::string& tag, int fallback) {
             if (tag2entID.isEmpty()) return fallback;
             return tag2entID.value(QString::fromStdString(tag), -1);
+        }
+
+        // Mirror the core's FetchServersTimeout, its server pings and speedtestTimeout; the slack covers building and closing
+        // the test box.
+        constexpr int kTestRunnerSpeedServerListMs = 8000;
+        constexpr int kTestRunnerSpeedPingMs = 4000;
+        constexpr int kTestRunnerSpeedPhaseMs = 5000;
+        constexpr int kTestRunnerSpeedSlackMs = 20000;
+        constexpr int kTestRunnerSpeedStopWaitMs = 5000;
+
+        // A deadline short of the core's own leaves it testing under the tag the next profile reuses.
+        int testRunnerSpeedRpcTimeoutMs(const libcore::SpeedTestRequest& req) {
+            const bool simple = req.simple_download.value();
+            const qint64 phaseMs = req.timeout_ms.value() > 0 ? req.timeout_ms.value()
+                                   : simple                   ? kTestRunnerCoreDefaultTimeoutMs
+                                                              : kTestRunnerSpeedPhaseMs;
+            qint64 total = kTestRunnerSpeedSlackMs;
+            if (simple) {
+                total += phaseMs;
+            } else {
+                total += kTestRunnerSpeedServerListMs + kTestRunnerSpeedPingMs;
+                if (req.test_download.value()) total += phaseMs;
+                if (req.test_upload.value()) total += phaseMs;
+            }
+            return static_cast<int>(qMin<qint64>(total, std::numeric_limits<int>::max()));
+        }
+
+        // For a speed test the GUI gave up on: cancels it and waits, bounded, until the core reports it over.
+        void testRunnerStopSpeedTest() {
+            bool ok = false;
+            API::defaultClient->StopTests(&ok);
+            if (!ok) return;
+            const QDeadlineTimer deadline(kTestRunnerSpeedStopWaitMs);
+            while (!deadline.hasExpired()) {
+                bool queried = false;
+                const auto state = API::defaultClient->QueryCurrentSpeedTests(&queried);
+                if (!queried || !state.is_running.value()) return;
+                QThread::msleep(kTestRunnerSpeedPollIntervalMs);
+            }
+        }
+
+        constexpr int kTestRunnerResultsWaitMs = 15000;
+
+        // Returns once the results queued to the main thread before the call are set and saved; bounded, as a main thread
+        // that is shutting down never gets to them.
+        void testRunnerAwaitResults() {
+            auto* app = QCoreApplication::instance();
+            if (app == nullptr || QThread::currentThread() == app->thread()) return;
+            const auto reached = std::make_shared<QSemaphore>();
+            runOnUiThread([reached] { reached->release(); });
+            if (!reached->tryAcquire(1, kTestRunnerResultsWaitMs)) return;
+            // What runs after a test may load a profile from the database instead of the identity map.
+            Configs::dataManager->profilesRepo->WaitForWrites(kTestRunnerResultsWaitMs);
+        }
+
+        // A profile's new result fields, decided on a test thread and set on the main thread.
+        struct TestRunnerUpdate {
+            std::shared_ptr<Configs::Profile> ent;
+            std::function<void(Configs::Profile&)> set;
+        };
+
+        using TestRunnerUpdates = QList<TestRunnerUpdate>;
+
+        // Queued, never waited for: a pool thread blocked on the main thread can deadlock the pool's shutdown.
+        void testRunnerApply(TestObserver* observer, TestRunnerUpdates updates, Configs::ProfileColumns columns,
+                             const TestRunner::ResultHook& onResult = {}) {
+            if (updates.isEmpty()) return;
+            runOnUiThread([observer, updates = std::move(updates), columns, onResult] {
+                QList<std::shared_ptr<Configs::Profile>> applied;
+                QList<int> ids;
+                for (const auto& [ent, set] : updates) {
+                    set(*ent);
+                    applied << ent;
+                    ids << ent->id;
+                }
+                Configs::dataManager->profilesRepo->SaveColumns(applied, columns);
+                observer->testedProfilesChanged(ids);
+                if (!onResult) return;
+                for (const auto& ent : applied) onResult(ent);
+            });
+        }
+
+        // For a result that is not aborted; a failed lookup clears the old exit.
+        TestRunnerUpdate testRunnerIpUpdate(const std::shared_ptr<Configs::Profile>& ent, const libcore::IPTestRes& res) {
+            if (const auto error = QString::fromStdString(res.error.value()); !error.isEmpty()) {
+                MW_show_log(MainWindowTr::tr("[%1] Exit IP test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
+                return {ent, [](Configs::Profile& p) {
+                    p.ip_out.clear();
+                    p.test_country.clear();
+                }};
+            }
+            return {ent, [ip = QString::fromStdString(res.ip.value()), country = QString::fromStdString(res.country_code.value())](Configs::Profile& p) {
+                p.ip_out = ip;
+                p.test_country = country;
+            }};
+        }
+
+        // For a check that is not aborted.
+        TestRunnerUpdate testRunnerServiceUpdate(const std::shared_ptr<Configs::Profile>& ent, const libcore::ServiceTestResult& res,
+                                                 const QList<ServiceChecks::Category>& categories) {
+            if (const auto error = QString::fromStdString(res.error.value()); !error.isEmpty()) {
+                MW_show_log(MainWindowTr::tr("[%1] service check error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
+            }
+            return {ent, [json = ServiceChecks::ResultJson(res, categories, QDateTime::currentSecsSinceEpoch())](Configs::Profile& p) {
+                p.service_checks = json;
+            }};
         }
 
         constexpr int kTestRunnerServiceBatchSize = 25;
@@ -210,50 +317,6 @@ namespace Engine {
         MW_show_log(failedText.arg(coreError.isEmpty() ? MainWindowTr::tr("The core did not answer the test") : coreError));
     }
 
-    bool TestRunner::applyUrlResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::URLTestResp& res,
-                                    const QHash<QString, bool>* vpnConnected) {
-        const auto error = QString::fromStdString(res.error.value());
-        if (testRunnerIsTestAborted(error)) return false;
-        if (error.isEmpty()) {
-            ent->SetLatency(res.latency_ms.value());
-        } else if (vpnConnected != nullptr && testRunnerIsVpnProfile(ent)
-                   && vpnConnected->value(QString::fromStdString(res.outbound_tag.value()), false)) {
-            ent->SetLatency(Configs::kLatencyConnectOnly);
-        } else {
-            ent->SetLatency(-1);
-            MW_show_log(MainWindowTr::tr("[%1] test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
-        }
-        Configs::dataManager->profilesRepo->Save(ent);
-        return true;
-    }
-
-    bool TestRunner::applyIpResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::IPTestRes& res) {
-        const auto error = QString::fromStdString(res.error.value());
-        if (testRunnerIsTestAborted(error)) return false;
-        if (error.isEmpty()) {
-            ent->ip_out = QString::fromStdString(res.ip.value());
-            ent->test_country = QString::fromStdString(res.country_code.value());
-        } else {
-            MW_show_log(MainWindowTr::tr("[%1] Exit IP test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
-            ent->ip_out.clear();
-            ent->test_country.clear();
-        }
-        Configs::dataManager->profilesRepo->Save(ent);
-        return true;
-    }
-
-    void TestRunner::applyServiceResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::ServiceTestResult& res,
-                                        const QList<ServiceChecks::Category>& categories) {
-        const auto error = QString::fromStdString(res.error.value());
-        // An aborted check says nothing about the profile, so its previous one stays.
-        if (testRunnerIsTestAborted(error)) return;
-        if (!error.isEmpty()) {
-            MW_show_log(MainWindowTr::tr("[%1] service check error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
-        }
-        ent->service_checks = ServiceChecks::ResultJson(res, categories, QDateTime::currentSecsSinceEpoch());
-        Configs::dataManager->profilesRepo->Save(ent);
-    }
-
     void TestRunner::runUrlProbe(const Target& target) {
         if (stopRequested_.load()) {
             MW_show_log(MainWindowTr::tr("Profile test aborted"));
@@ -273,11 +336,12 @@ namespace Engine {
             }
         }
 
+        const auto claimed = std::make_shared<TestRunnerClaimedTags>();
         bool rpcOK = false;
         QString coreError;
         libcore::TestResp result;
         {
-            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, onResult = target.onResult] {
+            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, onResult = target.onResult, claimed] {
                 if (staleGen(gen)) return;
                 bool ok = false;
                 const auto resp = API::defaultClient->QueryURLTest(&ok);
@@ -285,20 +349,21 @@ namespace Engine {
                 if (staleGen(gen)) return;
                 if (!ok || resp.results.empty()) return;
 
-                QList<int> updated;
+                TestRunnerUpdates updates;
                 for (const auto& res : resp.results) {
                     observer_->testProgressed();
                     observer_->testViewChanged(false);
+                    // Only the final reply tells a failed profile from a failed local network.
+                    if (!res.error.value().empty()) continue;
                     const int entid = testRunnerResolveEntID(tag2entID, res.outbound_tag.value(), -1);
                     if (entid == -1) continue;
                     auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
-                    if (ent == nullptr || !applyUrlResult(ent, res)) continue;
-                    if (onResult) onResult(ent);
-                    updated << entid;
+                    if (ent == nullptr || !claimed->claim(QString::fromStdString(res.outbound_tag.value()))) continue;
+                    updates.append({ent, [ms = res.latency_ms.value()](Configs::Profile& p) { p.SetLatency(ms); }});
                 }
-                if (updated.isEmpty()) return;
+                if (updates.isEmpty()) return;
                 observer_->testViewChanged(true);
-                runOnUiThread([=, this] { observer_->testedProfilesChanged(updated); });
+                testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::Latency, onResult);
             }, kTestRunnerLatencyPollIntervalMs);
 
             result = API::defaultClient->Test(&rpcOK, req, &coreError,
@@ -316,6 +381,8 @@ namespace Engine {
             vpnConnected.insert(QString::fromStdString(st.tag.value()), st.connected.value());
         }
 
+        TestRunnerUpdates updates;
+        QList<int> inconclusive;
         for (const auto& res : result.results) {
             const int entid = testRunnerResolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
             if (entid == -1) {
@@ -327,9 +394,27 @@ namespace Engine {
                 MW_show_log(MainWindowTr::tr("Profile manager data is corrupted, try again."));
                 continue;
             }
-            if (!applyUrlResult(ent, res, &vpnConnected)) continue;
-            if (target.onResult) target.onResult(ent);
+            const auto tag = QString::fromStdString(res.outbound_tag.value());
+            const auto error = QString::fromStdString(res.error.value());
+            if (testRunnerIsTestAborted(error) || !claimed->claim(tag)) continue;
+            int latency = -1;
+            if (error.isEmpty()) {
+                latency = res.latency_ms.value();
+            } else if (testRunnerIsVpnProfile(ent) && vpnConnected.value(tag, false)) {
+                latency = Configs::kLatencyConnectOnly;
+            } else if (res.inconclusive.value()) {
+                inconclusive << entid;
+                continue;
+            } else {
+                MW_show_log(MainWindowTr::tr("[%1] test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
+            }
+            updates.append({ent, [latency](Configs::Profile& p) { p.SetLatency(latency); }});
         }
+        if (!inconclusive.isEmpty()) {
+            QMutexLocker locker(&inconclusiveMu_);
+            inconclusive_ << inconclusive;
+        }
+        testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::Latency, target.onResult);
     }
 
     void TestRunner::runIpProbe(const Target& target) {
@@ -344,30 +429,32 @@ namespace Engine {
         req.test_timeout_ms = Configs::dataManager->settingsRepo->url_test_timeout_ms;
         req.provider = Configs::dataManager->settingsRepo->exit_lookup_provider.toStdString();
 
+        const auto claimed = std::make_shared<TestRunnerClaimedTags>();
         bool rpcOK = false;
         QString coreError;
         libcore::IPTestResp result;
         {
-            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID] {
+            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, claimed] {
                 if (staleGen(gen)) return;
                 bool ok = false;
                 const auto resp = API::defaultClient->QueryIPTest(&ok);
                 if (staleGen(gen)) return;
                 if (!ok || resp.results.empty()) return;
 
-                QList<int> updated;
+                TestRunnerUpdates updates;
                 for (const auto& res : resp.results) {
                     observer_->testProgressed();
                     observer_->testViewChanged(false);
+                    if (testRunnerIsTestAborted(QString::fromStdString(res.error.value()))) continue;
                     const int entid = testRunnerResolveEntID(tag2entID, res.outbound_tag.value(), -1);
                     if (entid == -1) continue;
                     auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
-                    if (ent == nullptr || !applyIpResult(ent, res)) continue;
-                    updated << entid;
+                    if (ent == nullptr || !claimed->claim(QString::fromStdString(res.outbound_tag.value()))) continue;
+                    updates << testRunnerIpUpdate(ent, res);
                 }
-                if (updated.isEmpty()) return;
+                if (updates.isEmpty()) return;
                 observer_->testViewChanged(true);
-                runOnUiThread([=, this] { observer_->testedProfilesChanged(updated); });
+                testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::ExitIp);
             }, kTestRunnerLatencyPollIntervalMs);
 
             result = API::defaultClient->IPTest(&rpcOK, req, &coreError,
@@ -380,6 +467,7 @@ namespace Engine {
             return;
         }
 
+        TestRunnerUpdates updates;
         for (const auto& res : result.results) {
             const int entid = testRunnerResolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
             if (entid == -1) {
@@ -391,8 +479,11 @@ namespace Engine {
                 MW_show_log(MainWindowTr::tr("Profile manager data is corrupted, try again."));
                 continue;
             }
-            applyIpResult(ent, res);
+            if (testRunnerIsTestAborted(QString::fromStdString(res.error.value()))) continue;
+            if (!claimed->claim(QString::fromStdString(res.outbound_tag.value()))) continue;
+            updates << testRunnerIpUpdate(ent, res);
         }
+        testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::ExitIp);
     }
 
     void TestRunner::runServiceProbe(const Target& target, const std::shared_ptr<const ServiceChecks::Definitions>& definitions) {
@@ -424,7 +515,7 @@ namespace Engine {
                 if (staleGen(gen)) return;
                 if (!ok || resp.results.empty()) return;
 
-                QList<int> updated;
+                TestRunnerUpdates updates;
                 for (const auto& res : resp.results) {
                     const int entid = testRunnerResolveEntID(tag2entID, res.outbound_tag.value(), -1);
                     if (entid == -1) continue;
@@ -432,12 +523,13 @@ namespace Engine {
                     if (ent == nullptr || !claimed->claim(QString::fromStdString(res.outbound_tag.value()))) continue;
                     observer_->testProgressed();
                     observer_->testViewChanged(false);
-                    applyServiceResult(ent, res, definitions->categories);
-                    updated << entid;
+                    // An aborted check says nothing about the profile, so its previous one stays.
+                    if (testRunnerIsTestAborted(QString::fromStdString(res.error.value()))) continue;
+                    updates << testRunnerServiceUpdate(ent, res, definitions->categories);
                 }
-                if (updated.isEmpty()) return;
+                if (updates.isEmpty()) return;
                 observer_->testViewChanged(true);
-                runOnUiThread([=, this] { observer_->testedProfilesChanged(updated); });
+                testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::ServiceChecks);
             }, kTestRunnerLatencyPollIntervalMs);
 
             result = API::defaultClient->ServiceTest(&rpcOK, req, &coreError, testRunnerServiceRpcTimeoutMs(target.outboundTags.size()));
@@ -450,6 +542,7 @@ namespace Engine {
 
         // The live instance changed under the check, so its answers may describe another exit.
         if (target.testCurrent && runningProfileId() != target.entID) return;
+        TestRunnerUpdates updates;
         for (const auto& res : result.results) {
             const int entid = testRunnerResolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
             if (entid == -1) {
@@ -463,8 +556,10 @@ namespace Engine {
             }
             if (!claimed->claim(QString::fromStdString(res.outbound_tag.value()))) continue;
             observer_->testProgressed();
-            applyServiceResult(ent, res, definitions->categories);
+            if (testRunnerIsTestAborted(QString::fromStdString(res.error.value()))) continue;
+            updates << testRunnerServiceUpdate(ent, res, definitions->categories);
         }
+        testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::ServiceChecks);
     }
 
     bool TestRunner::runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive,
@@ -641,15 +736,27 @@ namespace Engine {
                 for (const auto& profile : profiles) tested[profile->gid] << profile->id;
                 runBatch(profiles, profileIDsSlice);
             }
+            // Results are set on the main thread, and everything below reads them.
+            testRunnerAwaitResults();
             // Once the run is over, so rows do not jump while results stream in.
             Configs::RepositionLater(tested, Configs::SortInput::TestResult);
+
+            QList<int> inconclusive;
+            {
+                QMutexLocker locker(&inconclusiveMu_);
+                inconclusive.swap(inconclusive_);
+            }
+            const QSet<int> kept(inconclusive.cbegin(), inconclusive.cend());
 
             // Read before unlocking: the next session resets stopRequested_. A hook means ranking, which never deletes members.
             QList<int> clearable;
             if (isUrl && !onResult && !stopRequested_.load()) {
                 for (auto it = tested.cbegin(); it != tested.cend(); ++it) {
                     const auto group = Configs::dataManager->groupsRepo->GetGroup(it.key());
-                    if (group != nullptr && group->auto_clear_unavailable) clearable << it.value();
+                    if (group == nullptr || !group->auto_clear_unavailable) continue;
+                    for (const int id : it.value()) {
+                        if (!kept.contains(id)) clearable << id;
+                    }
                 }
             }
 
@@ -664,6 +771,11 @@ namespace Engine {
                 runOnUiThread([clearable] {
                     ProfileService::RemoveUnavailable(clearable);
                 });
+            }
+            if (!inconclusive.isEmpty()) {
+                MW_show_log(MainWindowTr::tr("%n profile(s) could not be tested because the network was unavailable. Their earlier results were kept.",
+                                             nullptr, static_cast<int>(inconclusive.size())));
+                if (!onResult) runOnUiThread([this, inconclusive] { policy_->testsInconclusive(inconclusive); });
             }
             MW_show_log(isUrl ? MainWindowTr::tr("URL test finished!") : MainWindowTr::tr("Exit IP test finished!"));
         });
@@ -764,6 +876,8 @@ namespace Engine {
                 runOnUiThread([=, this] { observer_->testedProfilesChanged(ids); });
             }
 
+            // Results are set on the main thread, and onFinished may read them.
+            testRunnerAwaitResults();
             observer_->testPanelsCleared();
             observer_->testViewChanged(true);
             session_.unlock();
@@ -844,6 +958,8 @@ namespace Engine {
                 testingCurrent_.store(false);
                 if (const auto running = runningSnapshot_()) tested[running->gid] << running->id;
             }
+            // Results are set on the main thread, and everything below reads them.
+            testRunnerAwaitResults();
             // A speed test also credits the traffic it moved.
             Configs::RepositionLater(tested, Configs::SortInput::TestResult);
             Configs::RepositionLater(tested, Configs::SortInput::Traffic);
@@ -947,17 +1063,19 @@ namespace Engine {
                 pollSpeedTest(tag2entID, testCurrent, gen);
             }, kTestRunnerSpeedPollIntervalMs);
 
-            result = API::defaultClient->SpeedTest(&rpcOK, req, &coreError);
+            result = API::defaultClient->SpeedTest(&rpcOK, req, &coreError, testRunnerSpeedRpcTimeoutMs(req));
         }
         // A tick still in flight must not show partial speeds after the result.
         sessionGen_.fetch_add(1);
 
         if (!rpcOK) {
+            testRunnerStopSpeedTest();
             restorePolledSpeeds({});
             reportProbeFailure(MainWindowTr::tr("Speed test failed: %1"), coreError, contextID);
             return;
         }
 
+        TestRunnerUpdates updates;
         QSet<int> stored;
         for (const auto& res : result.results) {
             const int entid = target.testCurrent
@@ -981,17 +1099,21 @@ namespace Engine {
             // A stop during the server lookup comes back with neither an error nor a speed.
             const bool measured = !error.isEmpty() || !res.dl_speed.value().empty() || !res.ul_speed.value().empty();
             if (res.cancelled.value() || testRunnerIsTestAborted(error) || !measured) continue;
+            QString dl = QStringLiteral("N/A");
+            QString ul = dl;
             if (error.isEmpty()) {
-                ent->dl_speed = QString::fromStdString(res.dl_speed.value());
-                ent->ul_speed = QString::fromStdString(res.ul_speed.value());
+                dl = QString::fromStdString(res.dl_speed.value());
+                ul = QString::fromStdString(res.ul_speed.value());
             } else {
-                ent->dl_speed = "N/A";
-                ent->ul_speed = "N/A";
                 MW_show_log(MainWindowTr::tr("[%1] speed test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
             }
-            Configs::dataManager->profilesRepo->Save(ent);
+            updates.append({ent, [dl, ul](Configs::Profile& p) {
+                p.dl_speed = dl;
+                p.ul_speed = ul;
+            }});
             stored.insert(entid);
         }
+        testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::Speed);
         restorePolledSpeeds(stored);
     }
 

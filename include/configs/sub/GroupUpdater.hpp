@@ -134,7 +134,8 @@ namespace Subscription {
         UpdateOutcome refresh(int gid, Surface surface);
         void applyRefresh(const std::shared_ptr<Configs::Group> &group, const QString &url, QByteArray body,
                           const Configs::SubUserInfo &subInfo, Surface surface, UpdateOutcome &result);
-        void afterUrlTest(int gid);
+        // testedSince: only a profile whose latency is at least this new failed this test.
+        void afterUrlTest(int gid, qint64 testedSince);
         void afterCountryTest(int gid, bool interactive);
         // The post-update URL test, when the group asks for one.
         void startUrlTest(int gid, const QList<int> &profileIDs, bool interactive);

@@ -1,4 +1,5 @@
 #include "include/database/ProfilesRepo.h"
+#include <QSemaphore>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -12,8 +13,61 @@
 
 
 namespace Configs {
+    namespace {
+        constexpr auto kProfilesRepoUpdateSql = R"(
+            UPDATE profiles SET
+                type = ?, name = ?, gid = ?, latency = ?, latency_at = ?, dl_speed = ?, ul_speed = ?, test_country = ?,
+                ip_out = ?, outbound_json = ?, traffic_dl = ?, traffic_up = ?, endpoint_json = ?, service_checks = ?,
+                updated_at = strftime('%s', 'now')
+            WHERE id = ?
+        )";
+
+        void profilesRepoBindUpdate(SQLite::Statement& stmt, const ProfileInsertRow& row) {
+            int i = 1;
+            stmt.bind(i++, row.type);
+            stmt.bind(i++, row.name);
+            stmt.bind(i++, row.gid);
+            stmt.bind(i++, row.latency);
+            stmt.bind(i++, static_cast<int64_t>(row.latency_at));
+            stmt.bind(i++, row.dl_speed);
+            stmt.bind(i++, row.ul_speed);
+            stmt.bind(i++, row.test_country);
+            stmt.bind(i++, row.ip_out);
+            stmt.bind(i++, row.outbound_json);
+            stmt.bind(i++, static_cast<int64_t>(row.traffic_dl));
+            stmt.bind(i++, static_cast<int64_t>(row.traffic_up));
+            stmt.bind(i++, row.endpoint_json);
+            stmt.bind(i++, row.service_checks);
+            stmt.bind(i, row.id);
+        }
+
+        struct ProfilesRepoColumnRow {
+            int id = -1;
+            int latency = 0;
+            long long latencyAt = 0;
+            std::string ipOut;
+            std::string testCountry;
+            std::string dlSpeed;
+            std::string ulSpeed;
+            std::string serviceChecks;
+        };
+    } // namespace
+
     ProfilesRepo::ProfilesRepo(Database& database) : db(database) {
+        writer.setMaxThreadCount(1);
+        writer.setExpiryTimeout(-1);
         createTables();
+    }
+
+    ProfilesRepo::~ProfilesRepo() {
+        writer.waitForDone();
+    }
+
+    bool ProfilesRepo::WaitForWrites(int timeoutMs) {
+        // The writer is ordered, so once this marker runs, every write queued before it has landed.
+        const auto reached = std::make_shared<QSemaphore>();
+        writer.start([reached] { reached->release(); });
+        return reached->tryAcquire(1, timeoutMs);
     }
 
     void ProfilesRepo::createTables() const {
@@ -158,6 +212,19 @@ namespace Configs {
         row.endpoint_json = QJsonDocument(profile->endpoint.ToJson()).toJson(QJsonDocument::Compact).toStdString();
         row.service_checks = profile->service_checks.toStdString();
         return row;
+    }
+
+    int ProfilesRepo::updateRow(const ProfileInsertRow& row) const {
+        try {
+            const auto stmt = db.queryThrow(kProfilesRepoUpdateSql);
+            profilesRepoBindUpdate(*stmt, row);
+            const int changed = stmt->exec();
+            db.countWrites(1);
+            return changed;
+        } catch (const std::exception& e) {
+            NotifyError("ProfilesRepo::Save", e);
+            return -1;
+        }
     }
 
     std::shared_ptr<Profile> ProfilesRepo::profileFromRow(SQLite::Statement& stmt) const {
@@ -452,10 +519,7 @@ namespace Configs {
         QMutexLocker locker(&mutex);
         QList<int> deletedIds;
         if (!deleteRows(deletedIds)) return false;
-        for (const int id : deletedIds) {
-            identityMap.erase(id);
-            tombstones.insert(id);
-        }
+        for (const int id : deletedIds) identityMap.erase(id);
         ++revision;
         return true;
     }
@@ -515,17 +579,18 @@ namespace Configs {
         if (!profile || profile->id < 0) {
             return false;
         }
-        
-        {
-            QMutexLocker locker(&mutex);
-            if (!tombstones.contains(profile->id)) {
-                saveToDatabase(profile.get(), profile->id);
-                identityMap[profile->id] = std::weak_ptr<Profile>(profile);
-                ++revision;
-                return true;
-            }
+        const auto row = profileToInsertRow(profile.get(), profile->id, profile->gid);
+
+        QMutexLocker locker(&mutex);
+        // Under the lock: a row deleted after the UPDATE must not come back through the identity map.
+        const int changed = updateRow(row);
+        if (changed > 0) {
+            identityMap[profile->id] = std::weak_ptr<Profile>(profile);
+            ++revision;
+            return true;
         }
-        LOG_DEBUG(QString("Profile %1 was deleted; not saving it").arg(profile->id));
+        locker.unlock();
+        if (changed == 0) LOG_DEBUG(QString("Profile %1 was deleted; not saving it").arg(profile->id));
         return false;
     }
 
@@ -536,7 +601,7 @@ namespace Configs {
         const int id = profile->id;
         const long long dl = static_cast<long long>(profile->traffic_downlink);
         const long long up = static_cast<long long>(profile->traffic_uplink);
-        runOnNewThread([=, this] {
+        writer.start([=, this] {
             db.exec("UPDATE profiles SET traffic_dl = ?, traffic_up = ? WHERE id = ?", dl, up, id);
         });
         return true;
@@ -561,26 +626,95 @@ namespace Configs {
     }
 
     void ProfilesRepo::SaveBatch(const QList<std::shared_ptr<Profile>>& profiles) {
-        runOnNewThread([=, this] {
-            QList<std::shared_ptr<Profile>> valid;
-            for (const auto& p : profiles) {
-                if (p && p->id >= 0) valid.append(p);
-            }
-            if (valid.isEmpty()) return;
+        QList<std::shared_ptr<Profile>> valid;
+        for (const auto& p : profiles) {
+            if (p && p->id >= 0) valid.append(p);
+        }
+        if (valid.isEmpty()) return;
+        writer.start([valid, this] {
             std::vector<ProfileInsertRow> rows;
             rows.reserve(valid.size());
             for (const auto& p : valid) {
                 rows.push_back(profileToInsertRow(p.get(), p->id, p->gid));
             }
+            QList<std::shared_ptr<Profile>> saved;
             QMutexLocker locker(&mutex);
-            const auto skipped = std::erase_if(rows, [this](const ProfileInsertRow& row) { return tombstones.contains(row.id); });
-            db.execBatchReplaceProfiles(rows);
-            for (const auto& p : valid) {
-                if (!tombstones.contains(p->id)) identityMap[p->id] = std::weak_ptr<Profile>(p);
-            }
-            if (!rows.empty()) ++revision;
+            const bool ok = db.transaction("ProfilesRepo::SaveBatch", [&] {
+                const auto stmt = db.queryThrow(kProfilesRepoUpdateSql);
+                for (size_t i = 0; i < rows.size(); ++i) {
+                    stmt->reset();
+                    profilesRepoBindUpdate(*stmt, rows[i]);
+                    if (stmt->exec() > 0) saved << valid[static_cast<qsizetype>(i)];
+                }
+                db.countWrites(static_cast<int>(rows.size()));
+                return true;
+            });
+            if (!ok) return;
+            for (const auto& p : saved) identityMap[p->id] = std::weak_ptr<Profile>(p);
+            if (!saved.isEmpty()) ++revision;
             locker.unlock();
-            if (skipped > 0) LOG_DEBUG(QString("SaveBatch skipped %1 deleted profiles").arg(skipped));
+            if (const auto skipped = valid.size() - saved.size(); skipped > 0) {
+                LOG_DEBUG(QString("SaveBatch skipped %1 deleted profiles").arg(skipped));
+            }
+        });
+    }
+
+    void ProfilesRepo::SaveColumns(const QList<std::shared_ptr<Profile>>& profiles, ProfileColumns columns) {
+        std::vector<ProfilesRepoColumnRow> rows;
+        rows.reserve(profiles.size());
+        for (const auto& p : profiles) {
+            if (!p || p->id < 0) continue;
+            ProfilesRepoColumnRow row;
+            row.id = p->id;
+            row.latency = p->latency;
+            row.latencyAt = static_cast<long long>(p->latency_at);
+            if (columns.testFlag(ProfileColumn::ExitIp)) {
+                row.ipOut = p->ip_out.toStdString();
+                row.testCountry = p->test_country.toStdString();
+            }
+            if (columns.testFlag(ProfileColumn::Speed)) {
+                row.dlSpeed = p->dl_speed.toStdString();
+                row.ulSpeed = p->ul_speed.toStdString();
+            }
+            if (columns.testFlag(ProfileColumn::ServiceChecks)) row.serviceChecks = p->service_checks.toStdString();
+            rows.push_back(std::move(row));
+        }
+        if (rows.empty() || !columns) return;
+
+        std::string sql = "UPDATE profiles SET ";
+        if (columns.testFlag(ProfileColumn::Latency)) sql += "latency = ?, latency_at = ?, ";
+        if (columns.testFlag(ProfileColumn::ExitIp)) sql += "ip_out = ?, test_country = ?, ";
+        if (columns.testFlag(ProfileColumn::Speed)) sql += "dl_speed = ?, ul_speed = ?, ";
+        if (columns.testFlag(ProfileColumn::ServiceChecks)) sql += "service_checks = ?, ";
+        sql += "updated_at = strftime('%s', 'now') WHERE id = ?";
+
+        writer.start([this, rows = std::move(rows), sql = std::move(sql), columns] {
+            int written = 0;
+            const bool ok = db.transaction("ProfilesRepo::SaveColumns", [&] {
+                const auto stmt = db.queryThrow(sql);
+                for (const auto& row : rows) {
+                    stmt->reset();
+                    int i = 1;
+                    if (columns.testFlag(ProfileColumn::Latency)) {
+                        stmt->bind(i++, row.latency);
+                        stmt->bind(i++, static_cast<int64_t>(row.latencyAt));
+                    }
+                    if (columns.testFlag(ProfileColumn::ExitIp)) {
+                        stmt->bind(i++, row.ipOut);
+                        stmt->bind(i++, row.testCountry);
+                    }
+                    if (columns.testFlag(ProfileColumn::Speed)) {
+                        stmt->bind(i++, row.dlSpeed);
+                        stmt->bind(i++, row.ulSpeed);
+                    }
+                    if (columns.testFlag(ProfileColumn::ServiceChecks)) stmt->bind(i++, row.serviceChecks);
+                    stmt->bind(i, row.id);
+                    written += stmt->exec();
+                }
+                db.countWrites(static_cast<int>(rows.size()));
+                return true;
+            });
+            if (ok && written > 0) ++revision;
         });
     }
 }

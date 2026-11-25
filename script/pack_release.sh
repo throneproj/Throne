@@ -131,9 +131,9 @@ debug)
     for dir in windows-amd64 windows-arm64 windowslegacy-386 windowslegacy-amd64; do
         mv "$dir/Throne.pdb" "debug/Throne-$TAG-$dir.pdb"
     done
-    mv darwin-arm64/Throne.app/Contents/MacOS/Throne.dSYM "debug/Throne-$TAG-macos-arm64.dSYM"
-    mv darwin-amd64/Throne.app/Contents/MacOS/Throne.dSYM "debug/Throne-$TAG-macos-amd64.dSYM"
-    mv darwinlegacy-amd64/Throne.app/Contents/MacOS/Throne.dSYM "debug/Throne-$TAG-macoslegacy-amd64.dSYM"
+    mv darwin-arm64/Throne.dSYM "debug/Throne-$TAG-macos-arm64.dSYM"
+    mv darwin-amd64/Throne.dSYM "debug/Throne-$TAG-macos-amd64.dSYM"
+    mv darwinlegacy-amd64/Throne.dSYM "debug/Throne-$TAG-macoslegacy-amd64.dSYM"
     TASKS=("debug-symbols zip_debug")
     ;;
 *)

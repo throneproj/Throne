@@ -10012,6 +10012,26 @@ Error: %2</source>
         <source>The profile was deleted meanwhile.</source>
         <translation>Профиль тем временем был удалён.</translation>
     </message>
+    <message>
+        <source>Network unavailable</source>
+        <translation>Сеть недоступна</translation>
+    </message>
+    <message>
+        <source>Retest</source>
+        <translation>Повторить тест</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Игнорировать</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n profile(s) could not be tested because the network was unavailable. Their earlier results were kept.</source>
+        <translation>
+            <numerusform>%n профиль не удалось протестировать: сеть была недоступна. Прежние результаты сохранены.</numerusform>
+            <numerusform>%n профиля не удалось протестировать: сеть была недоступна. Прежние результаты сохранены.</numerusform>
+            <numerusform>%n профилей не удалось протестировать: сеть была недоступна. Прежние результаты сохранены.</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>

@@ -9926,6 +9926,24 @@ Error: %2</source>
         <source>The profile was deleted meanwhile.</source>
         <translation>该配置档已在此期间被删除。</translation>
     </message>
+    <message>
+        <source>Network unavailable</source>
+        <translation>网络不可用</translation>
+    </message>
+    <message>
+        <source>Retest</source>
+        <translation>重新测试</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>忽略</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n profile(s) could not be tested because the network was unavailable. Their earlier results were kept.</source>
+        <translation>
+            <numerusform>%n 个配置档因网络不可用而未能测试，已保留之前的结果。</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>

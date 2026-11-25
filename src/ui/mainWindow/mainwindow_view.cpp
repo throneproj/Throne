@@ -30,6 +30,20 @@
 #include "include/ui/widget/LiveChart.h"
 #include "include/ui/widget/StartStopButton.hpp"
 
+namespace {
+    struct RunningContext {
+        QString groupName;
+        QString detail;
+    };
+
+    // The detail is the VPN endpoint's exit state while it reports one, else the exit country.
+    RunningContext runningContextOf(const Configs::Profile *running, const QString &vpnExitState) {
+        if (running == nullptr) return {};
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(running->gid);
+        return {group != nullptr ? group->name : QString(), vpnExitState.isEmpty() ? running->runningCountryInfo : vpnExitState};
+    }
+}
+
 // Mirrors the language switch in main.cpp; QLocale() alone follows the system, not an explicit setting.
 bool MainWindow::usesTightLabels() const {
     static const QStringList byLanguageSetting = {"", "en", "zh_CN", "fa_IR", "ru_RU"};
@@ -229,16 +243,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     refresh_speed_label();
 
     const auto running = runningSnapshot();
-    QString group_name;
-    if (running != nullptr) {
-        auto group = Configs::dataManager->groupsRepo->GetGroup(running->gid);
-        if (group != nullptr) group_name = group->name;
-    }
-
-    const QString vpnExitState = vpnAuth()->exitStateText();
-    const QString runningDetail = vpnExitState.isEmpty()
-                                      ? (running ? running->runningCountryInfo : QString())
-                                      : vpnExitState;
+    const auto [group_name, runningDetail] = runningContextOf(running.get(), vpnAuth()->exitStateText());
 
     if (QDateTime::currentSecsSinceEpoch() - last_test_time > 2) {
         QString runningLabelText;
@@ -273,38 +278,44 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         ui->label_running->setToolTip({});
     }
 
-    const auto route = Configs::dataManager->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
-    const QString activeRouteName = (route && route->name != "Default") ? route->name : "";
+    refresh_tray_tooltip();
+    refresh_startstop_button();
+}
+
+// The window title stays the plain "Throne" from the .ui: this status shows in the window itself.
+void MainWindow::refresh_tray_tooltip() {
+    if (tray == nullptr) return;
+    const auto* settings = Configs::dataManager->settingsRepo.get();
+
+    const auto running = runningSnapshot();
+    const auto [group_name, runningDetail] = runningContextOf(running.get(), vpnAuth()->exitStateText());
+    const QString routeName = Configs::dataManager->routesRepo->GetRouteProfileName(Configs::ActiveRouteId()).value_or(QString());
+    const QString activeRouteName = routeName != "Default" ? routeName : "";
     const auto killSwitchState = Sys::KillSwitch::instance()->state();
     const bool killSwitchBlocking = killSwitchState == Sys::KillSwitch::State::Failed && Sys::KillSwitch::instance()->failedForIdentity();
 
-    // The window title stays the plain "Throne" from the .ui: this status shows in the window itself.
-    if (tray != nullptr) {
-        QStringList tt;
-        if (Configs::KnownAdmin().value_or(false)) tt << "[Admin]";
-        if (select_mode) tt << "[" + tr("Select") + "]";
-        if (!title_error.isEmpty()) tt << "[" + title_error + "]";
-        if (settings->spmode_vpn && !settings->spmode_system_proxy) tt << "[Tun]";
-        if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System proxy") + "]";
-        if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System proxy") + "]";
-        if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Armed) tt << "[" + tr("Kill switch") + "]";
-        if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Failed) {
-            tt << "[" + (killSwitchBlocking ? tr("Kill switch is blocking traffic") : tr("Kill switch: not active")) + "]";
-        }
-        tt << software_name;
-        if (!activeRouteName.isEmpty()) {
-            tt << "[" + activeRouteName + "]";
-        }
-        if (running != nullptr) {
-            tt << running->outbound->DisplayTypeAndName() + "@" + group_name;
-            if (!runningDetail.isEmpty()) {
-                tt << runningDetail;
-            }
-        }
-        tray->setToolTip(tt.join("\n"));
+    QStringList tt;
+    if (Configs::KnownAdmin().value_or(false)) tt << "[Admin]";
+    if (select_mode) tt << "[" + tr("Select") + "]";
+    if (!title_error.isEmpty()) tt << "[" + title_error + "]";
+    if (settings->spmode_vpn && !settings->spmode_system_proxy) tt << "[Tun]";
+    if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System proxy") + "]";
+    if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System proxy") + "]";
+    if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Armed) tt << "[" + tr("Kill switch") + "]";
+    if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Failed) {
+        tt << "[" + (killSwitchBlocking ? tr("Kill switch is blocking traffic") : tr("Kill switch: not active")) + "]";
     }
-
-    refresh_startstop_button();
+    tt << software_name;
+    if (!activeRouteName.isEmpty()) {
+        tt << "[" + activeRouteName + "]";
+    }
+    if (running != nullptr) {
+        tt << running->outbound->DisplayTypeAndName() + "@" + group_name;
+        if (!runningDetail.isEmpty()) {
+            tt << runningDetail;
+        }
+    }
+    tray->setToolTip(tt.join("\n"));
 }
 
 void MainWindow::refresh_startstop_button() {

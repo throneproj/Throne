@@ -52,6 +52,8 @@ namespace Engine {
 
         void testSessionBusy(const QString &text) override;
 
+        void testsInconclusive(const QList<int> &profileIds) override;
+
         void exitProgram(ExitReason reason, bool unattended) override;
     };
 } // namespace Engine

@@ -23,8 +23,17 @@
 
 #include <algorithm>
 
+namespace {
+    constexpr int kPlanDebounceMs = 250;
+}
+
 EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui::EditAutoSelector) {
     ui->setupUi(this);
+
+    m_planTimer = new QTimer(this);
+    m_planTimer->setSingleShot(true);
+    m_planTimer->setInterval(kPlanDebounceMs);
+    connect(m_planTimer, &QTimer::timeout, this, [this] { planNow(); });
 
     ui->balance_mode->addItem(tr("Rotate every %1 s").arg(Configs::autoSelector::kBalanceIntervalSec), "rotate");
     ui->balance_mode->setItemData(0, tr("New connections switch to the next ready profile every rotation."),
@@ -229,7 +238,7 @@ void EditAutoSelector::onStart(std::shared_ptr<Configs::Profile> _ent) {
     m_loading = false;
     updateStrategyControls();
     updateBalanceEnabled();
-    refreshPlanSummary();
+    planNow();
 
     // Fields of a collapsed section are not checked, so a stored bad value has to be shown.
     using namespace Configs::Checks;
@@ -467,10 +476,15 @@ void EditAutoSelector::updateBalanceEnabled() const {
 
 void EditAutoSelector::refreshPlanSummary() {
     if (m_loading) return;
+    m_planTimer->start();
+}
+
+void EditAutoSelector::planNow() {
+    m_planTimer->stop();
     auto outbound = this->ent == nullptr ? nullptr : this->ent->AutoSelector();
     if (outbound == nullptr) return;
 
-    // Throwaway copy: PlanAutoSelector normalises, which would clamp fields the form hasn't written yet.
+    // A copy with the form's unsaved values: the worker reads it while the form keeps changing.
     auto probe = std::make_shared<Configs::Profile>(new Configs::autoSelector(*outbound),
                                                     QStringLiteral("autoselector"));
     probe->id = this->ent->id;
@@ -483,9 +497,20 @@ void EditAutoSelector::refreshPlanSummary() {
     preview->buildLimit = ui->build_limit->value();
     preview->strategy = ui->strategy->currentData().toString();
     preview->tiers = tierRows();
+    const bool prioritized = preview->Prioritized();
 
-    const auto plan = Configs::PlanAutoSelector(probe);
+    const quint64 generation = ++m_planGeneration;
+    const QPointer<EditAutoSelector> self(this);
+    runOnNewThread([probe, prioritized, generation, self] {
+        const auto plan = Configs::PlanAutoSelector(probe);
+        runOnUiThread([plan, prioritized, generation, self] {
+            if (self == nullptr || self->m_planGeneration != generation) return;
+            self->showPlan(plan, prioritized);
+        });
+    });
+}
 
+void EditAutoSelector::showPlan(const Configs::AutoSelectorPlan &plan, bool prioritized) {
     if (!plan.error.isEmpty()) {
         ui->plan_summary->setText(plan.error);
         return;
@@ -496,7 +521,7 @@ void EditAutoSelector::refreshPlanSummary() {
                  .arg(plan.eligible)
                  .arg(plan.membersInGroups)
                  .arg(plan.build.size());
-    if (preview->Prioritized() && !plan.tierBuilt.isEmpty()) {
+    if (prioritized && !plan.tierBuilt.isEmpty()) {
         const int rest = static_cast<int>(plan.tierBuilt.size()) - 1;
         QStringList counts;
         QStringList empty;
@@ -529,7 +554,7 @@ void EditAutoSelector::refreshPlanSummary() {
         lines << tr("Skipped: %1.").arg(reasons.join(tr(", ")));
     }
     if (plan.truncated) {
-        lines << (preview->Prioritized()
+        lines << (prioritized
                       ? tr("More than %1 profiles match, so only the best-ranked ones of each tier are kept.")
                       : tr("More than %1 profiles match, so only the best-ranked ones are kept."))
                      .arg(plan.poolCapUsed);

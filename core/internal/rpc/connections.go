@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/sagernet/sing-box/common/trafficcontrol"
+	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/service"
 )
 
@@ -77,6 +78,27 @@ func (s *server) QueryConnections(ctx context.Context, in *gen.EmptyReq) (*gen.Q
 		closed = append(closed, connMetaToProto(c, connRules.matched(c)))
 	}
 	return &gen.QueryConnectionsResp{Active: active, Closed: closed}, nil
+}
+
+func (s *server) QueryConnectionCount(ctx context.Context, in *gen.EmptyReq) (*gen.QueryConnectionCountResp, error) {
+	box := currentBox()
+	if box == nil {
+		return &gen.QueryConnectionCountResp{}, nil
+	}
+	tm := service.PtrFromContext[trafficcontrol.Manager](box.Context())
+	if tm == nil {
+		return &gen.QueryConnectionCountResp{}, errors.New("no traffic manager found")
+	}
+	var tcp, udp int32
+	for _, c := range tm.Connections() {
+		switch c.Metadata.Network {
+		case N.NetworkTCP:
+			tcp++
+		case N.NetworkUDP:
+			udp++
+		}
+	}
+	return &gen.QueryConnectionCountResp{Tcp: To(tcp), Udp: To(udp)}, nil
 }
 
 // Ids that already closed are a silent no-op: the client's table is always a poll behind.

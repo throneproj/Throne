@@ -106,7 +106,7 @@ namespace Configs {
         bool disable_traffic_aggregation = false;
         int speed_test_mode = TestConfig::FULL;
         int speed_test_timeout_ms = 5000;
-        QString simple_dl_url = "http://cachefly.cachefly.net/1mb.test";
+        QString simple_dl_url = "http://cachefly.cachefly.net/5mb.test";
         bool allow_beta_update = false;
         bool use_custom_icons = false;
         bool follow_status_in_taskbar = true;

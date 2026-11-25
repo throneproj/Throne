@@ -15,6 +15,7 @@
 #include <QRegularExpression>
 #include <QSet>
 #include <algorithm>
+#include <optional>
 
 namespace Configs
 {
@@ -165,14 +166,9 @@ namespace Configs
             return 3;
         }
 
-        int effectiveLatency(const std::shared_ptr<Profile> &member, const autoSelector *selector, qint64 now)
+        int effectiveLatency(const std::shared_ptr<Profile> &member, qint64 now)
         {
             return hasFreshResult(member, now) ? member->latency : 0;
-        }
-
-        int effectiveLatencyOf(int id, const autoSelector *selector, qint64 now)
-        {
-            return effectiveLatency(dataManager->profilesRepo->GetProfile(id), selector, now);
         }
 
         bool byLatency(int leftLatency, int rightLatency, const autoSelector *selector)
@@ -184,24 +180,28 @@ namespace Configs
             return false;
         }
 
-        // Read once up front: a sweep still running rewrites latencies, and a comparator that changes its answer mid-sort is UB.
-        void sortByLatency(QList<int> &ids, const autoSelector *selector, qint64 now, const QSet<int> &untrusted = {})
+        // Latencies are read once, as members load: a sweep still running rewrites them, and a comparator that changes its
+        // answer mid-sort is UB.
+        struct MemberSnapshot
         {
+            QList<int> ids;
             QHash<int, int> latency;
-            latency.reserve(ids.size());
-            for (int id : std::as_const(ids)) {
-                latency.insert(id, untrusted.contains(id) ? 0 : effectiveLatencyOf(id, selector, now));
-            }
+        };
+
+        void sortByLatency(QList<int> &ids, const QHash<int, int> &latency, const autoSelector *selector)
+        {
             std::stable_sort(ids.begin(), ids.end(), [&latency, selector](int left, int right) {
                 return byLatency(latency.value(left), latency.value(right), selector);
             });
         }
 
-        QList<int> eligibleMembers(const std::shared_ptr<Profile> &ent,
-                                   const autoSelector *selector,
-                                   AutoSelectorPlan *plan)
+        // GetProfileBatch holds the repo lock for the whole call, and a main-thread GetProfile waits on it.
+        constexpr qsizetype kMemberLoadChunk = 512;
+
+        MemberSnapshot eligibleMembers(const std::shared_ptr<Profile> &ent, const autoSelector *selector, qint64 now,
+                                       AutoSelectorPlan *plan)
         {
-            QList<int> members;
+            MemberSnapshot members;
             if (selector->gids.isEmpty()) {
                 if (plan != nullptr) plan->error = "Auto selector tracks no group";
                 return members;
@@ -219,7 +219,6 @@ namespace Configs
                 return members;
             }
             const auto filters = buildFilters(selector);
-            const auto now = QDateTime::currentSecsSinceEpoch();
             QMap<AutoSelectorSkip, int> skips;
             QSet<int> seen;
             for (const auto &group : groups) {
@@ -230,28 +229,42 @@ namespace Configs
                 const auto front = group->front_proxy_id >= 0
                                        ? dataManager->profilesRepo->GetProfile(group->front_proxy_id)
                                        : nullptr;
+                QList<int> ids;
                 for (int id : group->DisplayedProfiles()) {
                     if (id == ent->id || seen.contains(id)) continue;
                     seen.insert(id);
-                    auto member = dataManager->profilesRepo->GetProfile(id);
-                    if (plan != nullptr) plan->membersInGroups++;
-                    const auto skip = eligibilityOf(member, filters);
-                    if (skip != AutoSelectorSkip::None) {
-                        skips[skip]++;
-                        continue;
+                    ids << id;
+                }
+                if (plan != nullptr) plan->membersInGroups += static_cast<int>(ids.size());
+                for (qsizetype offset = 0; offset < ids.size(); offset += kMemberLoadChunk) {
+                    const auto chunk = ids.mid(offset, kMemberLoadChunk);
+                    QHash<int, std::shared_ptr<Profile>> loaded;
+                    loaded.reserve(chunk.size());
+                    for (const auto &member : dataManager->profilesRepo->GetProfileBatch(chunk)) {
+                        if (member != nullptr) loaded.insert(member->id, member);
                     }
-                    if (member->outbound->IsXrayFullConfig()) {
-                        if (!xrayFullConfigFitsChain(landing, front)) {
-                            skips[AutoSelectorSkip::XrayFullChained]++;
+                    for (int id : chunk) {
+                        const auto member = loaded.value(id);
+                        const auto skip = eligibilityOf(member, filters);
+                        if (skip != AutoSelectorSkip::None) {
+                            skips[skip]++;
                             continue;
                         }
-                    } else if (coreTransitions(landing, member, front) > 2) {
-                        skips[AutoSelectorSkip::CoreTransitions]++;
-                        continue;
+                        if (member->outbound->IsXrayFullConfig()) {
+                            if (!xrayFullConfigFitsChain(landing, front)) {
+                                skips[AutoSelectorSkip::XrayFullChained]++;
+                                continue;
+                            }
+                        } else if (coreTransitions(landing, member, front) > 2) {
+                            skips[AutoSelectorSkip::CoreTransitions]++;
+                            continue;
+                        }
+                        if (plan != nullptr && selector->Prioritized()) plan->tierOf.insert(id, memberTierOf(member, filters));
+                        const int latency = effectiveLatency(member, now);
+                        members.ids << id;
+                        members.latency.insert(id, latency);
+                        if (plan != nullptr && latency > 0) plan->rankedByTest++;
                     }
-                    if (plan != nullptr && selector->Prioritized()) plan->tierOf.insert(id, memberTierOf(member, filters));
-                    members << id;
-                    if (plan != nullptr && effectiveLatency(member, selector, now) > 0) plan->rankedByTest++;
                 }
             }
             if (plan != nullptr) {
@@ -263,12 +276,11 @@ namespace Configs
         }
 
         // The persisted order is the core's ranking prior; newcomers follow by latency, over-cap then failed members last.
-        QList<int> orderMembers(const QList<int> &members, const QList<int> &persistedPool,
-                                const autoSelector *selector, qint64 now)
+        QList<int> orderMembers(const MemberSnapshot &members, const QList<int> &persistedPool, const autoSelector *selector)
         {
-            QSet<int> eligible(members.begin(), members.end());
+            const QSet<int> eligible(members.ids.begin(), members.ids.end());
             QList<int> ordered;
-            ordered.reserve(members.size());
+            ordered.reserve(members.ids.size());
             QSet<int> placed;
             for (int id : persistedPool) {
                 if (!eligible.contains(id) || placed.contains(id)) continue;
@@ -277,20 +289,18 @@ namespace Configs
             }
 
             QList<int> newcomers;
-            for (int id : members) {
+            for (int id : members.ids) {
                 if (!placed.contains(id)) newcomers << id;
             }
-            sortByLatency(newcomers, selector, now);
+            sortByLatency(newcomers, members.latency, selector);
             ordered << newcomers;
 
-            QHash<int, int> demotion;
-            demotion.reserve(ordered.size());
-            for (int id : std::as_const(ordered)) {
-                const int latency = effectiveLatencyOf(id, selector, now);
-                demotion.insert(id, latency < 0 ? 2 : overCap(latency, selector) ? 1 : 0);
-            }
+            const auto demotion = [&members, selector](int id) {
+                const int latency = members.latency.value(id);
+                return latency < 0 ? 2 : overCap(latency, selector) ? 1 : 0;
+            };
             std::stable_sort(ordered.begin(), ordered.end(),
-                             [&demotion](int left, int right) { return demotion.value(left) < demotion.value(right); });
+                             [&demotion](int left, int right) { return demotion(left) < demotion(right); });
             return ordered;
         }
 
@@ -329,6 +339,60 @@ namespace Configs
             for (int i = 0; i < byTier.size(); i++) capped << byTier[i].mid(0, quota[i]);
             return capped;
         }
+
+        // A copy: Normalize() writes even when it changes nothing, and other threads read the live bean.
+        std::optional<autoSelector> normalizedSettings(const std::shared_ptr<Profile> &ent)
+        {
+            auto *selector = ent != nullptr ? ent->AutoSelector() : nullptr;
+            if (selector == nullptr) return std::nullopt;
+            std::optional<autoSelector> settings(std::in_place, *selector);
+            settings->Normalize();
+            return settings;
+        }
+
+        MemberSnapshot planSelector(AutoSelectorPlan &plan, const std::shared_ptr<Profile> &ent, const autoSelector *selector)
+        {
+            plan.poolCapUsed = autoSelector::kPoolCap;
+            plan.buildLimitUsed = selector->buildLimit;
+
+            auto members = eligibleMembers(ent, selector, QDateTime::currentSecsSinceEpoch(), &plan);
+            if (!plan.error.isEmpty()) return members;
+            plan.eligible = static_cast<int>(members.ids.size());
+            if (members.ids.isEmpty()) {
+                plan.error = "Auto selector has no usable members";
+                return members;
+            }
+
+            auto ordered = orderMembers(members, selector->pool, selector);
+            const int noTier = static_cast<int>(selector->tiers.size());
+            plan.truncated = ordered.size() > autoSelector::kPoolCap;
+            if (selector->Prioritized()) {
+                // The core reads this order as its ranking prior, and capByTier keeps it.
+                std::stable_sort(ordered.begin(), ordered.end(), [&plan, noTier](int left, int right) {
+                    return plan.tierOf.value(left, noTier) < plan.tierOf.value(right, noTier);
+                });
+                plan.tierEligible = QList<int>(noTier + 1, 0);
+                for (int id : std::as_const(ordered)) plan.tierEligible[plan.tierOf.value(id, noTier)]++;
+                ordered = capByTier(ordered, autoSelector::kPoolCap, plan.tierOf, noTier);
+                plan.pool = ordered;
+                plan.build = capByTier(ordered, selector->buildLimit, plan.tierOf, noTier);
+                plan.tierBuilt = QList<int>(noTier + 1, 0);
+                for (int id : std::as_const(plan.build)) plan.tierBuilt[plan.tierOf.value(id, noTier)]++;
+            } else {
+                if (plan.truncated) ordered = ordered.mid(0, autoSelector::kPoolCap);
+                plan.pool = ordered;
+                plan.build = ordered.mid(0, std::min<qsizetype>(ordered.size(), selector->buildLimit));
+            }
+
+            if (ordered.size() > selector->buildLimit) {
+                int unranked = 0;
+                for (int id : std::as_const(plan.build)) {
+                    if (members.latency.value(id) == 0) unranked++;
+                }
+                plan.needsRanking = unranked > 0;
+            }
+            return members;
+        }
     } // namespace
 
     qint64 AutoSelectorResultValiditySecs(const Profile &member)
@@ -362,83 +426,39 @@ namespace Configs
             plan.error = "Null profile passed to PlanAutoSelector";
             return plan;
         }
-        auto selector = ent->AutoSelector();
-        if (selector == nullptr) {
+        const auto settings = normalizedSettings(ent);
+        if (!settings) {
             plan.error = "Profile is not an auto selector, data is corrupted";
             return plan;
         }
-        selector->Normalize();
-        plan.poolCapUsed = autoSelector::kPoolCap;
-        plan.buildLimitUsed = selector->buildLimit;
-
-        const auto members = eligibleMembers(ent, selector, &plan);
-        if (!plan.error.isEmpty()) return plan;
-        plan.eligible = members.size();
-        if (members.isEmpty()) {
-            plan.error = "Auto selector has no usable members";
-            return plan;
-        }
-
-        const auto now = QDateTime::currentSecsSinceEpoch();
-        auto ordered = orderMembers(members, selector->pool, selector, now);
-        const int noTier = static_cast<int>(selector->tiers.size());
-        plan.truncated = ordered.size() > autoSelector::kPoolCap;
-        if (selector->Prioritized()) {
-            // The core reads this order as its ranking prior, and capByTier keeps it.
-            std::stable_sort(ordered.begin(), ordered.end(), [&plan, noTier](int left, int right) {
-                return plan.tierOf.value(left, noTier) < plan.tierOf.value(right, noTier);
-            });
-            plan.tierEligible = QList<int>(noTier + 1, 0);
-            for (int id : std::as_const(ordered)) plan.tierEligible[plan.tierOf.value(id, noTier)]++;
-            ordered = capByTier(ordered, autoSelector::kPoolCap, plan.tierOf, noTier);
-            plan.pool = ordered;
-            plan.build = capByTier(ordered, selector->buildLimit, plan.tierOf, noTier);
-            plan.tierBuilt = QList<int>(noTier + 1, 0);
-            for (int id : std::as_const(plan.build)) plan.tierBuilt[plan.tierOf.value(id, noTier)]++;
-        } else {
-            if (plan.truncated) ordered = ordered.mid(0, autoSelector::kPoolCap);
-            plan.pool = ordered;
-            plan.build = ordered.mid(0, std::min<qsizetype>(ordered.size(), selector->buildLimit));
-        }
-
-        if (ordered.size() > selector->buildLimit) {
-            int unranked = 0;
-            for (int id : plan.build) {
-                if (effectiveLatencyOf(id, selector, now) == 0) unranked++;
-            }
-            plan.needsRanking = unranked > 0;
-        }
+        planSelector(plan, ent, &*settings);
         return plan;
     }
 
     QList<int> AutoSelectorRankingCandidates(const std::shared_ptr<Profile> &ent)
     {
-        if (ent == nullptr) return {};
-        auto selector = ent->AutoSelector();
-        if (selector == nullptr) return {};
-        selector->Normalize();
-        return eligibleMembers(ent, selector, nullptr);
+        const auto settings = normalizedSettings(ent);
+        if (!settings) return {};
+        return eligibleMembers(ent, &*settings, QDateTime::currentSecsSinceEpoch(), nullptr).ids;
     }
 
     QList<int> AutoSelectorUnmeasuredCandidates(const std::shared_ptr<Profile> &ent, const QList<int> &stale, int *working)
     {
         if (working != nullptr) *working = 0;
-        if (ent == nullptr) return {};
-        auto selector = ent->AutoSelector();
-        if (selector == nullptr) return {};
+        const auto settings = normalizedSettings(ent);
+        if (!settings) return {};
 
-        const auto candidates = AutoSelectorRankingCandidates(ent);
+        const auto candidates = eligibleMembers(ent, &*settings, QDateTime::currentSecsSinceEpoch(), nullptr);
         const QSet<int> staleSet(stale.begin(), stale.end());
-        const auto now = QDateTime::currentSecsSinceEpoch();
         QList<int> needed;
-        for (int id : candidates) {
+        for (int id : candidates.ids) {
             if (staleSet.contains(id)) {
                 needed << id;
                 continue;
             }
-            const int latency = effectiveLatencyOf(id, selector, now);
+            const int latency = candidates.latency.value(id);
             if (latency == 0) needed << id;
-            else if (qualifyingLatency(latency, selector) && working != nullptr) ++*working;
+            else if (qualifyingLatency(latency, &*settings) && working != nullptr) ++*working;
         }
         return needed;
     }
@@ -447,63 +467,59 @@ namespace Configs
     {
         if (ent == nullptr) return false;
         const auto selector = ent->AutoSelector();
-        return selector != nullptr
-               && qualifyingLatency(effectiveLatency(member, selector, QDateTime::currentSecsSinceEpoch()), selector);
+        return selector != nullptr && qualifyingLatency(effectiveLatency(member, QDateTime::currentSecsSinceEpoch()), selector);
     }
 
     int AutoSelectorStartQuorum(const std::shared_ptr<Profile> &ent)
     {
-        if (ent == nullptr) return 0;
-        auto selector = ent->AutoSelector();
-        if (selector == nullptr) return 0;
-        selector->Normalize();
-        return selector->ActiveSize();
+        const auto settings = normalizedSettings(ent);
+        return settings ? settings->ActiveSize() : 0;
     }
 
     bool AutoSelectorBuildChanged(const std::shared_ptr<Profile> &ent)
     {
-        if (ent == nullptr) return false;
-        const auto selector = ent->AutoSelector();
-        if (selector == nullptr) return false;
-        const auto plan = PlanAutoSelector(ent);
+        const auto settings = normalizedSettings(ent);
+        if (!settings) return false;
+        AutoSelectorPlan plan;
+        const auto members = planSelector(plan, ent, &*settings);
         if (!plan.error.isEmpty()) return false;
 
         const QSet<int> next(plan.build.begin(), plan.build.end());
-        const QSet<int> built(selector->lastBuilt.begin(), selector->lastBuilt.end());
+        const QSet<int> built(settings->lastBuilt.begin(), settings->lastBuilt.end());
         for (int id : built) {
             if (!next.contains(id)) return true;
         }
         // The build drops members that fail validation, so an unbuilt one counts only when it is known to work.
-        const auto now = QDateTime::currentSecsSinceEpoch();
         for (int id : next) {
-            if (!built.contains(id) && qualifyingLatency(effectiveLatencyOf(id, selector, now), selector)) return true;
+            if (!built.contains(id) && qualifyingLatency(members.latency.value(id), &*settings)) return true;
         }
         return false;
     }
 
     QList<int> RerankAutoSelectorPool(const std::shared_ptr<Profile> &ent, const QList<int> &untrusted)
     {
-        if (ent == nullptr) return {};
-        auto selector = ent->AutoSelector();
-        if (selector == nullptr) return {};
+        const auto settings = normalizedSettings(ent);
+        if (!settings) return {};
 
-        auto members = eligibleMembers(ent, selector, nullptr);
-        sortByLatency(members, selector, QDateTime::currentSecsSinceEpoch(), QSet<int>(untrusted.begin(), untrusted.end()));
-        if (members.size() > autoSelector::kPoolCap) members = members.mid(0, autoSelector::kPoolCap);
+        auto members = eligibleMembers(ent, &*settings, QDateTime::currentSecsSinceEpoch(), nullptr);
+        for (int id : untrusted) {
+            if (const auto it = members.latency.find(id); it != members.latency.end()) *it = 0;
+        }
+        sortByLatency(members.ids, members.latency, &*settings);
+        if (members.ids.size() > autoSelector::kPoolCap) members.ids = members.ids.mid(0, autoSelector::kPoolCap);
 
-        selector->pool = members;
+        auto *selector = ent->AutoSelector();
+        selector->pool = members.ids;
         selector->poolRankedAt = QDateTime::currentSecsSinceEpoch();
         dataManager->profilesRepo->Save(ent);
-        return members;
+        return members.ids;
     }
 
-    void DemoteAutoSelectorMembers(const std::shared_ptr<Profile> &ent, const QList<int> &members)
+    void DemoteAutoSelectorMembers(const std::shared_ptr<Profile> &ent, const AutoSelectorPlan &plan, const QList<int> &members)
     {
-        if (ent == nullptr || members.isEmpty()) return;
+        if (ent == nullptr || members.isEmpty() || !plan.error.isEmpty()) return;
         auto selector = ent->AutoSelector();
         if (selector == nullptr) return;
-        const auto plan = PlanAutoSelector(ent);
-        if (!plan.error.isEmpty()) return;
         const QSet<int> demoted(members.begin(), members.end());
         QList<int> pool;
         QList<int> tail;

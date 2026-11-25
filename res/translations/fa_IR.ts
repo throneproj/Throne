@@ -4954,6 +4954,24 @@ Error: %2</source>
         <source>The profile was deleted meanwhile.</source>
         <translation>نمایه در این فاصله حذف شد.</translation>
     </message>
+    <message>
+        <source>Network unavailable</source>
+        <translation>شبکه در دسترس نیست</translation>
+    </message>
+    <message>
+        <source>Retest</source>
+        <translation>تست دوباره</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>نادیده گرفتن</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n profile(s) could not be tested because the network was unavailable. Their earlier results were kept.</source>
+        <translation>
+            <numerusform>%n نمایه به دلیل در دسترس نبودن شبکه تست نشد. نتایج قبلی حفظ شد.</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>

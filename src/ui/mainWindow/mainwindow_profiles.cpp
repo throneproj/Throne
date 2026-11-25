@@ -672,11 +672,16 @@ void MainWindow::selectProfileRows(const QList<int> &rows) {
     const bool autoScroll = view->hasAutoScroll();
     view->setAutoScroll(false);
 
+    // One range per run of adjacent rows: selectedRows() is quadratic in the number of ranges.
+    auto sorted = rows;
+    std::ranges::sort(sorted);
+    const int lastColumn = profilesFilterModel->columnCount() - 1;
     QItemSelection selection;
-    for (int row : rows) {
-        QModelIndex left  = profilesFilterModel->index(row, 0);
-        QModelIndex right = profilesFilterModel->index(row, profilesFilterModel->columnCount() - 1);
-        selection.select(left, right);
+    for (qsizetype first = 0; first < sorted.size();) {
+        qsizetype last = first;
+        while (last + 1 < sorted.size() && sorted[last + 1] <= sorted[last] + 1) ++last;
+        selection.select(profilesFilterModel->index(sorted[first], 0), profilesFilterModel->index(sorted[last], lastColumn));
+        first = last + 1;
     }
     view->selectionModel()->select(selection, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
     view->selectionModel()->setCurrentIndex(profilesFilterModel->index(rows.first(), 0), QItemSelectionModel::NoUpdate);

@@ -98,7 +98,6 @@ namespace Configs {
         void execBatchInsertIntPairsChunk(const std::string& table, const std::string& colA, const std::string& colB,
                                          const std::vector<int>& pairs);
         void execBatchInsertProfilesChunk(const std::vector<ProfileInsertRow>& rows);
-        void execBatchReplaceProfilesChunk(const std::vector<ProfileInsertRow>& rows);
     public:
         explicit Database(const std::string& path, bool incrementalVacuum = false)
             : db(path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE, BUSY_TIMEOUT_MS), path_(path) {
@@ -210,16 +209,6 @@ namespace Configs {
             }
         }
 
-        void execBatchReplaceProfiles0(const std::vector<ProfileInsertRow>& rows) {
-            const size_t chunkSize = BATCH_LIMIT_WRITE / 15;
-            for (size_t off = 0; off < rows.size(); off += chunkSize) {
-                size_t end = std::min(off + chunkSize, rows.size());
-                std::vector<ProfileInsertRow> chunk(rows.begin() + static_cast<std::ptrdiff_t>(off),
-                                                    rows.begin() + static_cast<std::ptrdiff_t>(end));
-                execBatchReplaceProfilesChunk(chunk);
-            }
-        }
-
     public:
         template<typename... Args>
         void exec(const std::string& sql, Args&&... args) {
@@ -306,14 +295,6 @@ namespace Configs {
                 execBatchInsertProfiles0(rows);
             } catch (std::exception& e) {
                 NotifyError("execBatchInsertProfiles", e);
-            }
-        }
-
-        void execBatchReplaceProfiles(const std::vector<ProfileInsertRow>& rows) {
-            try {
-                execBatchReplaceProfiles0(rows);
-            } catch (std::exception& e) {
-                NotifyError("execBatchReplaceProfiles", e);
             }
         }
 

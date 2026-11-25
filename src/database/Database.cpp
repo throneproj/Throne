@@ -314,41 +314,6 @@ namespace Configs {
         }
     }
 
-    void Database::execBatchReplaceProfilesChunk(const std::vector<ProfileInsertRow>& rows) {
-        if (rows.empty()) return;
-        const size_t n = rows.size();
-        std::string sql = "INSERT OR REPLACE INTO profiles (id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country, ip_out, outbound_json, traffic_dl, traffic_up, endpoint_json, service_checks) VALUES ";
-        for (size_t i = 0; i < n; ++i) {
-            if (i > 0) sql += ",";
-            sql += "(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-        }
-        try {
-            SQLite::Statement stmt(db, sql);
-            int idx = 1;
-            for (const auto& r : rows) {
-                stmt.bind(idx++, r.id);
-                stmt.bind(idx++, r.type);
-                stmt.bind(idx++, r.name);
-                stmt.bind(idx++, r.gid);
-                stmt.bind(idx++, r.latency);
-                stmt.bind(idx++, static_cast<int64_t>(r.latency_at));
-                stmt.bind(idx++, r.dl_speed);
-                stmt.bind(idx++, r.ul_speed);
-                stmt.bind(idx++, r.test_country);
-                stmt.bind(idx++, r.ip_out);
-                stmt.bind(idx++, r.outbound_json);
-                stmt.bind(idx++, static_cast<int64_t>(r.traffic_dl));
-                stmt.bind(idx++, static_cast<int64_t>(r.traffic_up));
-                stmt.bind(idx++, r.endpoint_json);
-                stmt.bind(idx++, r.service_checks);
-            }
-            stmt.exec();
-            maybeCheckpoint(static_cast<int>(rows.size()));
-        } catch (std::exception& e) {
-            NotifyError("execBatchReplaceProfiles", e);
-        }
-    }
-
     void Database::backupTo(const std::string& destPath) {
         SQLite::Database destDb(destPath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
         SQLite::Backup backup(destDb, db);

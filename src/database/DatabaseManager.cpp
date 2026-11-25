@@ -160,5 +160,13 @@ namespace Configs {
         }
         if (!markersRepo->IsMarked(Markers::RetiredScanKinds) && ipScansRepo->DeleteRetiredScans())
             markersRepo->Mark(Markers::RetiredScanKinds);
+        if (!markersRepo->IsMarked(Markers::SimpleDownload5mb)) {
+            // Only the old default: a URL the user chose stays.
+            if (settingsRepo->simple_dl_url == QLatin1String("http://cachefly.cachefly.net/1mb.test")) {
+                settingsRepo->simple_dl_url = QStringLiteral("http://cachefly.cachefly.net/5mb.test");
+                settingsRepo->Save();
+            }
+            markersRepo->Mark(Markers::SimpleDownload5mb);
+        }
     }
 }

@@ -399,6 +399,7 @@ private:
 
     QList<int> get_now_selected_list();
     void refresh_startstop_button();
+    void refresh_tray_tooltip();
     void refresh_pin_action();
     void refresh_action_states();
 
@@ -651,6 +652,8 @@ private:
     bool confirmRestartProgram() override;
 
     void testSessionBusy(const QString &text) override;
+
+    void testsInconclusive(const QList<int> &profileIds) override;
 
     void exitProgram(ExitReason reason, bool unattended) override;
 

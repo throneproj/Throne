@@ -22,6 +22,8 @@ env:
   # throneproj/Throne-api.
   # A THRONE_API_REF repository variable overrides it.
   THRONE_API_REF: ${{ vars.THRONE_API_REF || 'b5758e3ca341aab6d4124aedc4d04845ca1ab069' }}
+  # Part of the Qt archive cache keys: bump it whenever throneproj/buildqt republishes a Qt_<version> release.
+  QT_BUILD_REV: "1"
 jobs:
   lint:
     permissions:
@@ -207,12 +209,45 @@ jobs:
           path: deployment/android/ThroneCore.aar
           if-no-files-found: error
           compression-level: 0
+  # The dashboard bundles Noto Color Emoji (5.7 MB of its 8.2 MB) for the flags Windows can't draw. Other emoji fall
+  # back to the system font, so only the flags are kept.
+  dashboard:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out the web dashboard
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: SagerNet/sing-box-dashboard
+          ref: gh-pages
+          path: dashboard
+      - name: Cutting the emoji font down to flags
+        run: |
+          shopt -s nullglob
+          fonts=(dashboard/assets/noto-color-emoji-*.woff2)
+          [ ${#fonts[@]} -gt 0 ] || echo "::warning::The web dashboard no longer bundles noto-color-emoji; nothing was cut down"
+          # Regional indicators, the flag emoji, and the parts of the tag and ZWJ flag sequences.
+          for font in "${fonts[@]}"; do
+            pipx run --spec 'fonttools[woff]==4.68.0' pyftsubset "$font" --output-file="$font.flags" --flavor=woff2 \
+              --layout-features='*' --unicodes='U+1F1E6-1F1FF,U+1F3F3,U+1F3F4,U+1F3C1,U+1F6A9,U+1F38C,U+E0020-E007F,U+200D,U+FE0F,U+2620,U+26A7,U+1F308'
+            mv "$font.flags" "$font"
+          done
+          # cmake globs res/dashboard at configure time and silently ships nothing if it is empty.
+          test -f dashboard/index.html
+      - name: Uploading Artifact
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: Dashboard-${{ github.sha }}
+          path: dashboard
+          if-no-files-found: error
   build-cpp:
     permissions:
       contents: read
     needs:
       - lint
       - build-go
+      - dashboard
     strategy:
       matrix:
         include:
@@ -227,7 +262,7 @@ jobs:
             target: arm64
             dest_suffix: windows-arm64
             common: windows-arm64
-            launcher: ""
+            launcher: sccache
           # The bundled-Qt linux-amd64 and linux-arm64 builds are build-cpp-manylinux's.
           - platform: ubuntu-22.04
             qt_version: "6.2.0"
@@ -285,23 +320,12 @@ jobs:
     steps:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
-      - &checkout-dashboard
-        name: Checking out the web dashboard
-        uses: actions/checkout@v7.0.1
+      - &download-dashboard
+        name: Downloading the web dashboard
+        uses: actions/download-artifact@v8.0.2
         with:
-          repository: SagerNet/sing-box-dashboard
-          ref: gh-pages
-          path: dashboard-src
-      - &bundle-dashboard
-        name: Bundling the web dashboard
-        shell: bash
-        run: |
-          # Read-only pack files make this flaky on Windows; cmake filters .git out anyway.
-          rm -rf dashboard-src/.git || true
-          cp -R dashboard-src/. res/dashboard/
-          # cmake globs res/dashboard at configure time and silently ships nothing if it
-          # is empty, so fail here instead of releasing a build without the dashboard.
-          test -f res/dashboard/index.html
+          name: Dashboard-${{ github.sha }}
+          path: res/dashboard
       # What ilammy/msvc-dev-cmd did: export the environment vcvarsall.bat sets up to the later steps.
       - name: Install MSVC compiler
         if: contains( matrix.platform, 'windows' )
@@ -353,7 +377,7 @@ jobs:
           path: |
             qt.7z
             openssl.7z
-          key: WinQt-${{ matrix.qt_version }}-${{ matrix.target }}
+          key: WinQt-${{ matrix.qt_version }}-${{ matrix.target }}-${{ env.QT_BUILD_REV }}
       - name: Windows - Download Qt and OpenSSL
         shell: bash
         if: contains( matrix.platform, 'windows' ) && steps.cache-winqt.outputs.cache-hit != 'true'
@@ -420,6 +444,7 @@ jobs:
     needs:
       - lint
       - build-go
+      - dashboard
     strategy:
       matrix:
         include:
@@ -445,8 +470,7 @@ jobs:
     steps:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
-      - *checkout-dashboard
-      - *bundle-dashboard
+      - *download-dashboard
       # Throne's CMakeLists needs X11 and xcb, Qt6Gui's config OpenGL, and the link resolves libQt6Gui's libxkbcommon;
       # cmake, patchelf and binutils come with the image. EL8's ninja-build 1.8 can't read CMake 4's multi-output rules.
       - name: Installing the build dependencies
@@ -466,7 +490,7 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: qt.tar.xz
-          key: LinuxQt-${{ matrix.qt_version }}-${{ matrix.target }}
+          key: LinuxQt-${{ matrix.qt_version }}-${{ matrix.target }}-${{ env.QT_BUILD_REV }}
       - name: Download Qt
         if: steps.cache-qt.outputs.cache-hit != 'true'
         run: curl -fLo qt.tar.xz https://github.com/throneproj/buildqt/releases/download/Qt_${{ matrix.qt_version }}/Qt_${{ matrix.qt_version }}_linux_${{ matrix.target }}.tar.xz

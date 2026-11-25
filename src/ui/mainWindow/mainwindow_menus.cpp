@@ -387,9 +387,9 @@ void MainWindow::refreshTrayMenu() {
     }
     trayProfileAction->setText(profile != nullptr ? tr("Profile: %1").arg(trayProfileName(profile)) : tr("Select profile"));
 
-    auto route = Configs::dataManager->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
-    if (route == nullptr) route = Configs::dataManager->routesRepo->GetRouteProfile(settings->current_route_id);
-    trayRoutingAction->setText(tr("Routing: %1").arg(route != nullptr ? trayMenuName(route->name) : QString()));
+    auto routeName = Configs::dataManager->routesRepo->GetRouteProfileName(Configs::ActiveRouteId());
+    if (!routeName) routeName = Configs::dataManager->routesRepo->GetRouteProfileName(settings->current_route_id);
+    trayRoutingAction->setText(tr("Routing: %1").arg(routeName ? trayMenuName(*routeName) : QString()));
 
     ui->menu_spmode_system_proxy->setChecked(settings->spmode_system_proxy);
     ui->menu_spmode_vpn->setChecked(settings->spmode_vpn);

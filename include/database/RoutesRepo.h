@@ -66,6 +66,9 @@ namespace Configs {
         // Without loading the rules; nullopt when the profile follows the global DNS settings or does not exist.
         std::optional<RouteDns> GetCustomDns(int id) const;
 
+        // Without loading the rules; nullopt when the profile does not exist.
+        std::optional<QString> GetRouteProfileName(int id) const;
+
         // Without loading it.
         bool HasRouteProfile(int id) const;
 

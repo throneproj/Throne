@@ -3,11 +3,55 @@ package rpc
 import (
 	"context"
 	"errors"
+	"net/netip"
+	"sync"
 	"time"
 
 	"ThroneCore/gen"
+	"ThroneCore/internal/netmon"
 	"ThroneCore/internal/probe"
+	"ThroneCore/internal/scan"
 )
+
+const (
+	localNetworkCheckTimeout = 2 * time.Second
+	localNetworkVerdictTTL   = 2 * time.Second
+)
+
+// Held across the check, so concurrent Test calls wait for one probe and share its verdict.
+var localNetwork struct {
+	sync.Mutex
+	checkedAt time.Time
+	up        bool
+}
+
+func localNetworkUp() bool {
+	localNetwork.Lock()
+	defer localNetwork.Unlock()
+	if time.Since(localNetwork.checkedAt) >= localNetworkVerdictTTL {
+		localNetwork.up = checkLocalNetwork()
+		localNetwork.checkedAt = time.Now()
+	}
+	return localNetwork.up
+}
+
+func checkLocalNetwork() bool {
+	monitor := netmon.Monitor()
+	// Without the monitor the egress is unknown: no verdict, so failures stand.
+	if monitor == nil {
+		return true
+	}
+	if monitor.DefaultInterface() == nil {
+		return false
+	}
+	resolvers := systemResolvers()
+	targets := make([]netip.AddrPort, 0, len(resolvers))
+	for _, resolver := range resolvers {
+		targets = append(targets, netip.AddrPortFrom(resolver, 53))
+	}
+	up, _ := scan.CheckInternetDNS(context.Background(), scanEgress{}, targets, localNetworkCheckTimeout)
+	return up
+}
 
 func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, error) {
 	env, err := prepareTestEnv(in.GetTestCurrent(), in.GetNeedXray(), in.GetXrayConfig(),
@@ -31,6 +75,9 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 		testCtx = probe.LiveInstance(testCtx)
 	}
 
+	egressLost, stopWatch := watchScanEgress()
+	defer stopWatch()
+
 	// A muxed config needs a warm connection; the live instance already is one.
 	twice := !in.GetTestCurrent()
 	results := probe.BatchURLTest(testCtx, env.Box, env.Tags, in.GetUrl(),
@@ -38,17 +85,22 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 
 	res := make([]*gen.URLTestResp, 0, len(results))
 	failed := make(map[string]bool, len(results))
+	var failures []*gen.URLTestResp
 	for idx, data := range results {
 		errStr := ""
 		if data.Error != nil {
 			errStr = data.Error.Error()
 		}
 		failed[env.Tags[idx]] = errStr != ""
-		res = append(res, &gen.URLTestResp{
+		result := &gen.URLTestResp{
 			OutboundTag: To(env.Tags[idx]),
 			LatencyMs:   To(int32(data.Duration.Milliseconds())),
 			Error:       To(errStr),
-		})
+		}
+		res = append(res, result)
+		if errStr != "" && !errors.Is(data.Error, probe.ErrTestAborted) && !errors.Is(data.Error, context.Canceled) {
+			failures = append(failures, result)
+		}
 	}
 
 	out := &gen.TestResp{Results: res}
@@ -62,6 +114,11 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 	if len(pending) > 0 {
 		// A snapshot: the probe already sat out the handshake, so a tunnel that settles only now never carried it.
 		out.VpnStatus = collectVPNStatus(testCtx, env.Box, pending, 0)
+	}
+	if len(failures) > 0 && (egressLost() || !localNetworkUp()) {
+		for _, result := range failures {
+			result.Inconclusive = To(true)
+		}
 	}
 	return out, nil
 }

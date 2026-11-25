@@ -173,7 +173,7 @@ namespace Stats
             dirty << profile;
         }
         if (dirty.isEmpty()) return;
-        Configs::dataManager->profilesRepo->SaveBatch(dirty);
+        Configs::dataManager->profilesRepo->SaveColumns(dirty, Configs::ProfileColumn::Latency);
         Configs::RepositionLater(dirty, Configs::SortInput::TestResult);
     }
 

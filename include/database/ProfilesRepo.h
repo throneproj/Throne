@@ -8,28 +8,40 @@
 #include <memory>
 #include <mutex>
 #include <map>
+#include <QFlags>
 #include <QSet>
 #include <QString>
 #include <QJsonObject>
+#include <QThreadPool>
 
 namespace Configs {
     struct HopReference;
+
+    // Test-result columns for ProfilesRepo::SaveColumns.
+    enum class ProfileColumn {
+        Latency = 0x1,       // latency, latency_at
+        ExitIp = 0x2,        // ip_out, test_country
+        Speed = 0x4,         // dl_speed, ul_speed
+        ServiceChecks = 0x8, // service_checks
+    };
+    Q_DECLARE_FLAGS(ProfileColumns, ProfileColumn)
 
     class ProfilesRepo {
     private:
         Database& db;
         mutable std::mutex mutex;
         mutable std::map<int, std::weak_ptr<Profile>> identityMap;
-        // Deleted ids: never reused, so Save/SaveBatch refuse them for the rest of the process.
-        QSet<int> tombstones;
         std::atomic<quint64> revision{0};
 
         std::shared_ptr<Profile> profileFromJson(const QJsonObject& json) const;
-        
+
         void saveToDatabase(const Profile* profile, int id) const;
 
         // Must stay column-compatible with saveToDatabase.
         ProfileInsertRow profileToInsertRow(const Profile* profile, int id, int gid) const;
+
+        // Updates an existing row with saveToDatabase's columns; the rows it changed, or -1 after a reported error.
+        int updateRow(const ProfileInsertRow& row) const;
 
         std::shared_ptr<Profile> loadFromDatabase(int id) const;
         
@@ -47,9 +59,17 @@ namespace Configs {
         // Contiguous block starting at the returned id; atomic in the DB, so no lock is required.
         int NewProfileIDRange(int n) const;
 
+        // One thread, so queued writes land in the order they were queued; drained by the destructor.
+        QThreadPool writer;
+
     public:
         explicit ProfilesRepo(Database& database);
-        
+
+        ~ProfilesRepo();
+
+        ProfilesRepo(const ProfilesRepo&) = delete;
+        ProfilesRepo& operator=(const ProfilesRepo&) = delete;
+
         // Not saved yet: id stays -1 until AddProfile.
         [[nodiscard]] static std::shared_ptr<Profile> NewProfile(const QString &type);
         
@@ -74,8 +94,8 @@ namespace Configs {
         bool BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile = false, bool interactive = true,
                                  QList<HopReference>* clearedHops = nullptr);
 
-        // Runs deleteRows under this repo's lock; when it returns true, the ids it filled leave the identity map and are
-        // tombstoned. Lock order: this repo, then GroupsRepo.
+        // Runs deleteRows under this repo's lock; when it returns true, the ids it filled leave the identity map.
+        // Lock order: this repo, then GroupsRepo.
         bool DeleteAndForget(const std::function<bool(QList<int>& deletedIds)>& deleteRows);
         
         QList<int> GetAllProfileIds() const;
@@ -85,18 +105,28 @@ namespace Configs {
         // A cheap prefilter: needle is matched ASCII case-insensitively against the stored outbound JSON.
         QList<int> GetProfileIdsByTypeContaining(const QString& type, const QString& needle) const;
 
-        // No-op unless id >= 0; false for a deleted id, which is not written back.
+        // Updates the existing row only: false for id < 0 or a deleted id, which is not written back.
         bool Save(const std::shared_ptr<Profile>& profile);
 
-        // Blind UPDATE of the traffic columns: no existence check.
+        // Queued on the writer with the values of now; a deleted id matches no row.
         bool SaveTraffic(const std::shared_ptr<Profile>& profile);
 
         void SaveTrafficBatch(const QList<std::shared_ptr<Profile>>& profiles);
 
-        // Runs on a new thread; skips null profiles, id < 0 and deleted ids.
+        // Serialized and written on the writer, in one transaction; skips null profiles, id < 0 and deleted ids.
         void SaveBatch(const QList<std::shared_ptr<Profile>>& profiles);
+
+        // Only these columns, with the values of now, in one transaction on the writer; skips null profiles, id < 0 and
+        // deleted ids, and leaves the identity map alone.
+        void SaveColumns(const QList<std::shared_ptr<Profile>>& profiles, ProfileColumns columns);
+
+        // Returns once the writes queued before the call have landed, false after timeoutMs. The repo is never destroyed, so
+        // exit waits here too.
+        bool WaitForWrites(int timeoutMs);
 
         // Any thread; moves with every write except the traffic-only ones (SaveTraffic, SaveTrafficBatch).
         quint64 Revision() const { return revision.load(); }
     };
 }
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Configs::ProfileColumns)

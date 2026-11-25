@@ -130,7 +130,11 @@ void MainWindow::refresh_groups() {
     Configs::dataManager->settingsRepo->refreshing_group_list = true;
 
     for (int i = ui->tabWidget->count() - 1; i > 0; i--) {
+        auto *page = ui->tabWidget->widget(i);
         ui->tabWidget->removeTab(i);
+        // The table lives in its group's page; show_group() below moves it into the rebuilt one.
+        if (page->isAncestorOf(ui->profilesTableView)) ui->tabWidget->widget(0)->layout()->addWidget(ui->profilesTableView);
+        delete page;
     }
 
     int index = 0;

@@ -65,6 +65,7 @@ namespace Configs
         }
     };
 
+    // Any thread: plans from a normalised copy of ent's settings and never writes ent.
     AutoSelectorPlan PlanAutoSelector(const std::shared_ptr<Profile> &ent);
 
     QList<int> AutoSelectorRankingCandidates(const std::shared_ptr<Profile> &ent);
@@ -89,8 +90,8 @@ namespace Configs
     // `untrusted` members rank as untested whatever their stored result says.
     QList<int> RerankAutoSelectorPool(const std::shared_ptr<Profile> &ent, const QList<int> &untrusted = {});
 
-    // Moves `members` behind the rest of the pool, so the next build tries the others first.
-    void DemoteAutoSelectorMembers(const std::shared_ptr<Profile> &ent, const QList<int> &members);
+    // Persists plan's pool, ent's own, with `members` moved behind the rest, so the next build tries the others first.
+    void DemoteAutoSelectorMembers(const std::shared_ptr<Profile> &ent, const AutoSelectorPlan &plan, const QList<int> &members);
 
     // The auto selector a started profile runs: the profile itself, or the selector hop of a chain.
     std::shared_ptr<Profile> RunningSelectorOf(const std::shared_ptr<Profile> &ent);

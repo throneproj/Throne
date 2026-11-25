@@ -1,6 +1,7 @@
 #include "include/engine/app/ExitController.h"
 
 #include "include/api/remote/Server.hpp"
+#include "include/database/ProfilesRepo.h"
 #include "include/engine/EnginePolicy.h"
 #include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
@@ -59,6 +60,10 @@ namespace Engine {
         emit coreShutDown();
         // Only once the core is gone: until then the guard keeps blocking whatever would leak around the dying tunnel.
         Sys::KillSwitch::instance()->shutdown();
+        // After the stop above: its last test results and traffic counters are queued on the writer.
+        if (!Configs::dataManager->profilesRepo->WaitForWrites(5000)) {
+            LOG_WARN("profile writes were still running at exit; the last test results may be lost");
+        }
 
         mu_exit.unlock();
         qDebug() << "prepare exit done!";

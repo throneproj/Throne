@@ -14,6 +14,7 @@
 #include "include/engine/RuntimeOptions.h"
 
 namespace Configs {
+    class BuildConfigResult;
     class Profile;
 }
 
@@ -42,7 +43,8 @@ namespace Engine {
 
         void attach(TestRunner *tests, AutoSelectorController *autoSelector, VpnAuthController *vpnAuth);
 
-        // startFinished fires once per request. Synchronous up to the rank check; the body runs on the ops thread.
+        // startFinished fires once per request. Synchronous up to the rank check; the config is built on a worker thread and
+        // the body runs on the ops thread.
         void requestStart(const StartRequest &request);
 
         // Any thread but the ops thread. The intent bump runs on the caller, the decision on the main thread (posted from
@@ -125,6 +127,8 @@ namespace Engine {
         struct HeldStop {
             StopOptions options;
             QList<std::function<void()>> done;
+            // A user stop is among them; one held during the build ends the start there.
+            bool user = false;
         };
 
         static constexpr qint64 kGuardRestartWindowMs = 15000;
@@ -132,6 +136,13 @@ namespace Engine {
         EnginePolicy *policy() const { return m_policy; }
 
         void failStart(const StartRequest &request, StartOutcome outcome, const QString &title, const QString &error);
+
+        // The rest of requestStart once the worker built the config; the start still holds its claim.
+        void startBuilt(const StartRequest &resolved, const std::shared_ptr<Configs::Profile> &ent, quint64 intent, quint64 hintEpoch,
+                        const std::shared_ptr<Configs::BuildConfigResult> &result);
+
+        // Releases a start's claim after m_startInFlight was cleared; a held stop runs first.
+        void endStart(bool clearReasons);
 
         // The request slot holds, if any, gets Superseded; then slot holds next.
         void supersedePending(StartRequest &slot, const StartRequest &next);
@@ -190,7 +201,8 @@ namespace Engine {
         // Stops that joined the one in flight; they run after its teardown.
         QList<std::function<void()>> m_stopWaiters;
 
-        // From a start's Busy check until it returns early or its body ends; the ops thread clears it when a body ends.
+        // From a start's claim, before its build, until a check after the build ends it or its body ends; the ops thread
+        // clears it when a body ends.
         std::atomic<bool> m_startInFlight{false};
         // Any thread: bumped by every start and manual stop; deferred continuations compare it.
         std::atomic<quint64> m_intentToken{0};

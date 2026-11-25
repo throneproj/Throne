@@ -551,6 +551,21 @@ namespace API {
         return {};
     }
 
+    libcore::QueryConnectionCountResp Client::QueryConnectionCount(bool *rpcOK) const
+    {
+        libcore::EmptyReq request;
+        libcore::QueryConnectionCountResp reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("QueryConnectionCount", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        }
+        NOT_OK
+        return {};
+    }
+
     QString Client::CloseConnections(bool *rpcOK, const QStringList &ids, int *closedCount) const
     {
         if (closedCount != nullptr) *closedCount = 0;
@@ -661,11 +676,11 @@ namespace API {
         }
     }
 
-    libcore::SpeedTestResponse Client::SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request, QString *coreError)
+    libcore::SpeedTestResponse Client::SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request, QString *coreError, int timeoutMs)
     {
         libcore::SpeedTestResponse reply;
         std::vector<uint8_t> resp;
-        auto status = channel->Call("SpeedTest", spb::pb::serialize<std::string>(request), resp);
+        auto status = channel->Call("SpeedTest", spb::pb::serialize<std::string>(request), resp, timeoutMs);
 
         if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
             *rpcOK = true;
