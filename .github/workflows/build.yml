@@ -228,10 +228,15 @@ jobs:
           fonts=(dashboard/assets/noto-color-emoji-*.woff2)
           [ ${#fonts[@]} -gt 0 ] || echo "::warning::The web dashboard no longer bundles noto-color-emoji; nothing was cut down"
           # Regional indicators, the flag emoji, and the parts of the tag and ZWJ flag sequences.
+          # lxml is what lets pyftsubset cut the font's SVG table.
           for font in "${fonts[@]}"; do
-            pipx run --spec 'fonttools[woff]==4.68.0' pyftsubset "$font" --output-file="$font.flags" --flavor=woff2 \
-              --layout-features='*' --unicodes='U+1F1E6-1F1FF,U+1F3F3,U+1F3F4,U+1F3C1,U+1F6A9,U+1F38C,U+E0020-E007F,U+200D,U+FE0F,U+2620,U+26A7,U+1F308'
-            mv "$font.flags" "$font"
+            if pipx run --spec 'fonttools[woff,lxml]==4.68.0' pyftsubset "$font" --output-file="$font.flags" --flavor=woff2 \
+                --layout-features='*' --unicodes='U+1F1E6-1F1FF,U+1F3F3,U+1F3F4,U+1F3C1,U+1F6A9,U+1F38C,U+E0020-E007F,U+200D,U+FE0F,U+2620,U+26A7,U+1F308'; then
+              mv "$font.flags" "$font"
+            else
+              rm -f "$font.flags"
+              echo "::warning::Cutting $font down to flags failed; the full font ships"
+            fi
           done
           # cmake globs res/dashboard at configure time and silently ships nothing if it is empty.
           test -f dashboard/index.html
