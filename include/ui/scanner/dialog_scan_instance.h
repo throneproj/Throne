@@ -18,7 +18,6 @@ namespace Ui {
 }
 QT_END_NAMESPACE
 
-class QPushButton;
 class QSortFilterProxyModel;
 class QTimer;
 class IpEntriesModel;
@@ -31,12 +30,8 @@ class DialogScanInstance : public QDialog {
     Q_OBJECT
 
 public:
+    // Resolver scans only; any other kind is not opened.
     static void Open(int scanId);
-
-    static void Discard(int scanId);
-
-    // False when the edits are invalid; the user has already been told.
-    static bool SaveIfDirty(int scanId);
 
     ~DialogScanInstance() override;
 
@@ -48,8 +43,6 @@ protected:
     void hideEvent(QHideEvent *event) override;
 
     void resizeEvent(QResizeEvent *event) override;
-
-    void changeEvent(QEvent *event) override;
 
 private:
     DialogScanInstance(QWidget *parent, std::shared_ptr<Configs::IpScan> scan);
@@ -67,16 +60,13 @@ private:
     bool loading = false;
     bool watching = false;
     bool discarding = false;
-    bool settingsLocked = false;
     bool resultsStale = true;
     bool resultsLoading = false;
     bool resultsBusy = false;
-    bool profilesStale = false;
     quint64 resultsGeneration = 0;
     int resultsLoadedListId = -1;
     int resultsLoadedCount = -1;
     int resultCount = 0;
-    QHash<int, QString> baseListNames;
     QStringList logLines;
 
     Validation::Form *form = nullptr;
@@ -84,11 +74,6 @@ private:
     IpEntriesModel *resultsModel = nullptr;
     QSortFilterProxyModel *resultsProxy = nullptr;
     QTimer *resultsReload = nullptr;
-    QPushButton *useAsResolvers = nullptr;
-
-    [[nodiscard]] bool isWarp() const;
-
-    [[nodiscard]] bool isResolver() const;
 
     void setupSettings();
 
@@ -104,17 +89,15 @@ private:
 
     void loadForm();
 
-    bool collect(Configs::ScanConfig &out, int &baseListId, QString &name, QString *error) const;
+    void updateTitle();
+
+    bool collect(Configs::ScanConfig &out, int &baseListId, QString *error) const;
 
     bool save(QString *error);
 
     bool saveIfDirty();
 
     void reloadBaseLists(int selectId);
-
-    void reloadProfiles(int selectId);
-
-    void matchWarpSeed();
 
     void reloadRow();
 

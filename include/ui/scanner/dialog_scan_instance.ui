@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>IP Scanner</string>
+   <string>Find resolvers</string>
   </property>
   <layout class="QVBoxLayout" name="layout_main">
    <item>
@@ -29,37 +29,10 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="name_label">
-        <property name="text">
-         <string>Name</string>
-        </property>
-        <property name="buddy">
-         <cstring>name</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <layout class="QHBoxLayout" name="layout_name">
-        <item>
-         <widget class="QLineEdit" name="name"/>
-        </item>
-        <item>
-         <widget class="QLabel" name="kind">
-          <property name="text">
-           <string notr="true"/>
-          </property>
-          <property name="colorRole" stdset="0">
-           <string notr="true">muted</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="0" colspan="2">
+      <item row="0" column="0" colspan="2">
        <widget class="QLabel" name="intro">
         <property name="text">
-         <string notr="true"/>
+         <string>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</string>
         </property>
         <property name="textFormat">
          <enum>Qt::TextFormat::PlainText</enum>
@@ -72,33 +45,7 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="profile_label">
-        <property name="text">
-         <string>Profile</string>
-        </property>
-        <property name="buddy">
-         <cstring>profile</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="NoWheelComboBox" name="profile">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>1</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="sizeAdjustPolicy">
-         <enum>QComboBox::SizeAdjustPolicy::AdjustToMinimumContentsLengthWithIcon</enum>
-        </property>
-        <property name="minimumContentsLength">
-         <number>16</number>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
+      <item row="1" column="0">
        <widget class="QLabel" name="base_list_label">
         <property name="text">
          <string>Base IP list</string>
@@ -108,10 +55,13 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="1" column="1">
        <layout class="QHBoxLayout" name="layout_base_list">
         <item>
          <widget class="NoWheelComboBox" name="base_list">
+          <property name="toolTip">
+           <string>Each address is tried as a resolver; the default port is 53.</string>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>1</horstretch>
@@ -135,7 +85,7 @@
         </item>
        </layout>
       </item>
-      <item row="4" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="stop_after_label">
         <property name="text">
          <string>Stop after (results)</string>
@@ -145,14 +95,14 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="2" column="1">
        <widget class="QLineEdit" name="stop_after">
         <property name="toolTip">
          <string>Stop after this many results. Empty: no limit.</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="concurrency_label">
         <property name="text">
          <string>Concurrency</string>
@@ -162,7 +112,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="3" column="1">
        <widget class="QLineEdit" name="concurrency">
         <property name="toolTip">
          <string>Targets checked at the same time.</string>
@@ -209,6 +159,16 @@
       </item>
       <item>
        <layout class="QHBoxLayout" name="layout_results_buttons">
+        <item>
+         <widget class="QPushButton" name="use_as_resolvers">
+          <property name="toolTip">
+           <string>Add this list to the profile's resolvers.</string>
+          </property>
+          <property name="text">
+           <string>Use as resolvers</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QPushButton" name="save_as_list">
           <property name="text">

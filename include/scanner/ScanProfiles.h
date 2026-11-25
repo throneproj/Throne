@@ -34,7 +34,7 @@ namespace Scanner {
     // The profile's own sing-box endpoint object for the core's WARP probe; nothing is overridden.
     [[nodiscard]] QJsonObject WarpProbeEndpoint(const Configs::Profile &profile, QString *error);
 
-    // Always a deep copy, never the live repo object.
+    // A resolver scan's DNS tunnel profile; always a deep copy, never the live repo object.
     std::shared_ptr<Configs::Profile> ResolveScanBase(const Configs::IpScan &scan, QString *error);
 
     // A deep copy of a WARP profile, an editor's unsaved draft too; nullptr with *error set otherwise.

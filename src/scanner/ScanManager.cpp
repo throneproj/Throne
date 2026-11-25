@@ -10,6 +10,7 @@
 #include "include/api/RPC.h"
 #include "include/database/IpListsRepo.h"
 #include "include/database/IpScansRepo.h"
+#include "include/database/ProfilesRepo.h"
 #include "include/global/Configs.hpp"
 #include "include/scanner/DefaultIpLists.h"
 #include "include/scanner/IpListParse.h"
@@ -87,10 +88,29 @@ namespace Scanner {
             if (entries.isEmpty()) entries = EntriesFromCidrs(masque ? WarpPresets::kMasqueEndpoints : WarpPresets::kWireGuardRanges, 0);
             return entries;
         }
+
+        // A resolver scan is reached only through its DNS tunnel profile, so once that is gone nothing can open it.
+        QList<int> scanManagerProfilelessScans() {
+            const auto scans = Configs::dataManager->ipScansRepo->GetAllIpScans();
+            if (scans.isEmpty()) return {};
+            QList<int> profileIds;
+            for (const auto &scan : scans) {
+                if (scan->config.resolver.profileId >= 0) profileIds << scan->config.resolver.profileId;
+            }
+            QSet<int> existing;
+            for (const auto &profile : Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(profileIds))
+                existing.insert(profile.first);
+            QList<int> ids;
+            for (const auto &scan : scans) {
+                if (!existing.contains(scan->config.resolver.profileId)) ids << scan->id;
+            }
+            return ids;
+        }
     } // namespace
 
     ScanManager::ScanManager(QObject *parent) : QObject(parent) {
         scanManagerDeleteDetached(Configs::dataManager->ipListsRepo->OrphanedIpLists(), true);
+        for (const int scanId : scanManagerProfilelessScans()) DeleteScan(scanId, false);
         auto *timer = new QTimer(this);
         timer->setSingleShot(true);
         timer->setInterval(kScanManagerProgressIntervalMs);
@@ -110,7 +130,7 @@ namespace Scanner {
     StartResult ScanManager::Start(int scanId, StartMode mode) {
         if (workers.contains(scanId)) return {tr("The scan is already running")};
         const auto scan = Configs::dataManager->ipScansRepo->GetIpScan(scanId);
-        if (scan == nullptr) return {tr("The scan no longer exists")};
+        if (scan == nullptr || scan->kind != Configs::IpScan::Kind::Resolver) return {tr("The scan no longer exists")};
         const auto &config = scan->config;
 
         QString error;
@@ -138,9 +158,7 @@ namespace Scanner {
         }
 
         persistDisabled = false;
-        std::shared_ptr<ScanRun> worker;
-        if (scan->kind == Configs::IpScan::Kind::Warp) worker = std::make_shared<WarpWorker>(*scan, effective, base, hooksFor(scanId));
-        else worker = std::make_shared<ScanWorker>(*scan, effective, base, hooksFor(scanId));
+        const auto worker = std::make_shared<ScanWorker>(*scan, effective, base, hooksFor(scanId));
         Configs::dataManager->ipScansRepo->SaveStatus(scanId, Configs::IpScan::Status::Running, {});
         workers.insert(scanId, worker);
         emit statusChanged(scanId);
@@ -295,7 +313,7 @@ namespace Scanner {
     }
 
     QString ScanManager::ResultListName(const QString &scanName) {
-        return tr("Scan %1 Result").arg(scanName);
+        return scanName.trimmed();
     }
 
     void ScanManager::NotifyScansChanged() {

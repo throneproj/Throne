@@ -118,19 +118,13 @@ namespace Scanner {
     }
 
     std::shared_ptr<Configs::Profile> ResolveScanBase(const Configs::IpScan &scan, QString *error) {
-        const bool warp = scan.kind == Configs::IpScan::Kind::Warp;
-        const int profileId = warp ? scan.config.warp.profileId : scan.config.resolver.profileId;
+        const int profileId = scan.config.resolver.profileId;
         const auto live = profileId >= 0 ? Configs::dataManager->profilesRepo->GetProfile(profileId) : nullptr;
         if (live == nullptr || live->outbound == nullptr) {
-            scanProfilesSetError(error, warp ? QObject::tr("Choose the WARP profile to scan with")
-                                             : QObject::tr("Choose the DNS tunnel profile to find resolvers for"));
+            scanProfilesSetError(error, QObject::tr("Choose the DNS tunnel profile to find resolvers for"));
             return nullptr;
         }
-        if (warp && !IsWarpScanProfile(*live)) {
-            scanProfilesSetError(error, scanProfilesNotWarp());
-            return nullptr;
-        }
-        if (!warp && !IsDnsTunnelBase(*live)) {
+        if (!IsDnsTunnelBase(*live)) {
             scanProfilesSetError(error, QObject::tr("Only DNSTT, MasterDNS and XDNS profiles can be used to find resolvers"));
             return nullptr;
         }

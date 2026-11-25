@@ -45,7 +45,7 @@ namespace Configs {
         // Rows still Running after a crash become Paused; call once at startup.
         void NormalizeInterrupted();
 
-        // Once: drops the retired kinds' rows; their result lists become user lists, their snapshots orphans.
-        bool DeleteRetiredScans();
+        // Once per migration: drops the rows of these kinds; their result lists become user lists, their snapshots orphans.
+        bool DeleteRetiredScans(const QList<int> &kinds);
     };
 } // namespace Configs

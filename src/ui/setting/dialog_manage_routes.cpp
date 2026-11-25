@@ -700,6 +700,9 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     });
 
     connect(ui->route_profiles, &QListWidget::itemChanged, this, &DialogManageRoutes::syncRouteChecks);
+    connect(ui->manage_ip_lists, &QPushButton::clicked, this, [] {
+        if (auto *window = GetMainWindow()) window->showIpListsDialog();
+    });
 
     deleteShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
 

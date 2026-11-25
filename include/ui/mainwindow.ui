@@ -841,7 +841,6 @@ QToolButton::menu-indicator {
     <addaction name="actionSpeedtest_Current"/>
     <addaction name="separator"/>
     <addaction name="menu_otp_manager"/>
-    <addaction name="menu_scanner"/>
     <addaction name="separator"/>
     <addaction name="actionTraffic_Stats"/>
    </widget>
@@ -1118,11 +1117,6 @@ QToolButton::menu-indicator {
   <action name="menu_otp_manager">
    <property name="text">
     <string>OTP Manager</string>
-   </property>
-  </action>
-  <action name="menu_scanner">
-   <property name="text">
-    <string>IP Scanner</string>
    </property>
   </action>
   <action name="actionRestart_Program">

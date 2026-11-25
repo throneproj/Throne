@@ -20,14 +20,10 @@
 #include "include/api/RPC.h"
 #include "include/configs/common/DnsTunnel.h"
 #include "include/configs/generate.h"
-#include "include/database/IpListsRepo.h"
-#include "include/database/IpScansRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/global/Configs.hpp"
 #include "include/scanner/IpListParse.h"
-#include "include/scanner/IpListUpdater.h"
 #include "include/scanner/ScanProfiles.h"
-#include "include/scanner/ScanWorker.h"
 #include "include/scanner/WarpPresets.h"
 
 namespace Scanner {
@@ -57,7 +53,6 @@ namespace Scanner {
         constexpr quint64 kWarpWorkerBudgetSeconds = 90;
         constexpr qint64 kWarpWorkerBudgetMs = qint64(kWarpWorkerBudgetSeconds) * 1000;
         constexpr int kWarpWorkerTickMs = 500;
-        constexpr int kWarpWorkerKnownGoodCap = 64;
         constexpr int kWarpWorkerMaxPools = 256;
         constexpr int kWarpWorkerNetworkCheckTimeoutMs = 3000;
         constexpr qint64 kWarpWorkerNetworkReuseMs = 10000;
@@ -107,11 +102,7 @@ namespace Scanner {
             return address.contains(QLatin1Char(':'));
         }
 
-        QString warpWorkerKey(const QString &host, int port) {
-            return host + QLatin1Char(' ') + QString::number(port);
-        }
-
-        // The canonical host the result lists store; "" for a range or anything else.
+        // The canonical host; "" for a range or anything else.
         QString warpWorkerHost(const QString &text) {
             const auto canonical = NormalizeCidr(text.trimmed());
             if (canonical.isEmpty() || !IsHostCidr(canonical)) return {};
@@ -162,44 +153,19 @@ namespace Scanner {
             const auto endpoint = WarpProbeEndpoint(*profile, &error);
             return endpoint.isEmpty() ? QString() : QJsonObject2QString(endpoint, true);
         }
-
-        Configs::IpScan warpWorkerFinderScan(int id) {
-            Configs::IpScan scan;
-            scan.id = id;
-            scan.total = kWarpWorkerBudgetSeconds;
-            return scan;
-        }
     } // namespace
 
-    WarpWorker::WarpWorker(const Configs::IpScan &scan, StartMode mode, std::shared_ptr<Configs::Profile> base, ScanRunHooks hooks)
-        : scanId_(scan.id),
-          sessionId_(QStringLiteral("warp-%1-%2-%3")
-                         .arg(scan.id)
+    WarpWorker::WarpWorker(int finderId, std::shared_ptr<Configs::Profile> base, QList<Configs::IpListEntry> seeds, ScanRunHooks hooks)
+        : sessionId_(QStringLiteral("warp-%1-%2-%3")
+                         .arg(finderId)
                          .arg(QDateTime::currentMSecsSinceEpoch())
                          .arg(warpWorkerSessionCounter.fetch_add(1))),
-          startMode_(mode),
           hooks_(std::move(hooks)),
-          initialStatus_(scan.status),
-          scan_(scan),
+          seeds_(std::move(seeds)),
           base_(std::move(base)) {
-        scan_.status = Configs::IpScan::Status::Running;
-        scan_.last_error.clear();
         live_.running = true;
         live_.stage = ScanManager::tr("Preparing");
-        live_.found = scan.found;
-        if (mode == StartMode::Resume) {
-            live_.tested = scan.ActiveCursor();
-            live_.total = scan.ActiveTotal();
-            live_.removed = scan.removed;
-        }
-    }
-
-    WarpWorker::WarpWorker(int finderId, std::shared_ptr<Configs::Profile> base, QList<Configs::IpListEntry> seeds, ScanRunHooks hooks)
-        : WarpWorker(warpWorkerFinderScan(finderId), StartMode::FromInitial, std::move(base), std::move(hooks)) {
-        finder_ = true;
-        seeds_ = std::move(seeds);
-        persist_.store(false);
-        live_.total = scan_.total;
+        live_.total = kWarpWorkerBudgetSeconds;
     }
 
     void WarpWorker::Start() {
@@ -212,10 +178,6 @@ namespace Scanner {
         stop_.store(true);
         QMutexLocker locker(&mutex_);
         live_.stopping = true;
-    }
-
-    void WarpWorker::DisablePersist() {
-        persist_.store(false);
     }
 
     ScanLiveState WarpWorker::LiveState() const {
@@ -241,7 +203,6 @@ namespace Scanner {
         try {
             finishRun(completed, error);
         } catch (...) {
-            mainLog(ScanManager::tr("Scan %1: saving its final state failed").arg(scanId_));
         }
         tickStop_.store(true);
         if (hooks_.finished) hooks_.finished();
@@ -265,23 +226,15 @@ namespace Scanner {
     QString WarpWorker::execute(bool &completed) {
         clockStartMs_ = warpWorkerNowMs();
         if (auto error = prepare(); !error.isEmpty() || stop_) return error;
-        if (!finder_) {
-            const auto error = preparePass();
-            if (std::exchange(listsTouched_, false)) IpListUpdater::instance()->NotifyListsChanged();
-            if (!error.isEmpty() || stop_ || !persist_) return error;
-            if (rescanPass()) return rescan(completed);
-        }
         if (auto error = loadPools(); !error.isEmpty() || stop_) return error;
 
         // The budget starts here, so the IPv6 check costs none of it.
-        budgetBaseMs_ = qint64(std::min(scan_.cursor, kWarpWorkerBudgetSeconds)) * 1000;
         clockStartMs_ = warpWorkerNowMs();
         searching_ = true;
-        setTested(budgetCursor(), scan_.total);
+        setTested(budgetCursor(), kWarpWorkerBudgetSeconds);
         {
             const auto endSearch = qScopeGuard([this] {
-                scan_.cursor = budgetCursor();
-                searchMs_ = budgetBaseMs_ + elapsedMs();
+                searchMs_ = elapsedMs();
                 searching_ = false;
             });
             if (auto error = search(); !error.isEmpty() || stop_) return error;
@@ -302,119 +255,6 @@ namespace Scanner {
         probeJson_ = QJsonObject2QString(endpoint, true);
         if (auto invalid = Configs::ValidateScanBase(base_); !invalid.isEmpty()) return invalid;
         testUrl_ = Configs::dataManager->settingsRepo->test_latency_url;
-        return {};
-    }
-
-    QString WarpWorker::preparePass() {
-        if (!persist_ || stop_) return {};
-        const int previous = scan_.result_list_id;
-        if (EnsureScanResultList(scan_) < 0) return ScanManager::tr("The result list could not be created");
-        if (scan_.result_list_id != previous) listsTouched_ = true;
-        switch (startMode_) {
-            case StartMode::FromInitial:
-                return prepareSearch();
-            case StartMode::RescanResults:
-                return prepareRescan();
-            case StartMode::Resume:
-                break;
-        }
-        if (!rescanResumable()) {
-            // The old flow counted targets, not seconds, so such a pass starts over.
-            if (!scan_.CanResumeInitial() || scan_.total != kWarpWorkerBudgetSeconds) return prepareSearch();
-            scan_.mode = Configs::IpScan::Mode::Initial;
-            replacePending_ = ReplacePending(scan_);
-        }
-        scan_.found = Configs::dataManager->ipListsRepo->EntryCount(scan_.result_list_id);
-        {
-            QMutexLocker locker(&mutex_);
-            live_.found = scan_.found;
-        }
-        persistState();
-        return {};
-    }
-
-    QString WarpWorker::prepareSearch() {
-        auto &lists = *Configs::dataManager->ipListsRepo;
-        const auto base = lists.GetIpList(scan_.base_list_id);
-        if (base == nullptr) return ScanManager::tr("The base IP list no longer exists");
-        if (base->entries.isEmpty()) return ScanManager::tr("The base IP list is empty");
-        if (buildPools(base->entries).isEmpty()) return ScanManager::tr("The base IP list holds no valid range");
-        if (!persist_ || stop_) return {};
-
-        // The old results stay until the pass's first confirmed endpoint replaces them.
-        replacePending_ = true;
-        deleteList(scan_.snapshot_list_id);
-        deleteList(scan_.rescan_snapshot_list_id);
-        scan_.snapshot_list_id = -1;
-        scan_.rescan_snapshot_list_id = -1;
-        scan_.rescan_cursor = 0;
-        scan_.rescan_total = 0;
-        scan_.mode = Configs::IpScan::Mode::Initial;
-        scan_.seed = 0;
-        scan_.cursor = 0;
-        scan_.total = 0;
-        scan_.found = lists.EntryCount(scan_.result_list_id);
-        scan_.removed = 0;
-        scan_.started_at = QDateTime::currentSecsSinceEpoch();
-        scan_.finished_at = 0;
-        scan_.last_error.clear();
-        {
-            QMutexLocker locker(&mutex_);
-            live_.found = scan_.found;
-            live_.removed = 0;
-        }
-
-        auto snapshot = Configs::IpListsRepo::NewIpList();
-        snapshot->name = ScanManager::tr("%1 snapshot").arg(scan_.name);
-        snapshot->role = Configs::IpList::Role::ScanSnapshot;
-        snapshot->related_test_id = scan_.id;
-        snapshot->last_update = QDateTime::currentSecsSinceEpoch();
-        snapshot->entries = base->entries;
-        snapshot->entryCount = static_cast<int>(base->entries.size());
-        snapshot->entriesLoaded = true;
-        if (!lists.AddIpList(snapshot)) return ScanManager::tr("The base IP list could not be copied");
-        listsTouched_ = true;
-        scan_.snapshot_list_id = snapshot->id;
-        scan_.spec_hash = scan_.config.TargetSpecHash(scan_.base_list_id);
-        scan_.total = kWarpWorkerBudgetSeconds;
-        persistState();
-        setTested(0, scan_.total);
-        return {};
-    }
-
-    QString WarpWorker::prepareRescan() {
-        auto &lists = *Configs::dataManager->ipListsRepo;
-        deleteList(scan_.rescan_snapshot_list_id);
-        scan_.rescan_snapshot_list_id = -1;
-        scan_.rescan_cursor = 0;
-        scan_.rescan_total = 0;
-        const auto entries = lists.GetEntries(scan_.result_list_id);
-        if (entries.isEmpty()) {
-            persistState();
-            return ScanManager::tr("The result list is empty");
-        }
-        auto snapshot = Configs::IpListsRepo::NewIpList();
-        snapshot->name = ScanManager::tr("%1 rescan snapshot").arg(scan_.name);
-        snapshot->role = Configs::IpList::Role::ScanSnapshot;
-        snapshot->related_test_id = scan_.id;
-        snapshot->entries = entries;
-        snapshot->entryCount = static_cast<int>(entries.size());
-        snapshot->entriesLoaded = true;
-        if (!lists.AddIpList(snapshot)) return ScanManager::tr("The result list could not be copied");
-        listsTouched_ = true;
-        scan_.rescan_snapshot_list_id = snapshot->id;
-        scan_.rescan_total = static_cast<quint64>(entries.size());
-        scan_.mode = Configs::IpScan::Mode::RescanResult;
-        scan_.found = lists.EntryCount(scan_.result_list_id);
-        scan_.removed = 0;
-        scan_.last_error.clear();
-        {
-            QMutexLocker locker(&mutex_);
-            live_.found = scan_.found;
-            live_.removed = 0;
-        }
-        persistState();
-        setTested(0, scan_.rescan_total);
         return {};
     }
 
@@ -483,69 +323,30 @@ namespace Scanner {
     }
 
     QString WarpWorker::loadPools() {
-        const auto entries = finder_ ? seeds_ : Configs::dataManager->ipListsRepo->GetEntries(scan_.snapshot_list_id);
-        if (entries.isEmpty()) {
-            if (finder_) return ScanManager::tr("The base IP list is empty");
-            scan_.snapshot_list_id = -1;
-            return ScanManager::tr("The copy of the base IP list is gone; restart the scan");
-        }
-        pools_ = buildPools(entries);
-        if (pools_.isEmpty()) {
-            deleteList(scan_.snapshot_list_id);
-            scan_.snapshot_list_id = -1;
-            return ScanManager::tr("The base IP list holds no valid range");
-        }
+        if (seeds_.isEmpty()) return ScanManager::tr("The base IP list is empty");
+        pools_ = buildPools(seeds_);
+        if (pools_.isEmpty()) return ScanManager::tr("The base IP list holds no valid range");
 
         const bool hasV4 = std::any_of(pools_.cbegin(), pools_.cend(), [](const Pool &pool) { return !pool.v6; });
         const bool hasV6 = std::any_of(pools_.cbegin(), pools_.cend(), [](const Pool &pool) { return pool.v6; });
-        if (hasV6) {
-            QString detail;
-            if (!networkUp(true, &detail)) {
-                if (stop_) return {};
-                if (!hasV4) return ScanManager::tr("The base IP list holds only IPv6 ranges, and this network has no IPv6");
-                dropIpv6(ScanManager::tr("This network has no IPv6; skipping the IPv6 ranges"));
-            }
+        if (hasV6 && !networkUp(true)) {
+            if (stop_) return {};
+            if (!hasV4) return ScanManager::tr("The base IP list holds only IPv6 ranges, and this network has no IPv6");
+            dropIpv6(ScanManager::tr("This network has no IPv6; skipping the IPv6 ranges"));
         }
         return {};
     }
 
+    // The profile's own endpoint joins round 1, checked with the settings discovery settled.
     QString WarpWorker::search() {
-        // A finder skips the known-endpoints pass: the profile's own endpoint joins round 1, checked with the settings discovery settled.
-        if (!finder_) {
-            if (auto error = knownGood(); !error.isEmpty() || stop_ || stopRuleMet()) return error;
-        }
         QList<Target> seeds;
         if (auto error = discoverPorts(seeds); !error.isEmpty() || stop_) return error;
-        if (finder_) {
-            const auto own = warpWorkerHost(base_->outbound->GetAddress());
-            int port = base_->outbound->GetPort().toInt();
-            if (port <= 0 && isMasque()) port = kWarpWorkerMasqueDefaultPort;
-            const bool seeded = std::any_of(seeds.cbegin(), seeds.cend(), [&own](const Target &target) { return target.address == own; });
-            if (!own.isEmpty() && port > 0 && !seeded) seeds.prepend(Target{own, port});
-        }
+        const auto own = warpWorkerHost(base_->outbound->GetAddress());
+        int port = base_->outbound->GetPort().toInt();
+        if (port <= 0 && isMasque()) port = kWarpWorkerMasqueDefaultPort;
+        const bool seeded = std::any_of(seeds.cbegin(), seeds.cend(), [&own](const Target &target) { return target.address == own; });
+        if (!own.isEmpty() && port > 0 && !seeded) seeds.prepend(Target{own, port});
         return sampleRounds(seeds);
-    }
-
-    QString WarpWorker::knownGood() {
-        QList<Target> targets;
-        QSet<QString> seen;
-        const auto add = [&](const QString &host, int port) {
-            if (host.isEmpty() || targets.size() >= kWarpWorkerKnownGoodCap) return;
-            if (!ipv6Allowed_ && warpWorkerIsIpv6(host)) return;
-            const auto key = warpWorkerKey(host, port);
-            if (seen.contains(key)) return;
-            seen.insert(key);
-            targets << Target{host, port};
-        };
-        add(warpWorkerHost(base_->outbound->GetAddress()), base_->outbound->GetPort().toInt());
-        if (scan_.result_list_id >= 0) {
-            for (const auto &entry : Configs::dataManager->ipListsRepo->GetEntries(scan_.result_list_id, 0, kWarpWorkerKnownGoodCap))
-                add(warpWorkerHost(entry.cidr), entry.port);
-        }
-        if (targets.isEmpty()) return {};
-        setStage(ScanManager::tr("Re-checking known endpoints"));
-        pushLog(ScanManager::tr("Re-checking %n known endpoint(s)", nullptr, static_cast<int>(targets.size())));
-        return probeTargets(targets, kWarpWorkerAttempts, true, nullptr, nullptr);
     }
 
     QString WarpWorker::discoverPorts(QList<Target> &seeds) {
@@ -566,7 +367,7 @@ namespace Scanner {
         pushLog(ScanManager::tr("Finding open ports on %n address(es)", nullptr, static_cast<int>(addresses.size())));
         const auto usual = cross(addresses, primary);
         QList<Candidate> found;
-        if (auto error = probeTargets(usual, kWarpWorkerDiscoveryAttempts, false, &found, nullptr); !error.isEmpty() || stop_)
+        if (auto error = probeTargets(usual, kWarpWorkerDiscoveryAttempts, false, &found); !error.isEmpty() || stop_)
             return error;
 
         if (masque) {
@@ -582,7 +383,7 @@ namespace Scanner {
                 }
                 const auto rest = cross(addresses.mid(0, kWarpWorkerFallbackAddresses), extra);
                 pushLog(ScanManager::tr("None of the usual ports answered; trying %n more", nullptr, static_cast<int>(extra.size())));
-                if (auto error = probeTargets(rest, kWarpWorkerDiscoveryAttempts, false, &found, nullptr); !error.isEmpty() || stop_)
+                if (auto error = probeTargets(rest, kWarpWorkerDiscoveryAttempts, false, &found); !error.isEmpty() || stop_)
                     return error;
                 if (auto error = tryJunk(rest, found); !error.isEmpty() || stop_) return error;
             }
@@ -625,7 +426,7 @@ namespace Scanner {
         if (json.isEmpty()) return {};
         pushLog(ScanManager::tr("Trying AmneziaWG junk"));
         const auto plain = std::exchange(probeJson_, json);
-        if (auto error = probeTargets(targets, kWarpWorkerDiscoveryAttempts, false, &found, nullptr); !error.isEmpty() || stop_)
+        if (auto error = probeTargets(targets, kWarpWorkerDiscoveryAttempts, false, &found); !error.isEmpty() || stop_)
             return error;
         if (found.isEmpty()) {
             probeJson_ = plain;
@@ -637,9 +438,7 @@ namespace Scanner {
             QMutexLocker locker(&mutex_);
             live_.warpJunk = true;
         }
-        const auto line = ScanManager::tr("Endpoints answer only with AmneziaWG junk; continuing with junk packets");
-        pushLog(line);
-        mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
+        pushLog(ScanManager::tr("Endpoints answer only with AmneziaWG junk; continuing with junk packets"));
         return {};
     }
 
@@ -653,7 +452,7 @@ namespace Scanner {
         if (json.isEmpty()) return;
         pushLog(ScanManager::tr("Trying HTTP/2"));
         const auto http3 = std::exchange(probeJson_, json);
-        const auto error = probeTargets(targets, kWarpWorkerDiscoveryAttempts, false, &found, nullptr);
+        const auto error = probeTargets(targets, kWarpWorkerDiscoveryAttempts, false, &found);
         if (stop_) return;
         // A copy that cannot probe here (its ECH fetch needs a running instance) leaves the profile's own outcome.
         if (!error.isEmpty() || found.isEmpty()) {
@@ -668,14 +467,11 @@ namespace Scanner {
     void WarpWorker::useHttp2(const std::shared_ptr<Configs::Profile> &copy, const QString &json) {
         base_ = copy;
         probeJson_ = json;
-        http2Mode_ = true;
         {
             QMutexLocker locker(&mutex_);
             live_.warpHttp2 = true;
         }
-        const auto line = ScanManager::tr("HTTP/3 gets no answer here; continuing over HTTP/2");
-        pushLog(line);
-        mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
+        pushLog(ScanManager::tr("HTTP/3 gets no answer here; continuing over HTTP/2"));
     }
 
     QString WarpWorker::sampleRounds(const QList<Target> &seeds) {
@@ -686,120 +482,23 @@ namespace Scanner {
             if (targets.isEmpty()) return {};
             setStage(ScanManager::tr("Searching ranges"));
             pushLog(ScanManager::tr("Round %1: probing %n address(es)", nullptr, static_cast<int>(targets.size())).arg(round));
-            if (auto error = probeTargets(targets, kWarpWorkerAttempts, true, nullptr, nullptr); !error.isEmpty()) return error;
+            if (auto error = probeTargets(targets, kWarpWorkerAttempts, true, nullptr); !error.isEmpty()) return error;
         }
     }
 
-    QString WarpWorker::rescan(bool &completed) {
-        const auto rows = Configs::dataManager->ipListsRepo->GetEntries(scan_.rescan_snapshot_list_id);
-        if (rows.isEmpty()) {
-            scan_.rescan_snapshot_list_id = -1;
-            return ScanManager::tr("The copy of the result list is gone; rescan the results again");
-        }
-        scan_.rescan_total = static_cast<quint64>(rows.size());
-        scan_.rescan_cursor = std::min(scan_.rescan_cursor, scan_.rescan_total);
-        setStage(ScanManager::tr("Rescanning"));
-        pushLog(ScanManager::tr("Rescanning %n result(s)", nullptr, static_cast<int>(scan_.rescan_total - scan_.rescan_cursor)));
-        setTested(scan_.rescan_cursor, scan_.rescan_total);
-        while (scan_.rescan_cursor < scan_.rescan_total) {
-            if (stop_) return {};
-            const quint64 start = scan_.rescan_cursor;
-            const auto chunk = rows.mid(static_cast<qsizetype>(start), kWarpWorkerChunk);
-            // A cut-short chunk runs again whole.
-            if (auto error = rescanRows(chunk, start); !error.isEmpty() || stop_) return error;
-            scan_.rescan_cursor = start + static_cast<quint64>(chunk.size());
-            saveProgress();
-            setTested(scan_.rescan_cursor, scan_.rescan_total);
-        }
-        completed = true;
-        return {};
-    }
-
-    QString WarpWorker::rescanRows(const QList<Configs::IpListEntry> &rows, quint64 start) {
-        QList<Target> targets;
-        QHash<QString, Configs::IpListEntry> stored;
-        for (const auto &row : rows) {
-            const auto host = warpWorkerHost(row.cidr);
-            if (host.isEmpty() || stored.contains(warpWorkerKey(host, row.port))) continue;
-            stored.insert(warpWorkerKey(host, row.port), row);
-            targets << Target{host, row.port};
-        }
-        if (targets.isEmpty()) return {};
-        QList<Candidate> winners;
-        QList<Target> failures;
-        if (auto error = probeTargets(targets, kWarpWorkerAttempts, false, &winners, &failures); !error.isEmpty() || stop_) return error;
-
-        std::stable_sort(winners.begin(), winners.end(), &WarpWorker::better);
-        QList<Candidate> confirmed;
-        QList<Candidate> dataFailed;
-        if (auto error = dataCheckAll(winners, confirmed, dataFailed); !error.isEmpty() || stop_) return error;
-        if (!dataFailed.isEmpty()) {
-            // A single cold request can fail at random: one more try before anything is removed.
-            pushLog(ScanManager::tr("Re-checking data through %n endpoint(s)", nullptr, static_cast<int>(dataFailed.size())));
-            QList<Candidate> stillFailed;
-            if (auto error = dataCheckAll(dataFailed, confirmed, stillFailed); !error.isEmpty() || stop_) return error;
-            dataFailed = stillFailed;
-        }
-
-        const auto storedRow = [&](const QString &host, int port) {
-            return stored.value(warpWorkerKey(host, port), Configs::IpListEntry{host, port});
-        };
-        QList<Configs::IpListEntry> hits;
-        QList<Configs::IpListEntry> dead;
-        for (const auto &candidate : confirmed) {
-            hits << entryOf(candidate);
-            // A hit under another port replaces its row instead of adding a sibling.
-            if (candidate.port != candidate.entryPort) dead << storedRow(candidate.address, candidate.entryPort);
-        }
-        QList<Configs::IpListEntry> failed;
-        for (const auto &target : failures) failed << storedRow(target.address, target.port);
-        for (const auto &candidate : dataFailed) failed << storedRow(candidate.address, candidate.entryPort);
-
-        runConfirmed_ += static_cast<int>(confirmed.size());
-
-        const auto isV6 = [](const Configs::IpListEntry &entry) { return warpWorkerIsIpv6(entry.cidr); };
-        // Once IPv6 proved unusable here, an IPv6 failure says nothing about its row.
-        if (!ipv6Allowed_) failed.removeIf(isV6);
-        // Fresh checks, without the reuse window: an outage that began during this chunk must not delete its rows.
-        auto passes = hits;
-        QString detail;
-        if (removals_.WouldRemove(passes, failed, false) && !networkUp(false, &detail)) {
-            writeResults(hits, dead);
-            if (stop_) return {};
-            if (!detail.isEmpty()) mainLog(ScanManager::tr("Scan %1: network check failed: %2").arg(scan_.name, detail));
-            return networkDownError();
-        }
-        if (removals_.WouldRemove(passes, failed, true) && !networkUp(true, &detail)) {
-            if (stop_) {
-                writeResults(hits, dead);
-                return {};
-            }
-            dropIpv6(ScanManager::tr("IPv6 is unreachable from this network; skipping the IPv6 ranges"));
-            failed.removeIf(isV6);
-            passes.removeIf(isV6);
-        }
-        removals_.Add(passes, failed, start);
-        dead << removals_.TakeRemovable();
-        writeResults(hits, dead);
-        return {};
-    }
-
-    QString WarpWorker::probeTargets(const QList<Target> &targets, int attempts, bool confirm, QList<Candidate> *winners,
-                                     QList<Target> *failures) {
+    QString WarpWorker::probeTargets(const QList<Target> &targets, int attempts, bool confirm, QList<Candidate> *winners) {
         const int chunkSize = chunkFor(attempts);
         for (qsizetype offset = 0; offset < targets.size(); offset += chunkSize) {
-            if (stop_ || (!rescanPass() && stopRuleMet())) return {};
+            if (stop_ || stopRuleMet()) return {};
             auto chunk = targets.mid(offset, chunkSize);
             if (!ipv6Allowed_) chunk.removeIf([](const Target &target) { return warpWorkerIsIpv6(target.address); });
             if (chunk.isEmpty()) continue;
-            auto batch = probe(chunk, attempts);
+            const auto batch = probe(chunk, attempts);
             if (!batch.error.isEmpty()) return batch.error;
             if (batch.aborted) return {};
             if (auto error = guard(batch); !error.isEmpty()) return error;
             if (batch.answered > 0) answeredAny_ = true;
             if (winners != nullptr) *winners << batch.winners;
-            if (failures != nullptr) *failures << batch.failures;
-            if (searching_) saveProgress();
             if (confirm) {
                 addPending(batch.winners);
                 if (auto error = drainPending(); !error.isEmpty()) return error;
@@ -873,35 +572,21 @@ namespace Scanner {
         return batch;
     }
 
-    QString WarpWorker::guard(ProbeBatch &batch) {
+    QString WarpWorker::guard(const ProbeBatch &batch) {
         // Without a default route every target fails locally, with no lost egress to report.
         if (batch.answered == 0 && batch.v4LocalFailure) return stop_ ? QString() : networkDownError();
-        bool v6Blamed = false;
-        if (batch.v6LocalFailure && ipv6Allowed_) {
-            dropIpv6(ScanManager::tr("This host has no IPv6 route; skipping the IPv6 ranges"));
-            v6Blamed = true;
+        if (batch.v6LocalFailure && ipv6Allowed_) dropIpv6(ScanManager::tr("This host has no IPv6 route; skipping the IPv6 ranges"));
+        if (batch.answered > 0 || batch.failures.isEmpty()) return {};
+        const bool v6Only = std::all_of(batch.failures.cbegin(), batch.failures.cend(),
+                                        [](const Target &target) { return warpWorkerIsIpv6(target.address); });
+        if (v6Only) {
+            if (ipv6Allowed_ && !networkUp(true) && !stop_)
+                dropIpv6(ScanManager::tr("IPv6 is unreachable from this network; skipping the IPv6 ranges"));
+        } else if (networkUpAtMs_ < 0 || elapsedMs() - networkUpAtMs_ >= kWarpWorkerNetworkReuseMs) {
+            // Nothing answered: either nothing is here, or the network is gone.
+            if (!networkUp(false)) return stop_ ? QString() : networkDownError();
+            networkUpAtMs_ = elapsedMs();
         }
-        if (batch.answered == 0 && !batch.failures.isEmpty()) {
-            const bool v6Only = std::all_of(batch.failures.cbegin(), batch.failures.cend(),
-                                            [](const Target &target) { return warpWorkerIsIpv6(target.address); });
-            QString detail;
-            if (v6Only) {
-                if (ipv6Allowed_ && !networkUp(true, &detail) && !stop_) {
-                    dropIpv6(ScanManager::tr("IPv6 is unreachable from this network; skipping the IPv6 ranges"));
-                    v6Blamed = true;
-                }
-            } else if (networkUpAtMs_ < 0 || elapsedMs() - networkUpAtMs_ >= kWarpWorkerNetworkReuseMs) {
-                // Nothing answered: either nothing is here, or the network is gone.
-                if (!networkUp(false, &detail)) {
-                    if (stop_) return {};
-                    if (!detail.isEmpty()) mainLog(ScanManager::tr("Scan %1: network check failed: %2").arg(scan_.name, detail));
-                    return networkDownError();
-                }
-                networkUpAtMs_ = elapsedMs();
-            }
-        }
-        // IPv6 failures just blamed on the network say nothing about their rows.
-        if (v6Blamed) batch.failures.removeIf([](const Target &target) { return warpWorkerIsIpv6(target.address); });
         return {};
     }
 
@@ -922,9 +607,8 @@ namespace Scanner {
             const auto batch = pending_.mid(0, kWarpWorkerDataBatch);
             pending_.remove(0, batch.size());
             QList<Candidate> confirmed;
-            QList<Candidate> failed;
             // A check cut short by a pause or an error still keeps what passed before it ended.
-            const auto error = dataCheck(batch, confirmed, failed);
+            const auto error = dataCheck(batch, confirmed);
             storeConfirmed(confirmed);
             if (!error.isEmpty()) return error;
             if (stop_) return {};
@@ -932,15 +616,7 @@ namespace Scanner {
         return {};
     }
 
-    QString WarpWorker::dataCheckAll(const QList<Candidate> &candidates, QList<Candidate> &confirmed, QList<Candidate> &failed) {
-        for (qsizetype offset = 0; offset < candidates.size(); offset += kWarpWorkerDataBatch) {
-            if (stop_) return {};
-            if (auto error = dataCheck(candidates.mid(offset, kWarpWorkerDataBatch), confirmed, failed); !error.isEmpty()) return error;
-        }
-        return {};
-    }
-
-    QString WarpWorker::dataCheck(const QList<Candidate> &batch, QList<Candidate> &confirmed, QList<Candidate> &failed) {
+    QString WarpWorker::dataCheck(const QList<Candidate> &batch, QList<Candidate> &confirmed) {
         if (batch.isEmpty()) return {};
         const auto restoreStage = qScopeGuard([this, previous = stage_] { setStage(previous); });
         setStage(ScanManager::tr("Checking data"));
@@ -950,9 +626,6 @@ namespace Scanner {
         for (const auto &candidate : batch) targets << Configs::ScanTestTarget{candidate.address, candidate.port};
         const auto build = Configs::BuildScanTestConfig(base_, targets);
         if (!build.error.isEmpty()) return build.error;
-        for (const int index : build.unsupported) {
-            if (index >= 0 && index < batch.size()) failed << batch[index];
-        }
         if (build.build == nullptr || build.build->outboundTags.isEmpty()) return {};
 
         libcore::ScanURLTestRequest request;
@@ -998,7 +671,6 @@ namespace Scanner {
             const auto error = warpWorkerText(item.error.value());
             if (error.isEmpty()) confirmed << batch[index];
             else if (warpWorkerIsAborted(error)) aborted = true;
-            else failed << batch[index];
         }
         for (auto it = build.tag2target.cbegin(); it != build.tag2target.cend(); ++it) {
             if (!reported.contains(it.value())) aborted = true;
@@ -1009,18 +681,14 @@ namespace Scanner {
 
     void WarpWorker::storeConfirmed(const QList<Candidate> &confirmed) {
         if (confirmed.isEmpty()) return;
-        QList<Configs::IpListEntry> entries;
         for (const auto &candidate : confirmed) {
-            entries << entryOf(candidate);
             if (!confirmedAddresses_.contains(candidate.address)) {
                 confirmedAddresses_.insert(candidate.address);
                 lastConfirmMs_ = elapsedMs();
             }
         }
-        runConfirmed_ += static_cast<int>(confirmed.size());
         pushLog(ScanManager::tr("Confirmed %n endpoint(s)", nullptr, static_cast<int>(confirmed.size())));
-        if (finder_) addHits(confirmed);
-        else writeResults(entries, {});
+        addHits(confirmed);
     }
 
     void WarpWorker::addHits(const QList<Candidate> &confirmed) {
@@ -1042,32 +710,10 @@ namespace Scanner {
         if (hooks_.results) hooks_.results();
     }
 
-    void WarpWorker::writeResults(const QList<Configs::IpListEntry> &hits, const QList<Configs::IpListEntry> &dead) {
-        if (!persist_ || scan_.result_list_id < 0) return;
-        auto &lists = *Configs::dataManager->ipListsRepo;
-        if (!hits.isEmpty()) {
-            if (std::exchange(replacePending_, false)) {
-                lists.ReplaceEntries(scan_.result_list_id, hits);
-                ClearReplacePending(scan_);
-            } else {
-                lists.UpsertEntries(scan_.result_list_id, hits);
-            }
-        }
-        if (!dead.isEmpty()) scan_.removed += lists.RemoveEntries(scan_.result_list_id, dead);
-        scan_.found = lists.EntryCount(scan_.result_list_id);
-        {
-            QMutexLocker locker(&mutex_);
-            live_.found = scan_.found;
-            live_.removed = scan_.removed;
-        }
-        saveProgress();
-        if (hooks_.results) hooks_.results();
-    }
-
     bool WarpWorker::stopRuleMet() const {
         if (confirmedAddresses_.size() >= kWarpWorkerStopAfter) return true;
         const qint64 elapsed = elapsedMs();
-        if (budgetBaseMs_ + elapsed >= kWarpWorkerBudgetMs) return true;
+        if (elapsed >= kWarpWorkerBudgetMs) return true;
         // Quiet only once every handshake winner has had its data check.
         return lastConfirmMs_ >= 0 && pending_.isEmpty() && elapsed - lastConfirmMs_ >= kWarpWorkerQuietMs;
     }
@@ -1076,19 +722,19 @@ namespace Scanner {
         return warpWorkerNowMs() - clockStartMs_.load();
     }
 
-    // Seconds of the budget spent; below the total while the search can still resume.
+    // Seconds of the budget spent, kept below the total while the search runs.
     quint64 WarpWorker::budgetCursor() const {
-        const qint64 spent = (budgetBaseMs_.load() + elapsedMs()) / 1000;
+        const qint64 spent = elapsedMs() / 1000;
         return static_cast<quint64>(std::clamp<qint64>(spent, 0, qint64(kWarpWorkerBudgetSeconds) - 1));
     }
 
-    bool WarpWorker::networkUp(bool ipv6, QString *detail) {
+    bool WarpWorker::networkUp(bool ipv6) {
         const auto restoreStage = qScopeGuard([this, previous = stage_] { setStage(previous); });
         setStage(ScanManager::tr("Checking network"));
         pushLog(ScanManager::tr("Checking the network"));
         bool ok = false;
         const bool up = API::defaultClient->ScanCheckNetwork(&ok, ipv6 ? kWarpWorkerNetworkCheckTargetsV6 : kWarpWorkerNetworkCheckTargets,
-                                                             kWarpWorkerNetworkCheckTimeoutMs, detail);
+                                                             kWarpWorkerNetworkCheckTimeoutMs);
         return ok && up;
     }
 
@@ -1196,23 +842,10 @@ namespace Scanner {
         return {};
     }
 
+    // The caller applies junk or HTTP/2 itself from LiveState().
     void WarpWorker::logOutcome() {
-        if (runConfirmed_ > 0) {
+        if (!confirmedAddresses_.isEmpty()) {
             pushLog(ScanManager::tr("Found %n endpoint(s)", nullptr, static_cast<int>(confirmedAddresses_.size())));
-            // A finder run's caller applies these itself from LiveState().
-            if (finder_) return;
-            QString line;
-            if (junkMode_)
-                line = ScanManager::tr("These endpoints need AmneziaWG junk: turn on AmneziaWG in the profile (Jc %1, Jmin %2, Jmax %3)")
-                           .arg(WarpPresets::kJunkCount)
-                           .arg(WarpPresets::kJunkMin)
-                           .arg(WarpPresets::kJunkMax);
-            else if (http2Mode_)
-                line = ScanManager::tr("These endpoints need HTTP/2: set the profile's HTTP version to HTTP/3 (fallback to HTTP/2)");
-            if (!line.isEmpty()) {
-                pushLog(line);
-                mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
-            }
             return;
         }
         QString line;
@@ -1220,112 +853,18 @@ namespace Scanner {
         else if (junkMode_) line = ScanManager::tr("Endpoints answered only with AmneziaWG junk, and no data flowed through them");
         else line = ScanManager::tr("Endpoints answered the handshake, but no data flowed through them");
         pushLog(line);
-        mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
     }
 
     void WarpWorker::finishRun(bool completed, const QString &error) {
-        if (finder_) {
-            // A stop ends on what was found too; an error speaks for itself.
-            if (!completed && error.isEmpty()) pushLog(ScanManager::tr("Found %n endpoint(s)", nullptr, static_cast<int>(hits_.size())));
-            finalized_.store(true);
-            QMutexLocker locker(&mutex_);
-            live_.running = false;
-            live_.error = error;
-            // The seconds the search took, where a scan would show its whole budget.
-            live_.tested = std::min<quint64>(scan_.total, static_cast<quint64>((searchMs_ + 500) / 1000));
-            live_.total = scan_.total;
-            return;
-        }
-        using Status = Configs::IpScan::Status;
-        if (completed) {
-            if (rescanPass()) {
-                QStringList lines;
-                if (!removals_.AnyPassed() && removals_.PendingCount() > 0) {
-                    lines << ScanManager::tr("No result passed, so none was removed; the network or the profile may be at fault");
-                } else {
-                    pushLog(ScanManager::tr("%n result(s) passed", nullptr, runConfirmed_));
-                    lines << removals_.KeptLines();
-                }
-                for (const auto &line : lines) {
-                    pushLog(line);
-                    mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
-                }
-                deleteList(scan_.rescan_snapshot_list_id);
-                scan_.rescan_snapshot_list_id = -1;
-                // A search paused before the rescan stays resumable.
-                if (scan_.CanResumeInitial()) {
-                    scan_.mode = Configs::IpScan::Mode::Initial;
-                    scan_.status = Status::Paused;
-                } else {
-                    scan_.status = Status::Completed;
-                }
-            } else {
-                deleteList(scan_.snapshot_list_id);
-                scan_.snapshot_list_id = -1;
-                scan_.cursor = scan_.total;
-                scan_.status = Status::Completed;
-            }
-            if (scan_.status == Status::Completed) scan_.finished_at = QDateTime::currentSecsSinceEpoch();
-            scan_.last_error.clear();
-        } else {
-            if (rescanPass()) scan_.rescan_cursor = std::min(scan_.rescan_cursor, removals_.UnresolvedFrom());
-            const bool rescanOpen = rescanResumable();
-            if (rescanPass() && !rescanOpen && scan_.CanResumeInitial()) scan_.mode = Configs::IpScan::Mode::Initial;
-            scan_.last_error = error;
-            if (rescanOpen || scan_.CanResumeInitial()) scan_.status = Status::Paused;
-            else if (!error.isEmpty()) scan_.status = Status::Failed;
-            else scan_.status = initialStatus_ == Status::Completed ? Status::Completed : Status::Idle;
-        }
-        persistState();
+        // A stop ends on what was found too; an error speaks for itself.
+        if (!completed && error.isEmpty()) pushLog(ScanManager::tr("Found %n endpoint(s)", nullptr, static_cast<int>(hits_.size())));
         finalized_.store(true);
-        if (persist_) IpListUpdater::instance()->NotifyListsChanged();
-        if (!error.isEmpty()) mainLog(ScanManager::tr("Scan %1 stopped: %2").arg(scan_.name, error));
-
         QMutexLocker locker(&mutex_);
-        live_.error = scan_.last_error;
-        live_.tested = scan_.ActiveCursor();
-        live_.total = scan_.ActiveTotal();
-        live_.found = scan_.found;
-        live_.removed = scan_.removed;
-    }
-
-    void WarpWorker::persistState() {
-        if (!persist_) return;
-        auto &scans = *Configs::dataManager->ipScansRepo;
-        // Re-read so a rename made while running survives: the run owns only the pass columns.
-        const auto row = scans.GetIpScan(scanId_);
-        if (row == nullptr) return;
-        row->result_list_id = scan_.result_list_id;
-        row->status = scan_.status;
-        row->mode = scan_.mode;
-        row->snapshot_list_id = scan_.snapshot_list_id;
-        row->seed = scan_.seed;
-        row->cursor = scan_.cursor;
-        row->total = scan_.total;
-        row->spec_hash = scan_.spec_hash;
-        row->rescan_snapshot_list_id = scan_.rescan_snapshot_list_id;
-        row->rescan_cursor = scan_.rescan_cursor;
-        row->rescan_total = scan_.rescan_total;
-        row->found = scan_.found;
-        row->removed = scan_.removed;
-        row->last_error = scan_.last_error;
-        row->started_at = scan_.started_at;
-        row->finished_at = scan_.finished_at;
-        scans.Save(row);
-    }
-
-    void WarpWorker::saveProgress() {
-        if (searching_) scan_.cursor = budgetCursor();
-        if (!persist_) return;
-        // Rows still waiting for a pass are checked again after a pause.
-        const quint64 cursor = rescanPass() ? std::min(scan_.rescan_cursor, removals_.UnresolvedFrom()) : scan_.cursor;
-        Configs::dataManager->ipScansRepo->SaveProgress(scanId_, scan_.mode, cursor, scan_.ActiveTotal(), scan_.found, scan_.removed);
-    }
-
-    void WarpWorker::deleteList(int listId) {
-        if (listId < 0 || !persist_) return;
-        Configs::dataManager->ipListsRepo->DeleteIpList(listId);
-        listsTouched_ = true;
+        live_.running = false;
+        live_.error = error;
+        // The seconds the search took, not the whole budget.
+        live_.tested = std::min<quint64>(kWarpWorkerBudgetSeconds, static_cast<quint64>((searchMs_ + 500) / 1000));
+        live_.total = kWarpWorkerBudgetSeconds;
     }
 
     void WarpWorker::setStage(const QString &stage) {
@@ -1356,21 +895,12 @@ namespace Scanner {
         notifyProgress();
     }
 
-    void WarpWorker::mainLog(const QString &line) const {
-        if (!finder_) MW_show_log(line);
-    }
-
     void WarpWorker::notifyProgress() const {
         if (hooks_.progress) hooks_.progress();
     }
 
-    // A finder run cannot resume, so its error promises no pause.
-    QString WarpWorker::networkDownError() const {
-        return finder_ ? ScanManager::tr("Network appears to be down") : ScanManager::tr("Network appears to be down; scan paused");
-    }
-
-    bool WarpWorker::rescanResumable() const {
-        return rescanPass() && scan_.rescan_snapshot_list_id >= 0 && scan_.rescan_cursor < scan_.rescan_total;
+    QString WarpWorker::networkDownError() {
+        return ScanManager::tr("Network appears to be down");
     }
 
     int WarpWorker::concurrencyFor(int attempts) const {

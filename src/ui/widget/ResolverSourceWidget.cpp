@@ -3,7 +3,7 @@
 #include "include/database/DatabaseManager.h"
 #include "include/database/IpListsRepo.h"
 #include "include/global/Utils.hpp"
-#include "include/ui/scanner/ScanItem.h"
+#include "include/ui/scanner/ScannerUi.h"
 #include "include/ui/utils/MyPlainTextEdit.h"
 #include "include/ui/utils/NoWheelComboBox.h"
 #include "include/ui/utils/ValidationForm.h"

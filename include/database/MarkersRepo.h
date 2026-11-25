@@ -13,6 +13,7 @@ namespace Configs {
         inline constexpr auto WarpMasqueRanges = "migration.warp_masque_ranges";
         inline constexpr auto TorPsiphonLeftovers = "migration.tor_psiphon_leftovers";
         inline constexpr auto RetiredScanKinds = "migration.retired_scan_kinds";
+        inline constexpr auto RetiredWarpScans = "migration.retired_warp_scans";
         inline constexpr auto ListSeedsNov2026 = "migration.list_seeds_2026_11";
         inline constexpr auto SimpleDownload5mb = "migration.simple_dl_url_5mb";
     }

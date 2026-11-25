@@ -4097,44 +4097,17 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Records</source>
         <translation>Записи</translation>
     </message>
-</context>
-<context>
-    <name>DialogNewScan</name>
     <message>
-        <source>Scan %1</source>
-        <translation>Сканирование %1</translation>
+        <source>IP Lists</source>
+        <translation>Списки IP</translation>
     </message>
     <message>
-        <source>New scan</source>
-        <translation>Новое сканирование</translation>
+        <source>Address and resolver lists that profiles, groups and DNS tunnels use.</source>
+        <translation>Списки адресов и резолверов для профилей, групп и DNS-туннелей.</translation>
     </message>
     <message>
-        <source>Name</source>
-        <translation>Название</translation>
-    </message>
-    <message>
-        <source>WARP scan</source>
-        <translation>Сканирование WARP</translation>
-    </message>
-    <message>
-        <source>Find Cloudflare WARP endpoints that complete a WireGuard, AmneziaWG or MASQUE connection.</source>
-        <translation>Находит конечные точки Cloudflare WARP, через которые удается установить подключение WireGuard, AmneziaWG или MASQUE.</translation>
-    </message>
-    <message>
-        <source>Failed to store the scan.</source>
-        <translation>Не удалось сохранить сканирование.</translation>
-    </message>
-    <message>
-        <source>DNS resolver scan</source>
-        <translation>Сканирование DNS-резолверов</translation>
-    </message>
-    <message>
-        <source>Find DNS resolvers that relay the tunnel of one of your DNSTT, MasterDNS or XDNS profiles.</source>
-        <translation>Находит DNS-резолверы, которые пропускают туннель одного из ваших профилей DNSTT, MasterDNS или XDNS.</translation>
-    </message>
-    <message>
-        <source>New Scan</source>
-        <translation>Новое сканирование</translation>
+        <source>Manage IP lists</source>
+        <translation>Управление списками IP</translation>
     </message>
 </context>
 <context>
@@ -4444,14 +4417,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
 <context>
     <name>DialogScanInstance</name>
     <message>
-        <source>IP Scanner</source>
-        <translation>IP-сканер</translation>
-    </message>
-    <message>
-        <source>Name</source>
-        <translation>Название</translation>
-    </message>
-    <message>
         <source>Base IP list</source>
         <translation>Исходный список IP</translation>
     </message>
@@ -4516,18 +4481,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Без ограничений</translation>
     </message>
     <message>
-        <source>WARP scan</source>
-        <translation>Сканирование WARP</translation>
-    </message>
-    <message>
-        <source>%1 - IP Scanner</source>
-        <translation>%1 - IP-сканер</translation>
-    </message>
-    <message>
-        <source>Enter a name for the scan.</source>
-        <translation>Введите название сканирования.</translation>
-    </message>
-    <message>
         <source>Must be from %1 to %2.</source>
         <translation>Должно быть от %1 до %2.</translation>
     </message>
@@ -4572,10 +4525,6 @@ Close without saving?</source>
             <numerusform>%1 (%n записи)</numerusform>
             <numerusform>%1 (%n записей)</numerusform>
         </translation>
-    </message>
-    <message>
-        <source>Select a profile…</source>
-        <translation>Выберите профиль…</translation>
     </message>
     <message>
         <source>Failed to store the IP list.</source>
@@ -4658,10 +4607,6 @@ Close without saving?</source>
         <translation>Добавить этот список к резолверам профиля.</translation>
     </message>
     <message>
-        <source>DNS resolver scan</source>
-        <translation>Сканирование DNS-резолверов</translation>
-    </message>
-    <message>
         <source>The scan&apos;s profile was deleted or is no longer a DNS tunnel profile.</source>
         <translation>Профиль сканирования удален или больше не является профилем DNS-туннеля.</translation>
     </message>
@@ -4682,51 +4627,16 @@ Close without saving?</source>
         <translation>«%1» теперь берет резолверы из списка IP «%2».</translation>
     </message>
     <message>
-        <source>Profile</source>
-        <translation>Профиль</translation>
-    </message>
-    <message>
         <source>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</source>
         <translation>Каждый адрес проверяется как единственный резолвер этого профиля; сохраняются те, что пропускают его туннель.</translation>
     </message>
     <message>
-        <source>Endpoints are tried with this profile&apos;s own keys and settings; those that carry traffic are kept.</source>
-        <translation>Конечные точки проверяются с собственными ключами и настройками этого профиля; сохраняются те, через которые проходит трафик.</translation>
-    </message>
-</context>
-<context>
-    <name>DialogScanner</name>
-    <message>
-        <source>IP Scanner</source>
-        <translation>IP-сканер</translation>
+        <source>Find resolvers</source>
+        <translation>Найти резолверы</translation>
     </message>
     <message>
-        <source>No scans yet. Create one with &quot;New scan&quot;.</source>
-        <translation>Сканирований пока нет. Создайте первое кнопкой «Новое сканирование».</translation>
-    </message>
-    <message>
-        <source>New scan</source>
-        <translation>Новое сканирование</translation>
-    </message>
-    <message>
-        <source>IP Lists</source>
-        <translation>Списки IP</translation>
-    </message>
-    <message>
-        <source>Pause the scan first.</source>
-        <translation>Сначала приостановите сканирование.</translation>
-    </message>
-    <message>
-        <source>Confirmation</source>
-        <translation>Подтверждение</translation>
-    </message>
-    <message>
-        <source>Delete the scan &quot;%1&quot;?</source>
-        <translation>Удалить сканирование «%1»?</translation>
-    </message>
-    <message>
-        <source>Also delete its result list</source>
-        <translation>Также удалить его список результатов</translation>
+        <source>%1 - Find resolvers</source>
+        <translation>%1 - Найти резолверы</translation>
     </message>
 </context>
 <context>
@@ -8523,10 +8433,6 @@ Close without saving?</source>
         <translation>Менеджер OTP</translation>
     </message>
     <message>
-        <source>IP Scanner</source>
-        <translation>IP-сканер</translation>
-    </message>
-    <message>
         <source>Open web dashboard</source>
         <translation>Открыть веб-панель</translation>
     </message>
@@ -11501,10 +11407,6 @@ Throne продолжает попытки в фоне; перезапуск Thr
         <translation>Не удалось собрать конфигурацию профиля WARP</translation>
     </message>
     <message>
-        <source>Choose the WARP profile to scan with</source>
-        <translation>Выберите профиль WARP для сканирования</translation>
-    </message>
-    <message>
         <source>%1: the resolver &quot;%2&quot; is invalid: %3</source>
         <translation>%1: резолвер «%2» недопустим: %3</translation>
     </message>
@@ -12541,43 +12443,7 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
-    <name>ScanItem</name>
-    <message>
-        <source>IP Scanner</source>
-        <translation>IP-сканер</translation>
-    </message>
-    <message>
-        <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning?</source>
-        <translation>Цели изменились после приостановки сканирования, поэтому продолжить его нельзя. Начать заново?</translation>
-    </message>
-    <message>
-        <source>The scan could not be started.</source>
-        <translation>Не удалось запустить сканирование.</translation>
-    </message>
-    <message>
-        <source>Pausing…</source>
-        <translation>Приостановка…</translation>
-    </message>
-    <message>
-        <source>Running</source>
-        <translation>Выполняется</translation>
-    </message>
-    <message>
-        <source>Idle</source>
-        <translation>Не запускалось</translation>
-    </message>
-    <message>
-        <source>Paused</source>
-        <translation>Приостановлено</translation>
-    </message>
-    <message>
-        <source>Completed</source>
-        <translation>Завершено</translation>
-    </message>
-    <message>
-        <source>Failed</source>
-        <translation>Ошибка</translation>
-    </message>
+    <name>ScannerUi</name>
     <message>
         <source>%1 / %2 (%3%)</source>
         <translation>%1 / %2 (%3%)</translation>
@@ -12599,48 +12465,40 @@ Remove that endpoint from this routing profile as well?</source>
         </translation>
     </message>
     <message>
-        <source>WARP</source>
-        <translation>WARP</translation>
+        <source>Completed</source>
+        <translation>Завершено</translation>
     </message>
     <message>
-        <source>Open</source>
-        <translation>Открыть</translation>
-    </message>
-    <message>
-        <source>Delete</source>
-        <translation>Удалить</translation>
-    </message>
-    <message>
-        <source>Pause</source>
-        <translation>Приостановить</translation>
-    </message>
-    <message>
-        <source>Resume</source>
-        <translation>Продолжить</translation>
-    </message>
-    <message>
-        <source>Start</source>
-        <translation>Запустить</translation>
-    </message>
-    <message>
-        <source>DNS resolvers</source>
-        <translation>DNS-резолверы</translation>
-    </message>
-    <message>
-        <source>Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first.</source>
-        <translation>Искать резолверы можно только для сохраненного профиля DNSTT, MasterDNS или XDNS; сначала сохраните профиль.</translation>
-    </message>
-    <message>
-        <source>Resolvers for %1</source>
-        <translation>Резолверы для %1</translation>
+        <source>Failed</source>
+        <translation>Ошибка</translation>
     </message>
     <message>
         <source>Failed to store the scan.</source>
         <translation>Не удалось сохранить сканирование.</translation>
     </message>
     <message>
-        <source>This scan stopped partway. Starting over discards its progress. Continue?</source>
-        <translation>Сканирование остановилось на полпути. Если начать заново, его прогресс будет потерян. Продолжить?</translation>
+        <source>Idle</source>
+        <translation>Не запускалось</translation>
+    </message>
+    <message>
+        <source>Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first.</source>
+        <translation>Искать резолверы можно только для сохраненного профиля DNSTT, MasterDNS или XDNS; сначала сохраните профиль.</translation>
+    </message>
+    <message>
+        <source>Paused</source>
+        <translation>Приостановлено</translation>
+    </message>
+    <message>
+        <source>Pausing…</source>
+        <translation>Приостановка…</translation>
+    </message>
+    <message>
+        <source>Resolvers for %1</source>
+        <translation>Резолверы для %1</translation>
+    </message>
+    <message>
+        <source>Running</source>
+        <translation>Выполняется</translation>
     </message>
     <message numerus="yes">
         <source>Starting over keeps the %n current result(s) until the first new one replaces them. Continue?</source>
@@ -12651,8 +12509,20 @@ Remove that endpoint from this routing profile as well?</source>
         </translation>
     </message>
     <message>
-        <source>%1 s of %2 s</source>
-        <translation>%1 с из %2 с</translation>
+        <source>The scan could not be started.</source>
+        <translation>Не удалось запустить сканирование.</translation>
+    </message>
+    <message>
+        <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning?</source>
+        <translation>Цели изменились после приостановки сканирования, поэтому продолжить его нельзя. Начать заново?</translation>
+    </message>
+    <message>
+        <source>This scan stopped partway. Starting over discards its progress. Continue?</source>
+        <translation>Сканирование остановилось на полпути. Если начать заново, его прогресс будет потерян. Продолжить?</translation>
+    </message>
+    <message>
+        <source>Find resolvers</source>
+        <translation>Найти резолверы</translation>
     </message>
 </context>
 <context>
@@ -12743,10 +12613,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Pause the scan first</source>
         <translation>Сначала приостановите сканирование</translation>
-    </message>
-    <message>
-        <source>Scan %1 Result</source>
-        <translation>Результат сканирования %1</translation>
     </message>
     <message>
         <source>Testing %1 (%2)</source>
@@ -12997,18 +12863,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>В этой сети нет IPv6; диапазоны IPv6 пропускаются</translation>
     </message>
     <message>
-        <source>Re-checking known endpoints</source>
-        <translation>Повторная проверка известных конечных точек</translation>
-    </message>
-    <message numerus="yes">
-        <source>Re-checking %n known endpoint(s)</source>
-        <translation>
-            <numerusform>Повторная проверка %n известной конечной точки</numerusform>
-            <numerusform>Повторная проверка %n известных конечных точек</numerusform>
-            <numerusform>Повторная проверка %n известных конечных точек</numerusform>
-        </translation>
-    </message>
-    <message>
         <source>Finding ports</source>
         <translation>Поиск портов</translation>
     </message>
@@ -13050,26 +12904,6 @@ Remove that endpoint from this routing profile as well?</source>
             <numerusform>Раунд %1: проверка %n адреса</numerusform>
             <numerusform>Раунд %1: проверка %n адресов</numerusform>
             <numerusform>Раунд %1: проверка %n адресов</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>Rescanning</source>
-        <translation>Повторное сканирование</translation>
-    </message>
-    <message numerus="yes">
-        <source>Rescanning %n result(s)</source>
-        <translation>
-            <numerusform>Повторное сканирование %n результата</numerusform>
-            <numerusform>Повторное сканирование %n результатов</numerusform>
-            <numerusform>Повторное сканирование %n результатов</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <source>Re-checking data through %n endpoint(s)</source>
-        <translation>
-            <numerusform>Повторная проверка передачи данных через %n конечную точку</numerusform>
-            <numerusform>Повторная проверка передачи данных через %n конечные точки</numerusform>
-            <numerusform>Повторная проверка передачи данных через %n конечных точек</numerusform>
         </translation>
     </message>
     <message>
@@ -13121,10 +12955,6 @@ Remove that endpoint from this routing profile as well?</source>
         </translation>
     </message>
     <message>
-        <source>These endpoints need AmneziaWG junk: turn on AmneziaWG in the profile (Jc %1, Jmin %2, Jmax %3)</source>
-        <translation>Этим конечным точкам нужны мусорные пакеты AmneziaWG: включите AmneziaWG в профиле (Jc %1, Jmin %2, Jmax %3)</translation>
-    </message>
-    <message>
         <source>No endpoint answered the WARP handshake; this network may block it</source>
         <translation>Ни одна конечная точка не ответила на хендшейк WARP; возможно, эта сеть его блокирует</translation>
     </message>
@@ -13135,18 +12965,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Endpoints answered the handshake, but no data flowed through them</source>
         <translation>Конечные точки ответили на хендшейк, но данные через них не прошли</translation>
-    </message>
-    <message>
-        <source>No result passed, so none was removed; the network or the profile may be at fault</source>
-        <translation>Ни один результат не прошел проверку, поэтому ничего не удалено; возможно, проблема в сети или профиле</translation>
-    </message>
-    <message numerus="yes">
-        <source>%n result(s) passed</source>
-        <translation>
-            <numerusform>%n результат прошел проверку</numerusform>
-            <numerusform>%n результата прошли проверку</numerusform>
-            <numerusform>%n результатов прошли проверку</numerusform>
-        </translation>
     </message>
     <message numerus="yes">
         <source>No %1 result answered, so %n failed %1 result(s) were kept</source>
@@ -13163,10 +12981,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>HTTP/3 gets no answer here; continuing over HTTP/2</source>
         <translation>HTTP/3 здесь не получает ответа; сканирование продолжается через HTTP/2</translation>
-    </message>
-    <message>
-        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/3 (fallback to HTTP/2)</source>
-        <translation>Этим конечным точкам нужен HTTP/2: выберите HTTP/3 (с откатом на HTTP/2) в качестве версии HTTP в профиле</translation>
     </message>
 </context>
 <context>

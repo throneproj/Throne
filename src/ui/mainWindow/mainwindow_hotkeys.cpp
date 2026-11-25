@@ -153,7 +153,6 @@ void MainWindow::setActionsData()
     ui->actionClear_Test_Result->setData(QString("m29"));
     ui->menu_remove_insecure->setData(QString("m30"));
     ui->actionUpdate_All_Subscriptions->setData(QString("m31"));
-    ui->menu_scanner->setData(QString("m32"));
     commandPaletteAction->setData(QString("m33"));
     ui->actionService_Check_Selected->setData(QString("m34"));
     ui->actionService_Check_Group->setData(QString("m35"));

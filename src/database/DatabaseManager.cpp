@@ -158,8 +158,13 @@ namespace Configs {
             }
             markersRepo->Mark(Markers::TunPrivateRangesIPv6);
         }
-        if (!markersRepo->IsMarked(Markers::RetiredScanKinds) && ipScansRepo->DeleteRetiredScans())
+        // 0 = CDN scan, 3 = settings search.
+        if (!markersRepo->IsMarked(Markers::RetiredScanKinds) && ipScansRepo->DeleteRetiredScans({0, 3}))
             markersRepo->Mark(Markers::RetiredScanKinds);
+        // Saved WARP scans gave way to the per-profile endpoint finder.
+        if (!markersRepo->IsMarked(Markers::RetiredWarpScans) &&
+            ipScansRepo->DeleteRetiredScans({static_cast<int>(IpScan::Kind::Warp)}))
+            markersRepo->Mark(Markers::RetiredWarpScans);
         if (!markersRepo->IsMarked(Markers::SimpleDownload5mb)) {
             // Only the old default: a URL the user chose stays.
             if (settingsRepo->simple_dl_url == QLatin1String("http://cachefly.cachefly.net/1mb.test")) {

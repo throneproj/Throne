@@ -74,9 +74,9 @@ namespace Configs {
     }
 
     std::shared_ptr<IpScan> IpScansRepo::ipScanFromRow(SQLite::Statement &stmt) const {
-        // Retired kinds (0 = CDN scan, 3 = settings search) and unknown ones are not loaded.
+        // Only resolver scans are stored now; retired and unknown kinds are not loaded.
         const int kind = stmt.getColumn(2).getInt();
-        if (kind != static_cast<int>(IpScan::Kind::Warp) && kind != static_cast<int>(IpScan::Kind::Resolver)) return nullptr;
+        if (kind != static_cast<int>(IpScan::Kind::Resolver)) return nullptr;
         auto scan = std::make_shared<IpScan>();
         scan->id = stmt.getColumn(0).getInt();
         scan->name = QString::fromStdString(stmt.getColumn(1).getString());
@@ -237,19 +237,25 @@ namespace Configs {
                 static_cast<int>(IpScan::Status::Paused), static_cast<int>(IpScan::Status::Running));
     }
 
-    bool IpScansRepo::DeleteRetiredScans() {
-        // 0 = CDN scan, 3 = settings search.
-        const std::string retired = "(SELECT id FROM ip_scans WHERE kind IN (0, 3))";
+    bool IpScansRepo::DeleteRetiredScans(const QList<int> &kinds) {
+        if (kinds.isEmpty()) return true;
+        std::string in = "(";
+        for (qsizetype i = 0; i < kinds.size(); ++i) {
+            if (i > 0) in += ", ";
+            in += std::to_string(kinds[i]);
+        }
+        in += ")";
+        const std::string retired = "(SELECT id FROM ip_scans WHERE kind IN " + in + ")";
         return db.transaction("IpScansRepo::DeleteRetiredScans", [&] {
             db.execThrow("UPDATE ip_lists SET role = ?, related_test_id = -1, updated_at = strftime('%s', 'now') "
                          "WHERE role = ? AND related_test_id IN " + retired,
                          static_cast<int>(IpList::Role::User), static_cast<int>(IpList::Role::ScanResult));
             // ScanManager's startup sweep deletes orphaned snapshots in the background.
             db.execThrow("UPDATE ip_lists SET related_test_id = -1, updated_at = strftime('%s', 'now') WHERE role = ? AND "
-                         "(related_test_id IN " + retired + " OR id IN (SELECT snapshot_list_id FROM ip_scans WHERE kind IN (0, 3)) "
-                         "OR id IN (SELECT rescan_snapshot_list_id FROM ip_scans WHERE kind IN (0, 3)))",
+                         "(related_test_id IN " + retired + " OR id IN (SELECT snapshot_list_id FROM ip_scans WHERE kind IN " + in +
+                         ") OR id IN (SELECT rescan_snapshot_list_id FROM ip_scans WHERE kind IN " + in + "))",
                          static_cast<int>(IpList::Role::ScanSnapshot));
-            db.execThrow("DELETE FROM ip_scans WHERE kind IN (0, 3)");
+            db.execThrow("DELETE FROM ip_scans WHERE kind IN " + in);
             return true;
         });
     }

@@ -8,7 +8,6 @@
 #include <QDir>
 #include <QFile>
 #include <QFontDatabase>
-#include <QFormLayout>
 #include <QGuiApplication>
 #include <QHeaderView>
 #include <QHostAddress>
@@ -31,7 +30,6 @@
 #include <vector>
 
 #include "include/configs/common/DnsTunnel.h"
-#include "include/configs/common/Protocols.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/database/DatabaseManager.h"
 #include "include/database/IpListsRepo.h"
@@ -41,14 +39,12 @@
 #include "include/engine/services/ProfileService.h"
 #include "include/global/Utils.hpp"
 #include "include/global/Validation.hpp"
-#include "include/scanner/DefaultIpLists.h"
 #include "include/scanner/IpListParse.h"
 #include "include/scanner/IpListUpdater.h"
 #include "include/scanner/ScanManager.h"
-#include "include/scanner/ScanProfiles.h"
 #include "include/ui/mainwindow.h"
 #include "include/ui/scanner/IpEntriesModel.h"
-#include "include/ui/scanner/ScanItem.h"
+#include "include/ui/scanner/ScannerUi.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/utils/NoWheelComboBox.h"
 #include "include/ui/utils/ValidationForm.h"
@@ -57,7 +53,6 @@
 
 namespace {
     constexpr int kScanInstanceResultsPreview = 50000;
-    constexpr int kScanInstanceCarrierRole = Qt::UserRole + 1;
 
     const QStringList kScanInstanceConcurrencyPresets = {
         QStringLiteral("8"), QStringLiteral("16"), QStringLiteral("32"),
@@ -85,11 +80,6 @@ namespace {
         if (scanInstanceReadNumber(edit, value)) return {};
         const auto *validator = qobject_cast<const QIntValidator *>(edit->validator());
         return DialogScanInstance::tr("Must be from %1 to %2.").arg(validator->bottom()).arg(validator->top());
-    }
-
-    void scanInstanceSetRowVisible(QFormLayout *form, QWidget *field, bool visible) {
-        if (auto *label = form->labelForField(field)) label->setVisible(visible);
-        field->setVisible(visible);
     }
 
     void scanInstanceSelectData(QComboBox *combo, const QVariant &data) {
@@ -186,24 +176,10 @@ void DialogScanInstance::Open(int scanId) {
         return;
     }
     auto row = Configs::dataManager->ipScansRepo->GetIpScan(scanId);
-    if (row == nullptr) return;
+    if (row == nullptr || row->kind != Configs::IpScan::Kind::Resolver) return;
     auto *window = new DialogScanInstance(GetMainWindow(), row);
     windows.insert(scanId, window);
     ActivateWindow(window);
-}
-
-void DialogScanInstance::Discard(int scanId) {
-    if (DialogScanInstance *window = openWindows().value(scanId)) {
-        window->discarding = true;
-        window->close();
-    }
-}
-
-bool DialogScanInstance::SaveIfDirty(int scanId) {
-    DialogScanInstance *window = openWindows().value(scanId);
-    if (window == nullptr || window->saveIfDirty()) return true;
-    ActivateWindow(window);
-    return false;
 }
 
 DialogScanInstance::DialogScanInstance(QWidget *parent, std::shared_ptr<Configs::IpScan> scan_)
@@ -239,9 +215,13 @@ DialogScanInstance::DialogScanInstance(QWidget *parent, std::shared_ptr<Configs:
         if (id == scanId) scheduleResultsReload();
     });
     connect(manager, &Scanner::ScanManager::scansChanged, this, [this] {
-        if (Configs::dataManager->ipScansRepo->GetIpScan(scanId) != nullptr) return;
-        discarding = true;
-        close();
+        if (Configs::dataManager->ipScansRepo->GetIpScan(scanId) == nullptr) {
+            discarding = true;
+            close();
+            return;
+        }
+        reloadRow();
+        updateTitle();
     });
 
     auto *updater = Scanner::IpListUpdater::instance();
@@ -268,32 +248,15 @@ DialogScanInstance::~DialogScanInstance() {
     delete ui;
 }
 
-bool DialogScanInstance::isWarp() const {
-    return scan->kind == Configs::IpScan::Kind::Warp;
-}
-
-bool DialogScanInstance::isResolver() const {
-    return scan->kind == Configs::IpScan::Kind::Resolver;
-}
-
 void DialogScanInstance::setupSettings() {
-    ui->intro->setText(isResolver() ? tr("Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.")
-                                    : tr("Endpoints are tried with this profile's own keys and settings; those that carry traffic are kept."));
-    connect(ui->profile, &QComboBox::currentIndexChanged, this, [this] { matchWarpSeed(); });
     connect(ui->manage_lists, &QPushButton::clicked, this, [this] {
         if (auto *window = GetMainWindow()) window->showIpListsDialog(ui->base_list->currentData().toInt());
     });
-    if (isResolver()) ui->base_list->setToolTip(tr("Each address is tried as a resolver; the default port is 53."));
     scanInstanceSetupNumber(ui->stop_after, 0, 1000000, tr("No limit"));
     scanInstanceSetupNumber(ui->concurrency, 1, 1000, QString::number(defaults.concurrency), kScanInstanceConcurrencyPresets);
-    for (QWidget *field : {static_cast<QWidget *>(ui->stop_after), static_cast<QWidget *>(ui->concurrency)})
-        scanInstanceSetRowVisible(ui->settings_form, field, isResolver());
 }
 
 void DialogScanInstance::bindValidation() {
-    using namespace Validation;
-    form->bind(ui->name, Rules::Required());
-    if (!isResolver()) return;
     form->bind(ui->stop_after, [this](const QString &text) { return text.isEmpty() ? QString() : scanInstanceNumberError(ui->stop_after); });
     form->bind(ui->concurrency, [this](const QString &) { return scanInstanceNumberError(ui->concurrency); });
 }
@@ -321,12 +284,7 @@ void DialogScanInstance::setupResults() {
     connect(ui->copy_results, &QPushButton::clicked, this, [this] { copyResults(); });
     connect(ui->export_results, &QPushButton::clicked, this, [this] { exportResults(); });
     connect(ui->remove_results, &QPushButton::clicked, this, [this] { removeSelectedResults(); });
-    if (isResolver()) {
-        useAsResolvers = new QPushButton(tr("Use as resolvers"), ui->results_box);
-        useAsResolvers->setToolTip(tr("Add this list to the profile's resolvers."));
-        ui->layout_results_buttons->insertWidget(0, useAsResolvers);
-        connect(useAsResolvers, &QPushButton::clicked, this, [this] { useResultsAsResolvers(); });
-    }
+    connect(ui->use_as_resolvers, &QPushButton::clicked, this, [this] { useResultsAsResolvers(); });
 }
 
 void DialogScanInstance::setupRunPanel() {
@@ -353,18 +311,21 @@ void DialogScanInstance::markDirty() {
 void DialogScanInstance::loadForm() {
     const QScopedValueRollback guard(loading, true);
 
-    ui->name->setText(scan->name);
-    ui->kind->setText(isResolver() ? tr("DNS resolver scan") : tr("WARP scan"));
-    setWindowTitle(tr("%1 - IP Scanner").arg(scan->name));
-
+    updateTitle();
     reloadBaseLists(scan->base_list_id);
-    reloadProfiles(isResolver() ? config.resolver.profileId : config.warp.profileId);
     ui->stop_after->setText(config.stopAfter > 0 ? QString::number(config.stopAfter) : QString());
     ui->concurrency->setText(QString::number(config.concurrency));
     dirty = false;
 }
 
-bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QString &name, QString *error) const {
+void DialogScanInstance::updateTitle() {
+    const int profileId = scan->config.resolver.profileId;
+    const auto profile = profileId >= 0 ? Configs::dataManager->profilesRepo->GetProfile(profileId) : nullptr;
+    const QString name = profile != nullptr && profile->outbound != nullptr ? profile->outbound->name : scan->name;
+    setWindowTitle(tr("%1 - Find resolvers").arg(name));
+}
+
+bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QString *error) const {
     const auto fail = [error](const QString &text) {
         if (error != nullptr) *error = text;
         return false;
@@ -375,17 +336,8 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         return fail(rangeError.arg(validator->bottom()).arg(validator->top()));
     };
 
-    name = ui->name->text().trimmed();
-    if (name.isEmpty()) return fail(tr("Enter a name for the scan."));
-
     out = config;
     baseListId = ui->base_list->currentData().toInt();
-    const int profileId = ui->profile->currentData().toInt();
-    if (isWarp()) {
-        out.warp.profileId = profileId;
-        return true;
-    }
-    out.resolver.profileId = profileId;
     out.stopAfter = 0;
     if (!ui->stop_after->text().trimmed().isEmpty() &&
         !number(ui->stop_after, out.stopAfter, tr("Stop after must be between %1 and %2 results; leave it empty for no limit.")))
@@ -396,8 +348,7 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
 bool DialogScanInstance::save(QString *error) {
     Configs::ScanConfig collected;
     int baseListId = -1;
-    QString name;
-    if (!collect(collected, baseListId, name, error)) {
+    if (!collect(collected, baseListId, error)) {
         form->markAll();
         return false;
     }
@@ -427,11 +378,6 @@ bool DialogScanInstance::save(QString *error) {
     config = collected;
     scan = row;
     dirty = false;
-    if (row->name != name) {
-        Scanner::ScanManager::instance()->RenameScan(scanId, name);
-        reloadRow();
-    }
-    setWindowTitle(tr("%1 - IP Scanner").arg(scan->name));
     refreshRun();
     return true;
 }
@@ -441,7 +387,7 @@ bool DialogScanInstance::saveIfDirty() {
     if (!form->validateAll()) return false;
     QString error;
     if (save(&error)) return true;
-    scanInstanceNotice(this, QMessageBox::Warning, tr("IP Scanner"), error);
+    scanInstanceNotice(this, QMessageBox::Warning, tr("Find resolvers"), error);
     return false;
 }
 
@@ -450,7 +396,7 @@ void DialogScanInstance::reject() {
         QString error;
         if (!save(&error)) {
             const auto answer = QMessageBox::question(
-                this, tr("IP Scanner"), tr("The settings could not be saved:\n%1\n\nClose without saving?").arg(error));
+                this, tr("Find resolvers"), tr("The settings could not be saved:\n%1\n\nClose without saving?").arg(error));
             if (answer != QMessageBox::Yes) return;
             dirty = false;
         }
@@ -481,87 +427,17 @@ void DialogScanInstance::resizeEvent(QResizeEvent *event) {
     applyLogLines();
 }
 
-void DialogScanInstance::changeEvent(QEvent *event) {
-    QDialog::changeEvent(event);
-    if (event->type() != QEvent::ActivationChange) return;
-    if (!isActiveWindow()) {
-        profilesStale = true;
-        return;
-    }
-    if (!profilesStale || settingsLocked) return;
-    profilesStale = false;
-    reloadProfiles(ui->profile->currentData().toInt());
-}
-
 void DialogScanInstance::reloadBaseLists(int selectId) {
     const QScopedValueRollback guard(loading, true);
     auto *combo = ui->base_list;
     combo->clear();
-    baseListNames.clear();
     combo->addItem(tr("Select an IP list…"), -1);
     for (const auto &list : Configs::dataManager->ipListsRepo->GetAllIpLists()) {
         // "Rescan current results" covers the scan's own list.
         if (list->role == Configs::IpList::Role::ScanResult && list->related_test_id == scanId) continue;
         combo->addItem(tr("%1 (%n entries)", nullptr, list->entryCount).arg(list->name), list->id);
-        if (list->role == Configs::IpList::Role::User) baseListNames.insert(list->id, list->name);
     }
     scanInstanceSelectData(combo, selectId);
-}
-
-void DialogScanInstance::reloadProfiles(int selectId) {
-    const QScopedValueRollback guard(loading, true);
-    auto *profiles = Configs::dataManager->profilesRepo.get();
-    QList<int> ids;
-    QHash<int, QString> carriers;
-    if (isWarp()) {
-        auto candidates = profiles->GetProfileIdsByType(QStringLiteral("wireguard"));
-        candidates << profiles->GetProfileIdsByType(QStringLiteral("masque"));
-        for (const auto &profile : profiles->GetProfileBatch(candidates)) {
-            if (profile == nullptr || !Scanner::IsWarpScanProfile(*profile)) continue;
-            ids << profile->id;
-            carriers.insert(profile->id, Scanner::WarpCarrier(*profile));
-        }
-    } else {
-        for (const auto &type : Configs::Protocols::IdsWith(Configs::Protocols::DnsTunnel)) ids << profiles->GetProfileIdsByType(type);
-        const auto xdnsCandidates = profiles->GetProfileIdsByTypeContaining(QStringLiteral("xrayvless"), QStringLiteral("xdns"));
-        for (const auto &profile : profiles->GetProfileBatch(xdnsCandidates)) {
-            if (profile != nullptr && !Scanner::DnsTunnelProtocol(*profile).isEmpty()) ids << profile->id;
-        }
-    }
-    std::sort(ids.begin(), ids.end());
-    ids.erase(std::unique(ids.begin(), ids.end()), ids.end());
-
-    auto *combo = ui->profile;
-    combo->clear();
-    combo->addItem(tr("Select a profile…"), -1);
-    for (const auto &[id, profileName] : profiles->GetProfileIDNameMappedBatch(ids)) {
-        combo->addItem(profileName, id);
-        combo->setItemData(combo->count() - 1, carriers.value(id), kScanInstanceCarrierRole);
-    }
-    scanInstanceSelectData(combo, selectId);
-}
-
-void DialogScanInstance::matchWarpSeed() {
-    if (loading || !isWarp()) return;
-    const QString carrier = ui->profile->currentData(kScanInstanceCarrierRole).toString();
-    if (carrier.isEmpty()) return;
-    const int current = ui->base_list->currentData().toInt();
-    const QString currentName = baseListNames.value(current);
-    // A base list the user picked stays; only none or a WARP seed follows the profile's carrier.
-    if (current >= 0 && currentName != Scanner::DefaultIpLists::kWarpWireGuardName &&
-        currentName != Scanner::DefaultIpLists::kWarpMasqueName)
-        return;
-    const QString wanted = carrier == QStringLiteral("masque") ? Scanner::DefaultIpLists::kWarpMasqueName
-                                                               : Scanner::DefaultIpLists::kWarpWireGuardName;
-    if (currentName == wanted) return;
-    const int listId = Scanner::DefaultIpLists::Ensure(wanted);
-    if (listId < 0) {
-        MessageBoxWarning(tr("IP Scanner"), tr("Failed to store the IP list."));
-        return;
-    }
-    Scanner::IpListUpdater::instance()->NotifyListsChanged();
-    reloadBaseLists(listId);
-    markDirty();
 }
 
 void DialogScanInstance::reloadRow() {
@@ -602,14 +478,13 @@ void DialogScanInstance::refreshRun() {
 }
 
 void DialogScanInstance::applyLock(bool locked) {
-    settingsLocked = locked;
     ui->settings->setEnabled(!locked);
     const bool hasResults = !resultsBusy && resultCount > 0 && resultsModel->rowCount() > 0;
     ui->remove_results->setEnabled(!locked && hasResults);
     ui->save_as_list->setEnabled(hasResults);
     ui->copy_results->setEnabled(hasResults);
     ui->export_results->setEnabled(hasResults);
-    if (useAsResolvers != nullptr) useAsResolvers->setEnabled(hasResults);
+    ui->use_as_resolvers->setEnabled(hasResults);
 }
 
 void DialogScanInstance::applyLogLines() {

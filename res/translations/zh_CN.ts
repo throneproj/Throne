@@ -4029,44 +4029,17 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Records</source>
         <translation>记录</translation>
     </message>
-</context>
-<context>
-    <name>DialogNewScan</name>
     <message>
-        <source>Scan %1</source>
-        <translation>扫描 %1</translation>
+        <source>IP Lists</source>
+        <translation>IP 列表</translation>
     </message>
     <message>
-        <source>New scan</source>
-        <translation>新建扫描</translation>
+        <source>Address and resolver lists that profiles, groups and DNS tunnels use.</source>
+        <translation>配置档、分组和 DNS 隧道使用的地址与解析器列表。</translation>
     </message>
     <message>
-        <source>Name</source>
-        <translation>名称</translation>
-    </message>
-    <message>
-        <source>WARP scan</source>
-        <translation>WARP 扫描</translation>
-    </message>
-    <message>
-        <source>DNS resolver scan</source>
-        <translation>DNS 解析器扫描</translation>
-    </message>
-    <message>
-        <source>Find Cloudflare WARP endpoints that complete a WireGuard, AmneziaWG or MASQUE connection.</source>
-        <translation>查找可以完成 WireGuard、AmneziaWG 或 MASQUE 连接的 Cloudflare WARP 端点。</translation>
-    </message>
-    <message>
-        <source>Find DNS resolvers that relay the tunnel of one of your DNSTT, MasterDNS or XDNS profiles.</source>
-        <translation>查找可转发你的 DNSTT、MasterDNS 或 XDNS 配置档之一的隧道流量的 DNS 解析器。</translation>
-    </message>
-    <message>
-        <source>Failed to store the scan.</source>
-        <translation>存储该扫描失败。</translation>
-    </message>
-    <message>
-        <source>New Scan</source>
-        <translation>新建扫描</translation>
+        <source>Manage IP lists</source>
+        <translation>管理 IP 列表</translation>
     </message>
 </context>
 <context>
@@ -4374,14 +4347,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
 <context>
     <name>DialogScanInstance</name>
     <message>
-        <source>IP Scanner</source>
-        <translation>IP 扫描器</translation>
-    </message>
-    <message>
-        <source>Name</source>
-        <translation>名称</translation>
-    </message>
-    <message>
         <source>Base IP list</source>
         <translation>基础 IP 列表</translation>
     </message>
@@ -4462,22 +4427,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>添加这个列表到配置档的解析器。</translation>
     </message>
     <message>
-        <source>WARP scan</source>
-        <translation>WARP 扫描</translation>
-    </message>
-    <message>
-        <source>DNS resolver scan</source>
-        <translation>DNS 解析器扫描</translation>
-    </message>
-    <message>
-        <source>%1 - IP Scanner</source>
-        <translation>%1 - IP 扫描器</translation>
-    </message>
-    <message>
-        <source>Enter a name for the scan.</source>
-        <translation>输入该扫描的名称。</translation>
-    </message>
-    <message>
         <source>Stop after must be between %1 and %2 results; leave it empty for no limit.</source>
         <translation>停止量必须在 %1 和 %2 个结果之间；留空表示无限制。</translation>
     </message>
@@ -4506,10 +4455,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>
             <numerusform>%1 (%n 项)</numerusform>
         </translation>
-    </message>
-    <message>
-        <source>Select a profile…</source>
-        <translation>选择一个配置档...</translation>
     </message>
     <message>
         <source>Failed to store the IP list.</source>
@@ -4604,51 +4549,16 @@ Close without saving?</source>
 不保存就关闭吗?</translation>
     </message>
     <message>
-        <source>Profile</source>
-        <translation>配置档</translation>
-    </message>
-    <message>
         <source>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</source>
         <translation>依次将每个地址作为这个配置档的唯一 DNS 解析器进行尝试；能够转发其隧道流量的地址会被保留。</translation>
     </message>
     <message>
-        <source>Endpoints are tried with this profile&apos;s own keys and settings; those that carry traffic are kept.</source>
-        <translation>使用这个配置档自身的密钥和设置逐一尝试各端点；能够传输流量的端点会被保留。</translation>
-    </message>
-</context>
-<context>
-    <name>DialogScanner</name>
-    <message>
-        <source>IP Scanner</source>
-        <translation>IP 扫描器</translation>
+        <source>Find resolvers</source>
+        <translation>查找解析器</translation>
     </message>
     <message>
-        <source>No scans yet. Create one with &quot;New scan&quot;.</source>
-        <translation>尚未扫描。用“新建扫描”创建一个。</translation>
-    </message>
-    <message>
-        <source>New scan</source>
-        <translation>新建扫描</translation>
-    </message>
-    <message>
-        <source>IP Lists</source>
-        <translation>IP 列表</translation>
-    </message>
-    <message>
-        <source>Pause the scan first.</source>
-        <translation>首先暂停扫描。</translation>
-    </message>
-    <message>
-        <source>Confirmation</source>
-        <translation>确认</translation>
-    </message>
-    <message>
-        <source>Delete the scan &quot;%1&quot;?</source>
-        <translation>删除扫描 &quot;%1&quot; 吗?</translation>
-    </message>
-    <message>
-        <source>Also delete its result list</source>
-        <translation>还删除其结果列表</translation>
+        <source>%1 - Find resolvers</source>
+        <translation>%1 - 查找解析器</translation>
     </message>
 </context>
 <context>
@@ -8433,10 +8343,6 @@ Close without saving?</source>
         <translation>OTP 管理器</translation>
     </message>
     <message>
-        <source>IP Scanner</source>
-        <translation>IP 扫描器</translation>
-    </message>
-    <message>
         <source>Restart program</source>
         <translation>重启程序</translation>
     </message>
@@ -11582,10 +11488,6 @@ How to update?</source>
         <translation>无法为该 WARP 配置档构建配置</translation>
     </message>
     <message>
-        <source>Choose the WARP profile to scan with</source>
-        <translation>选择用于扫描的 WARP 配置档</translation>
-    </message>
-    <message>
         <source>The routing profile sends traffic to %1, which holds an auto selector; such a chain can only be started, not used in routing rules</source>
         <translation>该路由配置档会发送流量到 %1，而它包含一个自动选择器；这类代理链只能单独启动，不能在路由规则中使用</translation>
     </message>
@@ -12479,43 +12381,7 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
-    <name>ScanItem</name>
-    <message>
-        <source>IP Scanner</source>
-        <translation>IP 扫描器</translation>
-    </message>
-    <message>
-        <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning?</source>
-        <translation>自从暂停这次扫描以来，目标已改变，所以无法继续。要重新从头开始吗？</translation>
-    </message>
-    <message>
-        <source>The scan could not be started.</source>
-        <translation>该扫描无法被启动。</translation>
-    </message>
-    <message>
-        <source>Pausing…</source>
-        <translation>正在暂停...</translation>
-    </message>
-    <message>
-        <source>Running</source>
-        <translation>正在运行</translation>
-    </message>
-    <message>
-        <source>Idle</source>
-        <translation>空闲</translation>
-    </message>
-    <message>
-        <source>Paused</source>
-        <translation>已暂停</translation>
-    </message>
-    <message>
-        <source>Completed</source>
-        <translation>已完成</translation>
-    </message>
-    <message>
-        <source>Failed</source>
-        <translation>失败</translation>
-    </message>
+    <name>ScannerUi</name>
     <message>
         <source>%1 / %2 (%3%)</source>
         <translation>%1 / %2 (%3%)</translation>
@@ -12533,48 +12399,40 @@ Remove that endpoint from this routing profile as well?</source>
         </translation>
     </message>
     <message>
-        <source>WARP</source>
-        <translation>WARP</translation>
+        <source>Completed</source>
+        <translation>已完成</translation>
     </message>
     <message>
-        <source>DNS resolvers</source>
-        <translation>DNS 解析器</translation>
-    </message>
-    <message>
-        <source>Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first.</source>
-        <translation>仅已保存的 DNSTT、MasterDNS 或 XDNS 配置档才能用于查找解析器；请先保存配置档。</translation>
-    </message>
-    <message>
-        <source>Resolvers for %1</source>
-        <translation>%1 的解析器</translation>
+        <source>Failed</source>
+        <translation>失败</translation>
     </message>
     <message>
         <source>Failed to store the scan.</source>
         <translation>存储该扫描失败。</translation>
     </message>
     <message>
-        <source>Open</source>
-        <translation>打开</translation>
+        <source>Idle</source>
+        <translation>空闲</translation>
     </message>
     <message>
-        <source>Delete</source>
-        <translation>删除</translation>
+        <source>Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first.</source>
+        <translation>仅已保存的 DNSTT、MasterDNS 或 XDNS 配置档才能用于查找解析器；请先保存配置档。</translation>
     </message>
     <message>
-        <source>Pause</source>
-        <translation>暂停</translation>
+        <source>Paused</source>
+        <translation>已暂停</translation>
     </message>
     <message>
-        <source>Resume</source>
-        <translation>继续</translation>
+        <source>Pausing…</source>
+        <translation>正在暂停...</translation>
     </message>
     <message>
-        <source>Start</source>
-        <translation>启动</translation>
+        <source>Resolvers for %1</source>
+        <translation>%1 的解析器</translation>
     </message>
     <message>
-        <source>This scan stopped partway. Starting over discards its progress. Continue?</source>
-        <translation>这次扫描中途停止了。重新开始将丢弃其进度。继续吗？</translation>
+        <source>Running</source>
+        <translation>正在运行</translation>
     </message>
     <message numerus="yes">
         <source>Starting over keeps the %n current result(s) until the first new one replaces them. Continue?</source>
@@ -12583,8 +12441,20 @@ Remove that endpoint from this routing profile as well?</source>
         </translation>
     </message>
     <message>
-        <source>%1 s of %2 s</source>
-        <translation>%1 秒 / %2 秒</translation>
+        <source>The scan could not be started.</source>
+        <translation>该扫描无法被启动。</translation>
+    </message>
+    <message>
+        <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning?</source>
+        <translation>自从暂停这次扫描以来，目标已改变，所以无法继续。要重新从头开始吗？</translation>
+    </message>
+    <message>
+        <source>This scan stopped partway. Starting over discards its progress. Continue?</source>
+        <translation>这次扫描中途停止了。重新开始将丢弃其进度。继续吗？</translation>
+    </message>
+    <message>
+        <source>Find resolvers</source>
+        <translation>查找解析器</translation>
     </message>
 </context>
 <context>
@@ -12673,10 +12543,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Pause the scan first</source>
         <translation>先暂停该扫描</translation>
-    </message>
-    <message>
-        <source>Scan %1 Result</source>
-        <translation>扫描 %1 结果</translation>
     </message>
     <message>
         <source>Testing %1 (%2)</source>
@@ -12913,16 +12779,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>这个网络没有 IPv6；跳过 IPv6 范围</translation>
     </message>
     <message>
-        <source>Re-checking known endpoints</source>
-        <translation>正在重新检查已知端点</translation>
-    </message>
-    <message numerus="yes">
-        <source>Re-checking %n known endpoint(s)</source>
-        <translation>
-            <numerusform>正在重新检查 %n 个已知端点</numerusform>
-        </translation>
-    </message>
-    <message>
         <source>Finding ports</source>
         <translation>正在查找端口</translation>
     </message>
@@ -12958,22 +12814,6 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Round %1: probing %n address(es)</source>
         <translation>
             <numerusform>第 %1 轮：正在探测 %n 个地址</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>Rescanning</source>
-        <translation>正在重新扫描</translation>
-    </message>
-    <message numerus="yes">
-        <source>Rescanning %n result(s)</source>
-        <translation>
-            <numerusform>正在重新扫描 %n 个结果</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <source>Re-checking data through %n endpoint(s)</source>
-        <translation>
-            <numerusform>正在通过 %n 个端点重新检查数据</numerusform>
         </translation>
     </message>
     <message>
@@ -13019,10 +12859,6 @@ Remove that endpoint from this routing profile as well?</source>
         </translation>
     </message>
     <message>
-        <source>These endpoints need AmneziaWG junk: turn on AmneziaWG in the profile (Jc %1, Jmin %2, Jmax %3)</source>
-        <translation>这些端点需要 AmneziaWG 垃圾数据包：请在配置档中开启 AmneziaWG（Jc %1，Jmin %2，Jmax %3）</translation>
-    </message>
-    <message>
         <source>No endpoint answered the WARP handshake; this network may block it</source>
         <translation>没有端点响应 WARP 握手；这个网络可能拦截了它</translation>
     </message>
@@ -13033,16 +12869,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Endpoints answered the handshake, but no data flowed through them</source>
         <translation>端点响应了握手，但没有数据通过它们传输</translation>
-    </message>
-    <message>
-        <source>No result passed, so none was removed; the network or the profile may be at fault</source>
-        <translation>没有结果通过，因此未移除任何结果；问题可能出在网络或配置档</translation>
-    </message>
-    <message numerus="yes">
-        <source>%n result(s) passed</source>
-        <translation>
-            <numerusform>%n 个结果通过</numerusform>
-        </translation>
     </message>
     <message numerus="yes">
         <source>No %1 result answered, so %n failed %1 result(s) were kept</source>
@@ -13057,10 +12883,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>HTTP/3 gets no answer here; continuing over HTTP/2</source>
         <translation>HTTP/3 在此没有应答；改用 HTTP/2 继续</translation>
-    </message>
-    <message>
-        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/3 (fallback to HTTP/2)</source>
-        <translation>这些端点需要 HTTP/2：请将配置档的 HTTP 版本设为 HTTP/3 (回退到 HTTP/2)</translation>
     </message>
 </context>
 <context>

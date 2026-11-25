@@ -409,41 +409,6 @@
     </message>
 </context>
 <context>
-    <name>DialogScanner</name>
-    <message>
-        <source>IP Scanner</source>
-        <translation>اسکنر IP</translation>
-    </message>
-    <message>
-        <source>No scans yet. Create one with &quot;New scan&quot;.</source>
-        <translation>هنوز اسکنی وجود ندارد. با «اسکن جدید» یکی بسازید.</translation>
-    </message>
-    <message>
-        <source>New scan</source>
-        <translation>اسکن جدید</translation>
-    </message>
-    <message>
-        <source>IP Lists</source>
-        <translation>فهرست‌های IP</translation>
-    </message>
-    <message>
-        <source>Pause the scan first.</source>
-        <translation>ابتدا اسکن را متوقف کنید.</translation>
-    </message>
-    <message>
-        <source>Confirmation</source>
-        <translation>تأیید</translation>
-    </message>
-    <message>
-        <source>Delete the scan &quot;%1&quot;?</source>
-        <translation>اسکن «%1» حذف شود؟</translation>
-    </message>
-    <message>
-        <source>Also delete its result list</source>
-        <translation>فهرست نتایج آن هم حذف شود</translation>
-    </message>
-</context>
-<context>
     <name>DialogWarpFinder</name>
     <message>
         <source>Find WARP endpoint</source>
@@ -2615,44 +2580,17 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Records</source>
         <translation>رکوردها</translation>
     </message>
-</context>
-<context>
-    <name>DialogNewScan</name>
     <message>
-        <source>DNS resolver scan</source>
-        <translation>اسکن ریزالور DNS</translation>
+        <source>IP Lists</source>
+        <translation>فهرست‌های IP</translation>
     </message>
     <message>
-        <source>Find DNS resolvers that relay the tunnel of one of your DNSTT, MasterDNS or XDNS profiles.</source>
-        <translation>ریزالورهای DNS را پیدا می‌کند که تونل یکی از نمایه‌های DNSTT، MasterDNS یا XDNS شما را عبور می‌دهند.</translation>
+        <source>Address and resolver lists that profiles, groups and DNS tunnels use.</source>
+        <translation>فهرست‌های نشانی و ریزالور که نمایه‌ها، گروه‌ها و تونل‌های DNS به کار می‌برند.</translation>
     </message>
     <message>
-        <source>Scan %1</source>
-        <translation>اسکن %1</translation>
-    </message>
-    <message>
-        <source>New scan</source>
-        <translation>اسکن جدید</translation>
-    </message>
-    <message>
-        <source>Name</source>
-        <translation>نام</translation>
-    </message>
-    <message>
-        <source>WARP scan</source>
-        <translation>اسکن WARP</translation>
-    </message>
-    <message>
-        <source>Find Cloudflare WARP endpoints that complete a WireGuard, AmneziaWG or MASQUE connection.</source>
-        <translation>نقاط پایانی Cloudflare WARP را پیدا می‌کند که اتصال WireGuard، AmneziaWG یا MASQUE را کامل می‌کنند.</translation>
-    </message>
-    <message>
-        <source>Failed to store the scan.</source>
-        <translation>ذخیرهٔ اسکن ناموفق بود.</translation>
-    </message>
-    <message>
-        <source>New Scan</source>
-        <translation>اسکن جدید</translation>
+        <source>Manage IP lists</source>
+        <translation>مدیریت فهرست‌های IP</translation>
     </message>
 </context>
 <context>
@@ -2668,18 +2606,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Add this list to the profile&apos;s resolvers.</source>
         <translation>این فهرست را به ریزالورهای نمایه اضافه می‌کند.</translation>
-    </message>
-    <message>
-        <source>WARP scan</source>
-        <translation>اسکن WARP</translation>
-    </message>
-    <message>
-        <source>DNS resolver scan</source>
-        <translation>اسکن ریزالور DNS</translation>
-    </message>
-    <message>
-        <source>Select a profile…</source>
-        <translation>یک نمایه انتخاب کنید…</translation>
     </message>
     <message>
         <source>The scan&apos;s profile was deleted or is no longer a DNS tunnel profile.</source>
@@ -2712,14 +2638,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Copy the selected entries, or all if none are selected.</source>
         <translation>ورودی‌های انتخاب‌شده را کپی می‌کند، یا همه را اگر چیزی انتخاب نشده باشد.</translation>
-    </message>
-    <message>
-        <source>IP Scanner</source>
-        <translation>اسکنر IP</translation>
-    </message>
-    <message>
-        <source>Name</source>
-        <translation>نام</translation>
     </message>
     <message>
         <source>Base IP list</source>
@@ -2776,14 +2694,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>No limit</source>
         <translation>بدون محدودیت</translation>
-    </message>
-    <message>
-        <source>%1 - IP Scanner</source>
-        <translation>%1 - اسکنر IP</translation>
-    </message>
-    <message>
-        <source>Enter a name for the scan.</source>
-        <translation>نامی برای اسکن وارد کنید.</translation>
     </message>
     <message>
         <source>Stop after must be between %1 and %2 results; leave it empty for no limit.</source>
@@ -2888,16 +2798,16 @@ Close without saving?</source>
         <translation>اسکن دوبارهٔ نتایج فعلی</translation>
     </message>
     <message>
-        <source>Profile</source>
-        <translation>نمایه</translation>
-    </message>
-    <message>
         <source>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</source>
         <translation>هر نشانی به‌عنوان تنها ریزالور این نمایه آزموده می‌شود؛ نشانی‌هایی که تونل آن را عبور می‌دهند نگه داشته می‌شوند.</translation>
     </message>
     <message>
-        <source>Endpoints are tried with this profile&apos;s own keys and settings; those that carry traffic are kept.</source>
-        <translation>نقاط پایانی با کلیدها و تنظیمات خود این نمایه آزموده می‌شوند؛ آن‌هایی که ترافیک را عبور می‌دهند نگه داشته می‌شوند.</translation>
+        <source>Find resolvers</source>
+        <translation>یافتن ریزالور</translation>
+    </message>
+    <message>
+        <source>%1 - Find resolvers</source>
+        <translation>%1 - یافتن ریزالور</translation>
     </message>
 </context>
 <context>
@@ -5068,10 +4978,6 @@ Error: %2</source>
         <translation>پیکربندی نمایهٔ WARP ساخته نشد</translation>
     </message>
     <message>
-        <source>Choose the WARP profile to scan with</source>
-        <translation>نمایهٔ WARP را برای اسکن انتخاب کنید</translation>
-    </message>
-    <message>
         <source>%1: the resolver &quot;%2&quot; is invalid: %3</source>
         <translation>%1: ریزالور «%2» نامعتبر است: %3</translation>
     </message>
@@ -5501,63 +5407,7 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
-    <name>ScanItem</name>
-    <message>
-        <source>WARP</source>
-        <translation>WARP</translation>
-    </message>
-    <message>
-        <source>DNS resolvers</source>
-        <translation>ریزالورهای DNS</translation>
-    </message>
-    <message>
-        <source>IP Scanner</source>
-        <translation>اسکنر IP</translation>
-    </message>
-    <message>
-        <source>Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first.</source>
-        <translation>فقط با نمایهٔ ذخیره‌شدهٔ DNSTT، MasterDNS یا XDNS می‌توان ریزالور پیدا کرد؛ ابتدا نمایه را ذخیره کنید.</translation>
-    </message>
-    <message>
-        <source>Resolvers for %1</source>
-        <translation>ریزالورهای %1</translation>
-    </message>
-    <message>
-        <source>Failed to store the scan.</source>
-        <translation>ذخیرهٔ اسکن ناموفق بود.</translation>
-    </message>
-    <message>
-        <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning?</source>
-        <translation>اهداف پس از توقف این اسکن تغییر کرده‌اند، پس نمی‌تواند ادامه یابد. از ابتدا شروع شود؟</translation>
-    </message>
-    <message>
-        <source>The scan could not be started.</source>
-        <translation>اسکن شروع نشد.</translation>
-    </message>
-    <message>
-        <source>Pausing…</source>
-        <translation>در حال توقف…</translation>
-    </message>
-    <message>
-        <source>Running</source>
-        <translation>در حال اجرا</translation>
-    </message>
-    <message>
-        <source>Idle</source>
-        <translation>بیکار</translation>
-    </message>
-    <message>
-        <source>Paused</source>
-        <translation>متوقف‌شده</translation>
-    </message>
-    <message>
-        <source>Completed</source>
-        <translation>تکمیل‌شده</translation>
-    </message>
-    <message>
-        <source>Failed</source>
-        <translation>ناموفق</translation>
-    </message>
+    <name>ScannerUi</name>
     <message>
         <source>%1 / %2 (%3%)</source>
         <translation>%1 / %2 (%3%)</translation>
@@ -5575,28 +5425,40 @@ Remove that endpoint from this routing profile as well?</source>
         </translation>
     </message>
     <message>
-        <source>Open</source>
-        <translation>باز کردن</translation>
+        <source>Completed</source>
+        <translation>تکمیل‌شده</translation>
     </message>
     <message>
-        <source>Delete</source>
-        <translation>حذف</translation>
+        <source>Failed</source>
+        <translation>ناموفق</translation>
     </message>
     <message>
-        <source>Pause</source>
-        <translation>توقف موقت</translation>
+        <source>Failed to store the scan.</source>
+        <translation>ذخیرهٔ اسکن ناموفق بود.</translation>
     </message>
     <message>
-        <source>Resume</source>
-        <translation>ادامه</translation>
+        <source>Idle</source>
+        <translation>بیکار</translation>
     </message>
     <message>
-        <source>Start</source>
-        <translation>شروع</translation>
+        <source>Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first.</source>
+        <translation>فقط با نمایهٔ ذخیره‌شدهٔ DNSTT، MasterDNS یا XDNS می‌توان ریزالور پیدا کرد؛ ابتدا نمایه را ذخیره کنید.</translation>
     </message>
     <message>
-        <source>This scan stopped partway. Starting over discards its progress. Continue?</source>
-        <translation>این اسکن در میانهٔ کار متوقف شده است. شروع دوباره پیشرفت آن را دور می‌ریزد. ادامه می‌دهید؟</translation>
+        <source>Paused</source>
+        <translation>متوقف‌شده</translation>
+    </message>
+    <message>
+        <source>Pausing…</source>
+        <translation>در حال توقف…</translation>
+    </message>
+    <message>
+        <source>Resolvers for %1</source>
+        <translation>ریزالورهای %1</translation>
+    </message>
+    <message>
+        <source>Running</source>
+        <translation>در حال اجرا</translation>
     </message>
     <message numerus="yes">
         <source>Starting over keeps the %n current result(s) until the first new one replaces them. Continue?</source>
@@ -5605,8 +5467,20 @@ Remove that endpoint from this routing profile as well?</source>
         </translation>
     </message>
     <message>
-        <source>%1 s of %2 s</source>
-        <translation>%1 از %2 ثانیه</translation>
+        <source>The scan could not be started.</source>
+        <translation>اسکن شروع نشد.</translation>
+    </message>
+    <message>
+        <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning?</source>
+        <translation>اهداف پس از توقف این اسکن تغییر کرده‌اند، پس نمی‌تواند ادامه یابد. از ابتدا شروع شود؟</translation>
+    </message>
+    <message>
+        <source>This scan stopped partway. Starting over discards its progress. Continue?</source>
+        <translation>این اسکن در میانهٔ کار متوقف شده است. شروع دوباره پیشرفت آن را دور می‌ریزد. ادامه می‌دهید؟</translation>
+    </message>
+    <message>
+        <source>Find resolvers</source>
+        <translation>یافتن ریزالور</translation>
     </message>
 </context>
 <context>
@@ -5723,10 +5597,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Pause the scan first</source>
         <translation>ابتدا اسکن را متوقف کنید</translation>
-    </message>
-    <message>
-        <source>Scan %1 Result</source>
-        <translation>نتیجهٔ اسکن %1</translation>
     </message>
     <message>
         <source>Testing %1 (%2)</source>
@@ -5935,16 +5805,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>این شبکه IPv6 ندارد؛ بازه‌های IPv6 نادیده گرفته می‌شوند</translation>
     </message>
     <message>
-        <source>Re-checking known endpoints</source>
-        <translation>در حال بررسی دوبارهٔ نقاط پایانی شناخته‌شده</translation>
-    </message>
-    <message numerus="yes">
-        <source>Re-checking %n known endpoint(s)</source>
-        <translation>
-            <numerusform>در حال بررسی دوبارهٔ %n نقطهٔ پایانی شناخته‌شده</numerusform>
-        </translation>
-    </message>
-    <message>
         <source>Finding ports</source>
         <translation>در حال یافتن پورت‌ها</translation>
     </message>
@@ -5980,22 +5840,6 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Round %1: probing %n address(es)</source>
         <translation>
             <numerusform>دور %1: در حال کاوش %n نشانی</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>Rescanning</source>
-        <translation>در حال اسکن دوباره</translation>
-    </message>
-    <message numerus="yes">
-        <source>Rescanning %n result(s)</source>
-        <translation>
-            <numerusform>در حال اسکن دوبارهٔ %n نتیجه</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <source>Re-checking data through %n endpoint(s)</source>
-        <translation>
-            <numerusform>در حال بررسی دوبارهٔ داده از طریق %n نقطهٔ پایانی</numerusform>
         </translation>
     </message>
     <message>
@@ -6041,10 +5885,6 @@ Remove that endpoint from this routing profile as well?</source>
         </translation>
     </message>
     <message>
-        <source>These endpoints need AmneziaWG junk: turn on AmneziaWG in the profile (Jc %1, Jmin %2, Jmax %3)</source>
-        <translation>این نقاط پایانی به بسته‌های زائد AmneziaWG نیاز دارند: AmneziaWG را در نمایه روشن کنید (Jc %1، Jmin %2، Jmax %3)</translation>
-    </message>
-    <message>
         <source>No endpoint answered the WARP handshake; this network may block it</source>
         <translation>هیچ نقطهٔ پایانی به دست‌دهی WARP پاسخ نداد؛ ممکن است این شبکه آن را مسدود کند</translation>
     </message>
@@ -6055,16 +5895,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Endpoints answered the handshake, but no data flowed through them</source>
         <translation>نقاط پایانی به دست‌دهی پاسخ دادند، اما هیچ داده‌ای از آن‌ها عبور نکرد</translation>
-    </message>
-    <message>
-        <source>No result passed, so none was removed; the network or the profile may be at fault</source>
-        <translation>هیچ نتیجه‌ای موفق نشد، پس چیزی حذف نشد؛ شاید مشکل از شبکه یا نمایه باشد</translation>
-    </message>
-    <message numerus="yes">
-        <source>%n result(s) passed</source>
-        <translation>
-            <numerusform>%n نتیجه موفق شد</numerusform>
-        </translation>
     </message>
     <message numerus="yes">
         <source>No %1 result answered, so %n failed %1 result(s) were kept</source>
@@ -6079,10 +5909,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>HTTP/3 gets no answer here; continuing over HTTP/2</source>
         <translation>HTTP/3 در این شبکه پاسخی نمی‌گیرد؛ اسکن با HTTP/2 ادامه می‌یابد</translation>
-    </message>
-    <message>
-        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/3 (fallback to HTTP/2)</source>
-        <translation>این نقاط پایانی به HTTP/2 نیاز دارند: نسخهٔ HTTP نمایه را روی HTTP/3 (fallback to HTTP/2) بگذارید</translation>
     </message>
 </context>
 <context>

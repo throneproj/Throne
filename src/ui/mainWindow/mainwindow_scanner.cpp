@@ -10,7 +10,6 @@
 #include "include/scanner/ScanManager.h"
 #include "include/scanner/ScanProfiles.h"
 #include "include/ui/scanner/dialog_ip_lists.h"
-#include "include/ui/scanner/dialog_scanner.h"
 #include "include/ui/scanner/dialog_warp_finder.h"
 
 namespace {
@@ -20,18 +19,6 @@ namespace {
         box->setAttribute(Qt::WA_DeleteOnClose);
         box->open();
     }
-}
-
-void MainWindow::on_menu_scanner_triggered() {
-    showScannerDialog();
-}
-
-void MainWindow::showScannerDialog() {
-    if (m_scannerDialog == nullptr) {
-        m_scannerDialog = new DialogScanner(this);
-        m_scannerDialog->setAttribute(Qt::WA_DeleteOnClose);
-    }
-    ActivateWindow(m_scannerDialog);
 }
 
 void MainWindow::showIpListsDialog(int selectListId) {
