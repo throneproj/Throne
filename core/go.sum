@@ -388,8 +388,8 @@ github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5
 github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5c47/go.mod h1:kojvtUc29KKnk8hs2QIANynVR59921SnGWA9kXohHc0=
 github.com/throneproj/sing v0.9.4-0.20261124191429-42da4537a24e h1:1IfbBQdIqtsss5jFju9Lnrn+T8KaahkPd/BzJbDScLc=
 github.com/throneproj/sing v0.9.4-0.20261124191429-42da4537a24e/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
-github.com/throneproj/sing-box v1.11.16-0.20261124193529-943c19bc6e25 h1:EuapgLv82iDkwSie/fuVF6L5e1Smvf6UfMbeEkiba2k=
-github.com/throneproj/sing-box v1.11.16-0.20261124193529-943c19bc6e25/go.mod h1:mO7fYFJ4lzzg5uGhzhPXLx4LKYtLFXbQz7BnurEx7bY=
+github.com/throneproj/sing-box v1.11.16-0.20261125000652-93a20d14b6e6 h1:70YQtJ724HQvJt4K1jNDxa8eAwsMI9rdLVXpXT5inPA=
+github.com/throneproj/sing-box v1.11.16-0.20261125000652-93a20d14b6e6/go.mod h1:mO7fYFJ4lzzg5uGhzhPXLx4LKYtLFXbQz7BnurEx7bY=
 github.com/throneproj/sing-openvpn v0.1.1-0.20261124193421-24edd96c0581 h1:g8k7ftZrw0i/Oo/HzunoPjeYRVpfmey/6m1iAkUsmBU=
 github.com/throneproj/sing-openvpn v0.1.1-0.20261124193421-24edd96c0581/go.mod h1:PWX7WygD8jpwfqfaGNySXpJYTn0SOwjBI1BKHHC2+Bw=
 github.com/throneproj/utls v0.0.0-20261122110438-55d28d9fd9a0 h1:OUAT4pL0I4+a8xwB4p2lbOSiqrvgsL4LXOaISJWbaxk=
