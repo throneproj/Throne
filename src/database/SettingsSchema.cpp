@@ -45,10 +45,23 @@ namespace Configs::SettingsSchema {
             to.xray_vless_preference = from.xray_vless_preference;
         }
 
+        std::string serializeCustomTests(const SettingsValues &values) {
+            return CustomTest::SerializeList(values.custom_tests).toStdString();
+        }
+
+        void parseCustomTests(SettingsValues &values, const QString &raw) {
+            values.custom_tests = CustomTest::ParseList(raw);
+        }
+
+        void copyCustomTests(const SettingsValues &from, SettingsValues &to) {
+            to.custom_tests = from.custom_tests;
+        }
+
         std::vector<Key> buildKeys() {
             using enum Scope;
             const Custom shortcuts{serializeShortcuts, parseShortcuts, copyShortcuts};
             const Custom vlessPreference{serializeVlessPreference, parseVlessPreference, copyVlessPreference};
+            const Custom customTests{serializeCustomTests, parseCustomTests, copyCustomTests};
             return {
                 {"main_window_geometry", &SettingsValues::mainWindowGeometry, Host},
                 {"log_level", &SettingsValues::log_level, Host, RestartProfile},
@@ -57,6 +70,7 @@ namespace Configs::SettingsSchema {
                 {"exit_country_lookup", &SettingsValues::exit_country_lookup},
                 {"exit_lookup_provider", &SettingsValues::exit_lookup_provider},
                 {"service_check_disabled", &SettingsValues::service_check_disabled, Portable, UiProfileList},
+                {"custom_tests", customTests, Portable, UiCustomTests},
                 {"url_test_timeout_ms", &SettingsValues::url_test_timeout_ms, Portable, NoEffect, IntRange{0, 60000}},
                 {"disable_tray", &SettingsValues::disable_tray, Host, UiTray},
                 // 0 runs the core's own maximum.

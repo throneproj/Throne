@@ -192,6 +192,43 @@ namespace Engine {
             }};
         }
 
+        TestRunnerUpdate testRunnerCustomResultUpdate(const std::shared_ptr<Configs::Profile>& ent, const QString& testId,
+                                                      const libcore::CustomTestResult& res) {
+            Configs::CustomTestResult parsed;
+            const auto error = QString::fromStdString(res.error.value());
+            if (!error.isEmpty()) {
+                parsed.error = error;
+                MW_show_log(MainWindowTr::tr("[%1] custom test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
+            } else {
+                parsed.text = QString::fromStdString(res.text.value());
+                parsed.color = QString::fromStdString(res.color.value());
+                parsed.tooltip = QString::fromStdString(res.tooltip.value());
+                const int sk = res.sort_kind.value();
+                if (sk == 1) {
+                    parsed.sort_kind = Configs::CustomTestResult::SortKind::Number;
+                    parsed.sort_number = res.sort_number.value();
+                } else if (sk == 2) {
+                    parsed.sort_kind = Configs::CustomTestResult::SortKind::String;
+                    parsed.sort_string = QString::fromStdString(res.sort_string.value());
+                }
+            }
+            return {ent, [testId, parsed = std::move(parsed)](Configs::Profile& p) {
+                if (parsed.isEmpty()) p.custom_test_results.remove(testId);
+                else p.custom_test_results.insert(testId, parsed);
+            }};
+        }
+
+        int testRunnerCustomBatchRpcTimeoutMs(qsizetype tagCount, int timeoutMs, int startupAllowanceMs) {
+            const auto& settings = Configs::dataManager->settingsRepo;
+            int concurrency = settings->test_concurrent;
+            if (concurrency <= 0 || concurrency >= 500) concurrency = kTestRunnerCoreMaxConcurrency;
+            const qint64 perProfileMs = timeoutMs > 0 ? timeoutMs : 5000;
+            const qint64 rounds = (qMax<qsizetype>(tagCount, 1) + concurrency - 1) / concurrency;
+            const qint64 total = rounds * (kTestRunnerTunnelHandshakeMs + perProfileMs + kTestRunnerTunnelStartupMs + startupAllowanceMs) +
+                                 kTestRunnerRpcSlackMs;
+            return static_cast<int>(qMin<qint64>(total, std::numeric_limits<int>::max()));
+        }
+
         constexpr int kTestRunnerServiceBatchSize = 25;
         constexpr int kTestRunnerServiceConcurrency = 4;
         constexpr int kTestRunnerServiceRequestTimeoutMs = 10000;
@@ -255,7 +292,7 @@ namespace Engine {
 
         class TestRunnerNullObserver final : public TestObserver {
         public:
-            void testPanelSeeded(TestKind, int, const QList<int>&) override {}
+            void testPanelSeeded(TestKind, int, const QList<int>&, const QString&) override {}
             void testProgressed() override {}
             void testPanelsCleared() override {}
             void testViewChanged(bool) override {}
@@ -560,6 +597,175 @@ namespace Engine {
             updates << testRunnerServiceUpdate(ent, res, definitions->categories);
         }
         testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::ServiceChecks);
+    }
+
+    void TestRunner::runCustomProbe(const Target& target, const Configs::CustomTest& test) {
+        if (stopRequested_.load()) {
+            MW_show_log(MainWindowTr::tr("Profile test aborted"));
+            return;
+        }
+
+        libcore::CustomTestRequest req;
+        testRunnerFillCommonTestReq(req, target);
+        req.max_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
+        req.test_timeout_ms = test.timeout_ms > 0 ? test.timeout_ms : 5000;
+        req.script = test.script.toStdString();
+
+        const auto claimed = std::make_shared<TestRunnerClaimedTags>();
+        bool rpcOK = false;
+        QString coreError;
+        libcore::CustomTestResponse result;
+        {
+            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, testId = test.id, claimed] {
+                if (staleGen(gen)) return;
+                bool ok = false;
+                const auto resp = API::defaultClient->QueryCustomTest(&ok);
+                if (staleGen(gen)) return;
+                if (!ok || resp.results.empty()) return;
+
+                TestRunnerUpdates updates;
+                for (const auto& res : resp.results) {
+                    observer_->testProgressed();
+                    observer_->testViewChanged(false);
+                    if (testRunnerIsTestAborted(QString::fromStdString(res.error.value()))) continue;
+                    const int entid = testRunnerResolveEntID(tag2entID, res.outbound_tag.value(), -1);
+                    if (entid == -1) continue;
+                    auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
+                    if (ent == nullptr || !claimed->claim(QString::fromStdString(res.outbound_tag.value()))) continue;
+                    updates << testRunnerCustomResultUpdate(ent, testId, res);
+                }
+                if (updates.isEmpty()) return;
+                observer_->testViewChanged(true);
+                testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::CustomTests);
+            }, kTestRunnerLatencyPollIntervalMs);
+
+            result = API::defaultClient->CustomTest(&rpcOK, req, &coreError,
+                                                    testRunnerCustomBatchRpcTimeoutMs(target.outboundTags.size(),
+                                                                                      req.test_timeout_ms.value(),
+                                                                                      testRunnerStartupAllowanceMs(target.tag2entID, target.entID)));
+        }
+
+        if (!rpcOK) {
+            reportProbeFailure(MainWindowTr::tr("Custom test failed: %1"), coreError, target.entID);
+            return;
+        }
+
+        TestRunnerUpdates updates;
+        for (const auto& res : result.results) {
+            const int entid = testRunnerResolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
+            if (entid == -1) {
+                MW_show_log(MainWindowTr::tr("Something is very wrong, the subject ent cannot be found!"));
+                continue;
+            }
+            auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
+            if (ent == nullptr) {
+                MW_show_log(MainWindowTr::tr("Profile manager data is corrupted, try again."));
+                continue;
+            }
+            if (testRunnerIsTestAborted(QString::fromStdString(res.error.value()))) continue;
+            if (!claimed->claim(QString::fromStdString(res.outbound_tag.value()))) continue;
+            updates << testRunnerCustomResultUpdate(ent, test.id, res);
+        }
+        testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::CustomTests);
+    }
+
+    bool TestRunner::runCustomTest(const QString& customTestId, const QList<int>& requestedIDs,
+                                   const std::function<void()>& onFinished, bool interactive) {
+        const auto finish = [onFinished] { if (onFinished) onFinished(); };
+        Configs::CustomTest foundTest;
+        bool found = false;
+        for (const auto& item : Configs::dataManager->settingsRepo->custom_tests) {
+            if (item.id == customTestId) {
+                foundTest = item;
+                found = true;
+                break;
+            }
+        }
+        if (!found || foundTest.script.trimmed().isEmpty()) {
+            MW_show_log(MainWindowTr::tr("Custom test not found or script is empty."));
+            finish();
+            return false;
+        }
+
+        const auto profileIDs = testRunnerWithoutAutoSelectors(requestedIDs);
+        if (profileIDs.isEmpty()) {
+            finish();
+            return false;
+        }
+        if (!session_.tryLock()) {
+            reportSessionBusy(interactive);
+            finish();
+            return false;
+        }
+        sessionGen_.fetch_add(1);
+        stopRequested_.store(false);
+        interactive_.store(interactive);
+
+        runOnNewThread([this, profileIDs, foundTest, finish] {
+            observer_->testPanelSeeded(TestKind::Custom, profileIDs.size(), profileIDs, foundTest.id);
+            observer_->testViewChanged(true);
+
+            auto runBatch = [this, &foundTest](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
+                sessionGen_.fetch_add(1);
+                auto buildObject = Configs::BuildTestConfig(profileSlice);
+                if (!buildObject->error.isEmpty()) {
+                    MW_show_log(MainWindowTr::tr("Failed to build test config for batch: ") + buildObject->error);
+                    return;
+                }
+
+                const int testCount = buildObject->fullConfigs.size() + (buildObject->outboundTags.empty() ? 0 : 1);
+                if (testCount == 0) return;
+
+                QSemaphore batchDone;
+                const auto probe = [this, &foundTest, &batchDone](const Target& target) {
+                    pool_.start([this, target, foundTest, &batchDone] {
+                        const QSemaphoreReleaser releaser(batchDone);
+                        runCustomProbe(target, foundTest);
+                    });
+                };
+
+                for (const auto& entID : buildObject->fullConfigs.keys()) {
+                    Target target;
+                    target.coreConfig = buildObject->fullConfigs[entID];
+                    target.useDefaultOutbound = true;
+                    target.entID = entID;
+                    probe(target);
+                }
+                if (!buildObject->outboundTags.empty()) {
+                    Target target;
+                    target.coreConfig = QJsonObject2QString(buildObject->coreConfig, false);
+                    target.xrayConfig = buildObject->isXrayNeeded ? QJsonObject2QString(buildObject->xrayConfig, false) : "";
+                    target.xrayFullConfigs = buildObject->xrayFullConfigs;
+                    target.outboundTags = buildObject->outboundTags;
+                    target.tag2entID = buildObject->tag2entID;
+                    target.xrayDnsStrategy = buildObject->xrayDnsStrategy;
+                    probe(target);
+                }
+                batchDone.acquire(testCount);
+
+                MW_show_log(QStringLiteral("Custom test [%1] for batch done.").arg(foundTest.name));
+                runOnUiThread([=, this] {
+                    observer_->testedProfilesChanged(ids);
+                });
+            };
+
+            QHash<int, QList<int>> tested;
+            for (int i = 0; i < profileIDs.length(); i += kTestRunnerBatchSize) {
+                if (stopRequested_.load()) break;
+                const auto profileIDsSlice = profileIDs.mid(i, kTestRunnerBatchSize);
+                auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(profileIDsSlice);
+                for (const auto& profile : profiles) tested[profile->gid] << profile->id;
+                runBatch(profiles, profileIDsSlice);
+            }
+            testRunnerAwaitResults();
+            Configs::RepositionLater(tested, Configs::SortInput::TestResult);
+            observer_->testPanelsCleared();
+            observer_->testViewChanged(true);
+            session_.unlock();
+            finish();
+            MW_show_log(MainWindowTr::tr("Custom test finished!"));
+        });
+        return true;
     }
 
     bool TestRunner::runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive,

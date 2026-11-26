@@ -15,7 +15,7 @@ namespace Engine {
         virtual ~TestObserver() = default;
 
         // Test threads; must be thread-safe. profileIds identify the groups actually being tested.
-        virtual void testPanelSeeded(TestKind kind, int totalProfiles, const QList<int> &profileIds) = 0;
+        virtual void testPanelSeeded(TestKind kind, int totalProfiles, const QList<int> &profileIds, const QString &customTestId = {}) = 0;
         virtual void testProgressed() = 0;
         virtual void testPanelsCleared() = 0;
         // force false may be throttled away; off the main thread it may block until the main thread has rendered.

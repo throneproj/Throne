@@ -48,9 +48,9 @@ namespace Engine::ProfileService {
     // SubscriptionGroupChanged per source group, ProfilesChanged and GroupsChanged.
     std::optional<ServiceError> MoveToGroup(const QList<int> &profileIds, int targetGid, int *moved = nullptr);
 
-    // Main thread. Clears all results, or only kind when supplied; *groupIds gets the affected groups.
+    // Main thread. Clears all results, or only kind when supplied (and customTestId when kind == TestKind::Custom); *groupIds gets the affected groups.
     int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds = nullptr,
-                         std::optional<TestKind> kind = std::nullopt);
+                         std::optional<TestKind> kind = std::nullopt, const QString &customTestId = {});
 
     struct ProfileConfig {
         QString type;

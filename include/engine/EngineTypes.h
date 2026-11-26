@@ -85,6 +85,7 @@ namespace Engine {
         Ip,
         Speed,
         Service,
+        Custom,
     };
 
     // The topics of the Throne API's GET /v1/events, in the order it lists them.

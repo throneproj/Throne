@@ -547,6 +547,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                     case Engine::TestKind::Ip: tests()->runIpTests(profileIds); break;
                     case Engine::TestKind::Speed: tests()->runSpeedTests(profileIds); break;
                     case Engine::TestKind::Service: break;
+                    case Engine::TestKind::Custom: break;
                 }
                 return nullptr;
             }

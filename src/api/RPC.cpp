@@ -429,6 +429,53 @@ namespace API {
         }
     }
 
+    libcore::CustomTestResponse Client::CustomTest(bool *rpcOK, const libcore::CustomTestRequest &request, QString *coreError, int timeoutMs) {
+        libcore::CustomTestResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("CustomTest", spb::pb::serialize<std::string>(request), resp, timeoutMs);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
+    libcore::QueryCustomTestResponse Client::QueryCustomTest(bool *rpcOK) {
+        libcore::EmptyReq request;
+        libcore::QueryCustomTestResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("QueryCustomTest", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            NOT_OK
+            return {};
+        }
+    }
+
+    QString Client::CheckCustomTest(bool *rpcOK, const QString &script) const {
+        libcore::CheckCustomTestRequest request;
+        request.script = script.toStdString();
+        libcore::ErrorResp reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("CheckCustomTest", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return QString::fromStdString(reply.error.value());
+        } else {
+            NOT_OK
+            return "";
+        }
+    }
+
     libcore::GetDefaultInterfaceResponse Client::GetDefaultInterface(bool *rpcOK) const {
         libcore::EmptyReq request;
         libcore::GetDefaultInterfaceResponse reply;

@@ -18,6 +18,7 @@
 #include <core/gen/libcore.pb.h>
 #endif
 
+#include "include/database/entities/CustomTest.h"
 #include "include/database/entities/Profile.h"
 #include "include/engine/tests/ServiceChecks.h"
 
@@ -79,6 +80,9 @@ namespace Engine {
         // The running profile, through the running core's own proxy outbound.
         bool runCurrentServiceCheck(const std::function<void()>& onFinished = {}, bool interactive = true);
 
+        bool runCustomTest(const QString& customTestId, const QList<int>& profileIDs,
+                           const std::function<void()>& onFinished = {}, bool interactive = true);
+
         // Refused while another test runs. Saves nothing; onDone runs once, on a test thread.
         bool runChainStepTest(const QList<int>& hops, int gid, const std::function<void(const ChainStepReport&)>& onDone);
 
@@ -121,6 +125,8 @@ namespace Engine {
         bool runServiceSession(const QList<int>& requestedIDs, bool testCurrent, const std::function<void()>& onFinished, bool interactive);
 
         void runServiceProbe(const Target& target, const std::shared_ptr<const ServiceChecks::Definitions>& definitions);
+
+        void runCustomProbe(const Target& target, const Configs::CustomTest& test);
 
         void reportSessionBusy(bool interactive) const;
 

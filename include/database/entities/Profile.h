@@ -31,6 +31,7 @@
 #include "include/configs/outbounds/dnstt.h"
 #include "include/configs/outbounds/masterdns.h"
 
+#include "include/database/entities/CustomTest.h"
 #include "include/database/entities/EndpointSource.h"
 #include "include/global/CountryHelper.hpp"
 
@@ -62,6 +63,8 @@ namespace Configs {
 
         // The last service check as JSON (ServiceChecks::ResultJson); empty = never checked.
         QString service_checks;
+
+        QMap<QString, CustomTestResult> custom_test_results;
 
         QString runningCountryInfo; // volatile, not saved to db
 

@@ -23,6 +23,7 @@ namespace Configs {
         ExitIp = 0x2,        // ip_out, test_country
         Speed = 0x4,         // dl_speed, ul_speed
         ServiceChecks = 0x8, // service_checks
+        CustomTests = 0x10,  // custom_test_results
     };
     Q_DECLARE_FLAGS(ProfileColumns, ProfileColumn)
 

@@ -163,8 +163,8 @@ namespace Engine {
     public:
         void bind(TestObserver *observer) { m_target.store(observer); }
 
-        void testPanelSeeded(TestKind kind, int totalProfiles, const QList<int> &profileIds) override {
-            if (auto *target = m_target.load()) target->testPanelSeeded(kind, totalProfiles, profileIds);
+        void testPanelSeeded(TestKind kind, int totalProfiles, const QList<int> &profileIds, const QString &customTestId) override {
+            if (auto *target = m_target.load()) target->testPanelSeeded(kind, totalProfiles, profileIds, customTestId);
         }
 
         void testProgressed() override {
@@ -445,9 +445,10 @@ namespace Engine {
         return m_connection->chooseRoute(routeId, interactive, serial);
     }
 
-    int EngineHost::clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind) {
+    int EngineHost::clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind,
+                                     const QString &customTestId) {
         QList<int> gids;
-        const int n = ProfileService::ClearTestResults(profileIds, &gids, kind);
+        const int n = ProfileService::ClearTestResults(profileIds, &gids, kind, customTestId);
         if (n > 0) emit testResultsCleared(gids);
         return n;
     }
@@ -482,9 +483,17 @@ namespace Engine {
             case Engine::TestKind::Latency: return m_tests->runUrlTests(profileIds, onFinished, false);
             case Engine::TestKind::Ip: return m_tests->runIpTests(profileIds, onFinished, false);
             case Engine::TestKind::Service: return m_tests->runServiceChecks(profileIds, onFinished, false);
+            case Engine::TestKind::Custom:
+                if (onFinished) onFinished();
+                return false;
             case Engine::TestKind::Speed: break;
         }
         return m_tests->runSpeedTests(profileIds, false, onFinished, false);
+    }
+
+    bool EngineHost::runCustomTest(const QString &customTestId, const QList<int> &profileIds,
+                                   const std::function<void()> &onFinished) {
+        return m_tests->runCustomTest(customTestId, profileIds, onFinished, false);
     }
 
     void EngineHost::queueUrlTests(const QList<int> &profileIds, const std::function<void()> &onFinished) {

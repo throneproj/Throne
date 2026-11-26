@@ -272,7 +272,8 @@ namespace Engine::ProfileService {
         return std::nullopt;
     }
 
-    int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds, std::optional<TestKind> kind) {
+    int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds, std::optional<TestKind> kind,
+                         const QString &customTestId) {
         ENGINE_CHECK_MAIN_THREAD();
         if (groupIds != nullptr) groupIds->clear();
         const auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(profileIds);
@@ -293,6 +294,10 @@ namespace Engine::ProfileService {
                         ent->ul_speed.clear();
                         break;
                     case TestKind::Service: ent->service_checks.clear(); break;
+                    case TestKind::Custom:
+                        if (customTestId.isEmpty()) ent->custom_test_results.clear();
+                        else ent->custom_test_results.remove(customTestId);
+                        break;
                 }
             }
             gids.insert(ent->gid);

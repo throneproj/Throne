@@ -47,8 +47,9 @@ namespace Engine {
 
         virtual bool chooseRoute(int routeId, bool interactive, quint64 serial) = 0;
 
-        // Every result, or only those of `kind`.
-        virtual int clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind = std::nullopt) = 0;
+        // Every result, or only those of `kind` (and `customTestId` when `kind == TestKind::Custom`).
+        virtual int clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind = std::nullopt,
+                                     const QString &customTestId = {}) = 0;
 
         // Empty when nothing runs, stats are off, or the last sample is older than maxAgeMs.
         virtual std::optional<LiveRates> freshLiveRates(qint64 maxAgeMs) const = 0;
@@ -69,6 +70,9 @@ namespace Engine {
 
         // Unattended: a refusal is reported by the false return, never a dialog. onFinished may run on a test thread.
         virtual bool runTests(TestKind kind, const QList<int> &profileIds, const std::function<void()> &onFinished) = 0;
+
+        virtual bool runCustomTest(const QString &customTestId, const QList<int> &profileIds,
+                                   const std::function<void()> &onFinished) = 0;
 
         virtual void queueUrlTests(const QList<int> &profileIds, const std::function<void()> &onFinished) = 0;
 

@@ -97,8 +97,9 @@ void MainWindow::UpdateDataView(bool force)
     lastUpdatedMs.store(QDateTime::currentMSecsSinceEpoch());
 }
 
-void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const QList<int> &profileIds)
+void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const QList<int> &profileIds, const QString &customTestId)
 {
+    Q_UNUSED(customTestId)
     int column = -1;
     switch (kind) {
         case Engine::TestKind::Latency:
@@ -116,6 +117,8 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const
         case Engine::TestKind::Speed:
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
             column = ProfilesTableModel::ColSpeed;
+            break;
+        case Engine::TestKind::Custom:
             break;
     }
     runOnUiThread([this] { ui->menu_stop_testing->setEnabled(true); });

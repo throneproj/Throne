@@ -18,7 +18,7 @@ namespace Configs {
             UPDATE profiles SET
                 type = ?, name = ?, gid = ?, latency = ?, latency_at = ?, dl_speed = ?, ul_speed = ?, test_country = ?,
                 ip_out = ?, outbound_json = ?, traffic_dl = ?, traffic_up = ?, endpoint_json = ?, service_checks = ?,
-                updated_at = strftime('%s', 'now')
+                custom_test_results = ?, updated_at = strftime('%s', 'now')
             WHERE id = ?
         )";
 
@@ -38,6 +38,7 @@ namespace Configs {
             stmt.bind(i++, static_cast<int64_t>(row.traffic_up));
             stmt.bind(i++, row.endpoint_json);
             stmt.bind(i++, row.service_checks);
+            stmt.bind(i++, row.custom_test_results);
             stmt.bind(i, row.id);
         }
 
@@ -50,6 +51,7 @@ namespace Configs {
             std::string dlSpeed;
             std::string ulSpeed;
             std::string serviceChecks;
+            std::string customTestResults;
         };
     } // namespace
 
@@ -88,6 +90,7 @@ namespace Configs {
                 traffic_up INTEGER NOT NULL DEFAULT 0,
                 endpoint_json TEXT NOT NULL DEFAULT '{}',
                 service_checks TEXT NOT NULL DEFAULT '',
+                custom_test_results TEXT NOT NULL DEFAULT '{}',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 FOREIGN KEY(gid) REFERENCES groups(id) ON DELETE CASCADE
@@ -100,6 +103,8 @@ namespace Configs {
             db.exec("ALTER TABLE profiles ADD COLUMN endpoint_json TEXT NOT NULL DEFAULT '{}'");
         if (!profilesColumnExists("service_checks"))
             db.exec("ALTER TABLE profiles ADD COLUMN service_checks TEXT NOT NULL DEFAULT ''");
+        if (!profilesColumnExists("custom_test_results"))
+            db.exec("ALTER TABLE profiles ADD COLUMN custom_test_results TEXT NOT NULL DEFAULT '{}'");
 
         db.exec("CREATE INDEX IF NOT EXISTS idx_profiles_name ON profiles(name)");
         db.exec("CREATE INDEX IF NOT EXISTS idx_profiles_type ON profiles(type)");
@@ -128,6 +133,7 @@ namespace Configs {
         profile->test_country = json["test_country"].toString();
         profile->ip_out = json["ip_out"].toString();
         profile->service_checks = json["service_checks"].toString();
+        profile->custom_test_results = CustomTestResult::ParseMap(json["custom_test_results"].toString());
         profile->endpoint = EndpointSource::FromJson(json["endpoint"].toObject());
 
         Configs::outbound* outbound = Configs::NewOutboundByType(profile->type);
@@ -155,12 +161,13 @@ namespace Configs {
         }
         QString name = profile->outbound ? profile->outbound->name : QString();
         QString endpointJson = QString::fromUtf8(QJsonDocument(profile->endpoint.ToJson()).toJson(QJsonDocument::Compact));
+        QString customTestResultsJson = QString::fromUtf8(CustomTestResult::SerializeMap(profile->custom_test_results));
 
         db.exec(R"(
             INSERT INTO profiles
             (id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country,
-            ip_out, outbound_json, traffic_dl, traffic_up, endpoint_json, service_checks)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ip_out, outbound_json, traffic_dl, traffic_up, endpoint_json, service_checks, custom_test_results)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 type = excluded.type, name = excluded.name, gid = excluded.gid,
                 latency = excluded.latency, latency_at = excluded.latency_at,
@@ -169,6 +176,7 @@ namespace Configs {
                 outbound_json = excluded.outbound_json,
                 traffic_dl = excluded.traffic_dl, traffic_up = excluded.traffic_up,
                 endpoint_json = excluded.endpoint_json, service_checks = excluded.service_checks,
+                custom_test_results = excluded.custom_test_results,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -185,7 +193,8 @@ namespace Configs {
             static_cast<long long>(profile->traffic_downlink),
             static_cast<long long>(profile->traffic_uplink),
             endpointJson.toStdString(),
-            profile->service_checks.toStdString()
+            profile->service_checks.toStdString(),
+            customTestResultsJson.toStdString()
         );
     }
 
@@ -211,6 +220,7 @@ namespace Configs {
         row.traffic_up = static_cast<long long>(profile->traffic_uplink);
         row.endpoint_json = QJsonDocument(profile->endpoint.ToJson()).toJson(QJsonDocument::Compact).toStdString();
         row.service_checks = profile->service_checks.toStdString();
+        row.custom_test_results = CustomTestResult::SerializeMap(profile->custom_test_results).toStdString();
         return row;
     }
 
@@ -253,6 +263,7 @@ namespace Configs {
             json["endpoint"] = endpointDoc.object();
         }
         json["service_checks"] = QString::fromStdString(stmt.getColumn(14).getText());
+        json["custom_test_results"] = QString::fromStdString(stmt.getColumn(15).getText());
 
         return profileFromJson(json);
     }
@@ -260,7 +271,7 @@ namespace Configs {
     std::shared_ptr<Profile> ProfilesRepo::loadFromDatabase(int id) const {
         auto query = db.query(R"(
             SELECT id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country,
-                   ip_out, outbound_json, traffic_dl, traffic_up, endpoint_json, service_checks
+                   ip_out, outbound_json, traffic_dl, traffic_up, endpoint_json, service_checks, custom_test_results
             FROM profiles WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -360,7 +371,7 @@ namespace Configs {
             idList += QString::number(chunkIds[i]);
         }
         std::string sql = "SELECT id, type, name, gid, latency, latency_at, dl_speed, ul_speed, test_country, "
-                         "ip_out, outbound_json, traffic_dl, traffic_up, endpoint_json, service_checks FROM profiles WHERE id IN (" +
+                         "ip_out, outbound_json, traffic_dl, traffic_up, endpoint_json, service_checks, custom_test_results FROM profiles WHERE id IN (" +
                          idList.toStdString() + ") ORDER BY id";
         auto query = db.query(sql);
         if (!query) return result;
@@ -677,6 +688,7 @@ namespace Configs {
                 row.ulSpeed = p->ul_speed.toStdString();
             }
             if (columns.testFlag(ProfileColumn::ServiceChecks)) row.serviceChecks = p->service_checks.toStdString();
+            if (columns.testFlag(ProfileColumn::CustomTests)) row.customTestResults = CustomTestResult::SerializeMap(p->custom_test_results).toStdString();
             rows.push_back(std::move(row));
         }
         if (rows.empty() || !columns) return;
@@ -686,6 +698,7 @@ namespace Configs {
         if (columns.testFlag(ProfileColumn::ExitIp)) sql += "ip_out = ?, test_country = ?, ";
         if (columns.testFlag(ProfileColumn::Speed)) sql += "dl_speed = ?, ul_speed = ?, ";
         if (columns.testFlag(ProfileColumn::ServiceChecks)) sql += "service_checks = ?, ";
+        if (columns.testFlag(ProfileColumn::CustomTests)) sql += "custom_test_results = ?, ";
         sql += "updated_at = strftime('%s', 'now') WHERE id = ?";
 
         writer.start([this, rows = std::move(rows), sql = std::move(sql), columns] {
@@ -708,6 +721,7 @@ namespace Configs {
                         stmt->bind(i++, row.ulSpeed);
                     }
                     if (columns.testFlag(ProfileColumn::ServiceChecks)) stmt->bind(i++, row.serviceChecks);
+                    if (columns.testFlag(ProfileColumn::CustomTests)) stmt->bind(i++, row.customTestResults);
                     stmt->bind(i, row.id);
                     written += stmt->exec();
                 }

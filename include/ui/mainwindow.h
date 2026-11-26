@@ -652,7 +652,7 @@ private:
     void exitProgram(ExitReason reason, bool unattended) override;
 
     // TestObserver, in mainwindow_view.cpp; synchronous, so a panel seed never lands after the next session's clear.
-    void testPanelSeeded(Engine::TestKind kind, int totalProfiles, const QList<int> &profileIds) override;
+    void testPanelSeeded(Engine::TestKind kind, int totalProfiles, const QList<int> &profileIds, const QString &customTestId = {}) override;
 
     void testProgressed() override;
 
