@@ -758,8 +758,12 @@ Outbound: %4</translation>
         <translation>Фильтрация логов</translation>
     </message>
     <message>
-        <source>Monospaced font for the log view.</source>
-        <translation>Моноширинный шрифт для просмотра логов.</translation>
+        <source>Monospace Font</source>
+        <translation>Моноширинный шрифт</translation>
+    </message>
+    <message>
+        <source>Monospaced font for logs and code editors.</source>
+        <translation>Моноширинный шрифт для журналов и редакторов кода.</translation>
     </message>
     <message>
         <source>Font size</source>

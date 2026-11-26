@@ -600,12 +600,16 @@ Outbound: %4</source>
         <translation>字体</translation>
     </message>
     <message>
+        <source>Monospace Font</source>
+        <translation>等宽字体</translation>
+    </message>
+    <message>
         <source>Font Size</source>
         <translation>字体大小</translation>
     </message>
     <message>
-        <source>Monospaced font for the log view.</source>
-        <translation>日志视图使用的等宽字体。</translation>
+        <source>Monospaced font for logs and code editors.</source>
+        <translation>用于日志和代码编辑器的等宽字体。</translation>
     </message>
     <message>
         <source>Font size</source>

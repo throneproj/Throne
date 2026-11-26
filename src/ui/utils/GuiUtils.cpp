@@ -1,5 +1,6 @@
 #include "include/ui/utils/GuiUtils.hpp"
 
+#include <QApplication>
 #include <QCoreApplication>
 #include <QSet>
 
@@ -7,6 +8,7 @@
 
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
+#include "include/global/Utils.hpp"
 
 QString ImportTargetRefusalText(const Engine::ServiceError &error) {
     if (error.code == QLatin1String("subscription_group"))
@@ -34,4 +36,26 @@ QString HopReferenceWarning(const QList<int> &profileIds, int deletedGroup) {
     }
     if (refs.size() > shown) text += QLatin1Char('\n') + QCoreApplication::translate("Validation", "…and %n more", nullptr, static_cast<int>(refs.size() - shown));
     return text;
+}
+
+QFont BuildMonospaceFont(const QString &family, int pointSize) {
+    QFont monoFont;
+    monoFont.setFamilies(LogFontFamilies(family));
+    monoFont.setStyleHint(QFont::Monospace);
+    monoFont.setFixedPitch(true);
+    int pt = pointSize;
+    if (pt <= 0 && qApp != nullptr) pt = qApp->font().pointSize();
+    if (pt <= 0 && Configs::dataManager != nullptr && Configs::dataManager->settingsRepo != nullptr) {
+        pt = Configs::dataManager->settingsRepo->font_size;
+    }
+    if (pt > 0) monoFont.setPointSize(pt);
+    return monoFont;
+}
+
+QFont ConfiguredMonospaceFont() {
+    if (Configs::dataManager == nullptr || Configs::dataManager->settingsRepo == nullptr) {
+        return BuildMonospaceFont(QString(), 0);
+    }
+    const auto &settings = Configs::dataManager->settingsRepo;
+    return BuildMonospaceFont(settings->log_font_family, settings->log_font_size);
 }
