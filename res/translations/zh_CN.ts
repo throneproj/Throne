@@ -16653,6 +16653,30 @@ Remove that endpoint from this routing profile as well?</source>
         <source>The %1 list also has rows at %2.</source>
         <translation>“%1”列表还有其他行：%2。</translation>
     </message>
+    <message>
+        <source>Edit as text</source>
+        <translation>以文本编辑</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation>完成</translation>
+    </message>
+    <message>
+        <source>One entry per line</source>
+        <translation>每行一项</translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation>复制</translation>
+    </message>
+    <message>
+        <source>Copy all</source>
+        <translation>全部复制</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>删除</translation>
+    </message>
 </context>
 <context>
     <name>EndpointRulePanel</name>
@@ -16878,6 +16902,40 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Records</source>
         <translation>记录</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation>完成</translation>
+    </message>
+    <message>
+        <source>%1 applies, Esc reverts</source>
+        <translation>%1 应用，Esc 还原</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation>
+            <numerusform>还有 %n 个</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Show all values</source>
+        <translation>显示全部值</translation>
+    </message>
+    <message>
+        <source>Edit as text</source>
+        <translation>以文本编辑</translation>
+    </message>
+    <message>
+        <source>Type or paste values</source>
+        <translation>输入或粘贴值</translation>
+    </message>
+    <message>
+        <source>Copy &quot;%1&quot;</source>
+        <translation>复制“%1”</translation>
+    </message>
+    <message>
+        <source>Copy all values</source>
+        <translation>复制全部值</translation>
     </message>
 </context>
 <context>

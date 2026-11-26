@@ -74,11 +74,16 @@ private:
         bool open = false;
         QString attr;
         bool replacing = false;
+        // A text box holding every value of the condition, one per line; committing replaces them all.
+        bool asText = false;
         QString original;
         // Carried into the re-created field: what the user typed, or the lines that failed.
         QString text;
         QString error;
+        // The values the text box marks as failed.
+        QStringList failed;
         QPointer<QLineEdit> edit;
+        QPointer<QPlainTextEdit> box;
     };
 
     // A setting row of the action's settings or the Connection options, with the issues of its attributes.
@@ -110,15 +115,23 @@ private:
     void buildLeaf(RouteEditor::TreeNode* node, const QString& attr, const QStringList& labels);
     void fillLine(const QString& attr);
     QLineEdit* makeInlineEdit(const QString& attr, QWidget* host);
+    QPlainTextEdit* makeTextBox(const QString& attr, QWidget* host);
+    [[nodiscard]] QWidget* inlineWidget() const;
+    [[nodiscard]] QString inlineText() const;
+    void focusInlineWidget();
     // Stops watching the inline field before it goes; keepText carries its text into the next one.
     void detachInline(bool keepText);
     void scheduleRefill(const QString& attr);
     void applyScheduled();
     void focusLine(const QString& attr, int index);
 
+    // Commits or drops the open field before another opens; false when its values failed and it stays open.
+    bool closeInline();
     void startInline(const QString& attr, const QString& value, bool replacing);
+    void startText(const QString& attr);
     void commitInline(bool keepOpen, bool focusAfter, const QString& extra = {});
     void cancelInline(bool focusAfter);
+    void openLeafMenu(const QString& attr, const QPoint& globalPos, const QString& value);
     void removeValue(const QString& attr, const QString& value);
     void openSelectMenu(const QString& attr, QWidget* anchor);
     void setSelectValue(const QString& attr, const QString& value);
@@ -174,6 +187,8 @@ private:
     QStringList builtAttrs;
     QHash<QString, Line> lines;
     Inline inlineState;
+    // Long conditions shown whole instead of folded.
+    QSet<QString> expanded;
 
     QSet<QString> refillAttrs;
     bool applyQueued = false;

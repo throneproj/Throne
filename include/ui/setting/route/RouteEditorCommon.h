@@ -132,4 +132,26 @@ namespace RouteEditor {
 
     // validate(), an Error for an enabled final rule without conditions, and a disabled rule's errors as warnings.
     QList<Configs::RuleIssue> RuleProblems(const Configs::RouteRule& rule);
+
+    // Text lines, trimmed, without blank lines, comment lines (#, !, //) and list bullets.
+    QStringList ValueLines(const QString& text);
+    // A line cut at commas, semicolons and whitespace, each piece without quotes or brackets; a '#' ends the line.
+    QStringList SplitWords(const QString& line);
+    // Drops the address before the name of a hosts file line, such as 0.0.0.0 in "0.0.0.0 ads.example".
+    void DropHostsAddress(QStringList& words);
+    // Drops wrapping quotes, decoding a JSON string; brackets also drops leading '[' and trailing ']'.
+    QString Unquote(const QString& text, bool brackets);
+    // The value of a Clash rule line such as DOMAIN-SUFFIX,example.com,PROXY, its type uppercased in kind; empty when line is not one.
+    QString ClashRuleValue(const QString& line, QString* kind = nullptr);
+    // The values a typed or pasted text holds for attr, tidied as attr stores them, without duplicates.
+    QStringList SplitValues(const QString& attr, const QString& text);
+    // The attribute of attr's OR box that value belongs in by its shape, such as ip_cidr for an address among domains; attr when none.
+    QString ShapeAttr(const QString& attr, const QString& value);
+    // value as attr stores it: a domain lowercased in ACE form without scheme or wildcard, a port range with ':'.
+    QString TidyValue(const QString& attr, const QString& value);
+    bool IpShape(const QString& text);
+    // A built-in rule-set name or an http(s) URL of a .srs file.
+    bool RuleSetShape(const QString& text);
+    // The domain suffix a host name stands for, lowercased, "*.x" as ".x"; empty when text is not one.
+    QString HostSuffix(const QString& text);
 } // namespace RouteEditor

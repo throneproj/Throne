@@ -60,6 +60,7 @@ private:
     void updateActions();
     void rowEdited(int row);
     void scheduleQuickListRebuild();
+    void runQuickListRebuild();
 
     void addRule();
     void duplicateRow(int row);
@@ -90,4 +91,5 @@ private:
     EndpointRulePanel* endpointPanel = nullptr;
     QWidget* placeholder = nullptr;
     bool quickListRebuildQueued = false;
+    std::shared_ptr<Configs::RouteRule> quickListEdited;
 };

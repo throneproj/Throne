@@ -216,6 +216,8 @@ void RouteRulesPage::selectRule(const std::shared_ptr<Configs::RouteRule>& rule)
 }
 
 QList<Validation::FormIssue> RouteRulesPage::issues() {
+    // Save's focus-out can have just applied the quick-list text box, which may have added a rule after its row.
+    runQuickListRebuild();
     QList<Validation::FormIssue> out;
     const QPointer<RouteRulesPage> self(this);
     const auto& rows = list->rows();
@@ -245,6 +247,21 @@ QList<Validation::FormIssue> RouteRulesPage::issues() {
                 out << item;
             }
         } else if (current.kind == RouteEditor::RowKind::QuickList) {
+            // Text rejected in the editor's text box is not in the list yet, and saving would drop it.
+            if (const auto first = profile->Rules.at(current.first); first == selected && stack->currentWidget() == quickListEditor) {
+                if (const Configs::RuleIssue pending = quickListEditor->pendingIssue(); !pending.message.isEmpty()) {
+                    Validation::FormIssue item;
+                    item.severity = pending.severity;
+                    item.label = tr("%1 list").arg(RouteEditor::ListName(current.list));
+                    item.message = QStringLiteral("\"%1\": %2").arg(RouteEditor::ElideValue(pending.value), pending.message);
+                    item.reveal = [self, first]() -> QWidget* {
+                        if (self.isNull()) return nullptr;
+                        self->selectRule(first);
+                        return self->quickListEditor->revealPending();
+                    };
+                    out << item;
+                }
+            }
             const auto entries = QuickLists::Entries(*profile, current.first, current.count);
             for (int i = 0; i < entries.size(); ++i) {
                 const QuickLists::Entry& entry = entries.at(i);
@@ -358,14 +375,19 @@ void RouteRulesPage::rowEdited(int row) {
 void RouteRulesPage::scheduleQuickListRebuild() {
     if (quickListRebuildQueued) return;
     quickListRebuildQueued = true;
+    quickListEdited = selected;
     // Later: the editor emits from its own handlers, and a rule it added after its row reshapes the rows.
-    QTimer::singleShot(0, this, [this, edited = selected] {
-        quickListRebuildQueued = false;
-        rebuild(selected, false);
-        if (const int row = rowOf(edited); row >= 0) list->refreshRow(row);
-        updateActions();
-        emit changed();
-    });
+    QTimer::singleShot(0, this, [this] { runQuickListRebuild(); });
+}
+
+void RouteRulesPage::runQuickListRebuild() {
+    if (!quickListRebuildQueued) return;
+    quickListRebuildQueued = false;
+    const auto edited = std::exchange(quickListEdited, nullptr);
+    rebuild(selected, false);
+    if (const int row = rowOf(edited); row >= 0) list->refreshRow(row);
+    updateActions();
+    emit changed();
 }
 
 void RouteRulesPage::addRule() {

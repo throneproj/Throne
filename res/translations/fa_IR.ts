@@ -7920,6 +7920,30 @@ Remove that endpoint from this routing profile as well?</source>
         <source>The %1 list also has rows at %2.</source>
         <translation>فهرست «%1» ردیف‌های دیگری هم دارد: %2.</translation>
     </message>
+    <message>
+        <source>Edit as text</source>
+        <translation>ویرایش به‌صورت متن</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation>انجام شد</translation>
+    </message>
+    <message>
+        <source>One entry per line</source>
+        <translation>هر خط یک مورد</translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation>کپی</translation>
+    </message>
+    <message>
+        <source>Copy all</source>
+        <translation>کپی همه</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>حذف</translation>
+    </message>
 </context>
 <context>
     <name>EndpointRulePanel</name>
@@ -8145,6 +8169,40 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Records</source>
         <translation>رکوردها</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation>انجام شد</translation>
+    </message>
+    <message>
+        <source>%1 applies, Esc reverts</source>
+        <translation>%1 اعمال می‌کند، Esc برمی‌گرداند</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation>
+            <numerusform>%n مورد دیگر</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Show all values</source>
+        <translation>نمایش همه مقادیر</translation>
+    </message>
+    <message>
+        <source>Edit as text</source>
+        <translation>ویرایش به‌صورت متن</translation>
+    </message>
+    <message>
+        <source>Type or paste values</source>
+        <translation>مقادیر را بنویسید یا جای‌گذاری کنید</translation>
+    </message>
+    <message>
+        <source>Copy &quot;%1&quot;</source>
+        <translation>کپی «%1»</translation>
+    </message>
+    <message>
+        <source>Copy all values</source>
+        <translation>کپی همه مقادیر</translation>
     </message>
 </context>
 <context>

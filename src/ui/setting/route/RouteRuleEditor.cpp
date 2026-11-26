@@ -14,6 +14,7 @@
 #include <QCheckBox>
 #include <QClipboard>
 #include <QCompleter>
+#include <QContextMenuEvent>
 #include <QCoreApplication>
 #include <QFocusEvent>
 #include <QFontDatabase>
@@ -33,15 +34,22 @@
 #include <QSignalBlocker>
 #include <QStringListModel>
 #include <QStyle>
+#include <QTextBlock>
+#include <QTextCursor>
+#include <QTextDocument>
 #include <QTimer>
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include <algorithm>
 #include <utility>
 
 namespace {
     constexpr char ruleEditorSelectProperty[] = "routeRuleEditorSelect";
+    constexpr char ruleEditorLeafProperty[] = "routeRuleEditorLeaf";
     constexpr char ruleEditorBaseCountProperty[] = "routeRuleEditorBaseCount";
+    // A condition with more values than this plus two shows this many and a "N more" button.
+    constexpr int ruleEditorFoldAfter = 10;
     // A Fragment TLS choice's data: the bits of the flags it turns on.
     constexpr int ruleEditorFragmentHandshake = 1;
     constexpr int ruleEditorFragmentRecords = 2;
@@ -204,6 +212,103 @@ namespace {
 
         [[nodiscard]] QSize minimumSizeHint() const override { return sizeHint(); }
     };
+
+    // RuleEditorAddButton's twin with painted text lines, for Edit as text.
+    class RuleEditorTextButton : public QToolButton {
+    public:
+        RuleEditorTextButton(const QString& tip, QWidget* parent) : QToolButton(parent) {
+            setToolTip(tip);
+            setAccessibleName(tip);
+            setAutoRaise(true);
+            setToolButtonStyle(Qt::ToolButtonTextOnly);
+            setCursor(Qt::PointingHandCursor);
+        }
+
+        [[nodiscard]] QSize sizeHint() const override {
+            const int side = fontMetrics().height() + 4;
+            return {side, side};
+        }
+
+        [[nodiscard]] QSize minimumSizeHint() const override { return sizeHint(); }
+
+    protected:
+        void paintEvent(QPaintEvent* event) override {
+            QToolButton::paintEvent(event);
+            const auto& tokens = themeManager()->tokens;
+            QPainter painter(this);
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.setPen(QPen(underMouse() || isDown() ? tokens.onSurface : tokens.muted, 1.3, Qt::SolidLine, Qt::RoundCap));
+            const qreal side = qMin(width(), height()) * 0.5;
+            const QRectF box(QPointF((width() - side) / 2.0, (height() - side) / 2.0), QSizeF(side, side));
+            static constexpr qreal lengths[] = {1.0, 0.65, 1.0, 0.5};
+            const qreal start = isRightToLeft() ? box.right() : box.left();
+            const qreal dir = isRightToLeft() ? -1 : 1;
+            for (int i = 0; i < 4; ++i) {
+                const qreal y = box.top() + box.height() * i / 3.0;
+                painter.drawLine(QPointF(start, y), QPointF(start + dir * box.width() * lengths[i], y));
+            }
+        }
+    };
+
+    // As tall as its lines, between 3 and 14 of them, and as wide as the longest up to 64 characters.
+    class RuleEditorTextBox : public QPlainTextEdit {
+    public:
+        explicit RuleEditorTextBox(QWidget* parent) : QPlainTextEdit(parent) {
+            setLineWrapMode(QPlainTextEdit::NoWrap);
+            setTabChangesFocus(true);
+            setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+            connect(this, &QPlainTextEdit::textChanged, this, [this] {
+                measured = false;
+                updateGeometry();
+            });
+        }
+
+        [[nodiscard]] QSize sizeHint() const override {
+            if (!measured) {
+                const QFontMetrics metrics = fontMetrics();
+                int widest = metrics.averageCharWidth() * 36;
+                int lines = 0;
+                for (QTextBlock block = document()->begin(); block.isValid(); block = block.next(), ++lines)
+                    widest = qMax(widest, RouteEditor::TextWidth(metrics, block.text()));
+                const int limit = metrics.averageCharWidth() * 64;
+                const int chrome = 2 * frameWidth() + qRound(2 * document()->documentMargin());
+                const int bar = style()->pixelMetric(QStyle::PM_ScrollBarExtent, nullptr, this);
+                const int width = qMin(widest, limit) + chrome + bar;
+                int height = qBound(3, lines, 14) * metrics.lineSpacing() + chrome;
+                if (widest > limit) height += bar;
+                hint = {width, height};
+                measured = true;
+            }
+            return hint;
+        }
+
+        [[nodiscard]] QSize minimumSizeHint() const override { return {fontMetrics().averageCharWidth() * 20, sizeHint().height()}; }
+
+    private:
+        mutable QSize hint;
+        mutable bool measured = false;
+    };
+
+    // Tints each line holding one of failed; returns a cursor at the first one, null when none.
+    QTextCursor ruleEditorMarkLines(QPlainTextEdit* box, const QStringList& failed) {
+        QList<QTextEdit::ExtraSelection> marks;
+        QTextCursor first;
+        QColor tint = themeManager()->tokens.danger;
+        tint.setAlphaF(0.18f);
+        for (QTextBlock block = box->document()->begin(); block.isValid() && !failed.isEmpty(); block = block.next()) {
+            const QString text = block.text();
+            const bool bad = std::any_of(failed.cbegin(), failed.cend(), [&text](const QString& value) { return text.contains(value, Qt::CaseInsensitive); });
+            if (!bad) continue;
+            QTextEdit::ExtraSelection mark;
+            mark.format.setBackground(tint);
+            mark.format.setProperty(QTextFormat::FullWidthSelection, true);
+            mark.cursor = QTextCursor(block);
+            if (first.isNull()) first = mark.cursor;
+            marks << mark;
+        }
+        box->setExtraSelections(marks);
+        return first;
+    }
 
     // The condition tree's last branch: a dashed outline with muted text.
     class RuleEditorGhostButton : public QPushButton {
@@ -556,6 +661,7 @@ void RouteRuleEditor::setRule(const std::shared_ptr<Configs::RouteRule>& rule) {
     detachInline(false);
     inlineState = Inline{};
     pending.clear();
+    expanded.clear();
     refillAttrs.clear();
     focusInline = false;
     focusAttr.clear();
@@ -699,10 +805,9 @@ void RouteRuleEditor::buildLeaf(RouteEditor::TreeNode* node, const QString& attr
     const QString full = RouteEditor::ConditionLabel(attr);
     leaf->setLabel(label, label != full ? full : QString());
     leaf->setLabelColumn(labels);
-    if (Configs::RouteRule::get_input_type(attr) == Configs::select) {
-        leaf->setProperty(ruleEditorSelectProperty, attr);
-        leaf->installEventFilter(this);
-    }
+    leaf->setProperty(ruleEditorLeafProperty, attr);
+    if (Configs::RouteRule::get_input_type(attr) == Configs::select) leaf->setProperty(ruleEditorSelectProperty, attr);
+    leaf->installEventFilter(this);
     auto* issues = ruleEditorIssuesLabel(node);
     node->addBranch(leaf, issues);
     lines.insert(attr, Line{leaf, leaf->flow(), nullptr, {}, issues});
@@ -748,8 +853,20 @@ void RouteRuleEditor::fillLine(const QString& attr) {
     }
 
     const bool editing = inlineState.open && inlineState.attr == attr;
+    if (editing && inlineState.asText) {
+        line.flow->addWidget(makeTextBox(attr, host));
+        auto* done = ruleEditorFlatButton(tr("Done"), host);
+        done->setToolTip(tr("%1 applies, Esc reverts").arg(QKeySequence(Qt::CTRL | Qt::Key_Return).toString(QKeySequence::NativeText)));
+        connect(done, &QToolButton::clicked, this, [this] { commitInline(false, true); });
+        line.flow->addWidget(done);
+        return;
+    }
+    const QStringList values = current->get_current_value_string(attr);
+    const bool fold = values.size() > ruleEditorFoldAfter + 2 && !expanded.contains(attr) && !(editing && inlineState.replacing);
+    const int shown = fold ? ruleEditorFoldAfter : static_cast<int>(values.size());
     bool placed = false;
-    for (const QString& value : current->get_current_value_string(attr)) {
+    for (int i = 0; i < shown; ++i) {
+        const QString& value = values.at(i);
         if (editing && inlineState.replacing && !placed && value == inlineState.original) {
             line.flow->addWidget(makeInlineEdit(attr, host));
             placed = true;
@@ -761,6 +878,17 @@ void RouteRuleEditor::fillLine(const QString& attr) {
         line.flow->addWidget(chip);
         line.chips << chip;
     }
+    if (fold) {
+        auto* more = ruleEditorFlatButton(tr("%n more", nullptr, static_cast<int>(values.size()) - shown), host);
+        more->setToolTip(tr("Show all values"));
+        connect(more, &QToolButton::clicked, this, [this, attr] {
+            expanded.insert(attr);
+            focusAttr = attr;
+            focusIndex = ruleEditorFoldAfter;
+            scheduleRefill(attr);
+        });
+        line.flow->addWidget(more);
+    }
     if (editing && !placed) {
         // The value being edited is gone, so the field goes on as a new value.
         inlineState.replacing = false;
@@ -771,6 +899,11 @@ void RouteRuleEditor::fillLine(const QString& attr) {
         connect(add, &QToolButton::clicked, this, [this, attr] { startInline(attr, {}, false); });
         line.flow->addWidget(add);
         line.add = add;
+    }
+    if (ruleEditorIsList(attr)) {
+        auto* asText = new RuleEditorTextButton(tr("Edit as text"), host);
+        connect(asText, &QToolButton::clicked, this, [this, attr] { startText(attr); });
+        line.flow->addWidget(asText);
     }
     if (ruleEditorHasApps(attr)) {
         auto* choose = ruleEditorFlatButton(tr("Choose app"), host);
@@ -785,7 +918,7 @@ QLineEdit* RouteRuleEditor::makeInlineEdit(const QString& attr, QWidget* host) {
                       attr == QLatin1String("rule_set");
     auto* edit = new RuleEditorInlineEdit(wide ? 36 : 22, host);
     edit->setText(inlineState.text);
-    edit->setPlaceholderText(RouteEditor::ConditionLabel(attr));
+    edit->setPlaceholderText(tr("Type or paste values"));
     edit->setAccessibleName(RouteEditor::ConditionLabel(attr));
     edit->setProperty("invalid", !inlineState.error.isEmpty());
     QAbstractItemModel* model = nullptr;
@@ -814,11 +947,53 @@ QLineEdit* RouteRuleEditor::makeInlineEdit(const QString& attr, QWidget* host) {
     return edit;
 }
 
+QPlainTextEdit* RouteRuleEditor::makeTextBox(const QString& attr, QWidget* host) {
+    auto* box = new RuleEditorTextBox(host);
+    box->setPlainText(inlineState.text);
+    box->setAccessibleName(RouteEditor::ConditionLabel(attr));
+    box->setProperty("invalid", !inlineState.error.isEmpty());
+    ruleEditorMarkLines(box, inlineState.failed);
+    connect(box, &QPlainTextEdit::textChanged, box, [box] {
+        if (!box->extraSelections().isEmpty()) box->setExtraSelections({});
+    });
+    box->installEventFilter(this);
+    inlineState.box = box;
+    return box;
+}
+
+QWidget* RouteRuleEditor::inlineWidget() const {
+    if (inlineState.box != nullptr) return inlineState.box.data();
+    return inlineState.edit.data();
+}
+
+QString RouteRuleEditor::inlineText() const {
+    if (inlineState.box != nullptr) return inlineState.box->toPlainText();
+    if (inlineState.edit != nullptr) return inlineState.edit->text();
+    return inlineState.text;
+}
+
+void RouteRuleEditor::focusInlineWidget() {
+    if (QLineEdit* edit = inlineState.edit.data()) {
+        edit->setFocus(Qt::OtherFocusReason);
+        edit->end(false);
+    } else if (QPlainTextEdit* box = inlineState.box.data()) {
+        box->setFocus(Qt::OtherFocusReason);
+        const QList<QTextEdit::ExtraSelection> marks = box->extraSelections();
+        QTextCursor cursor = marks.isEmpty() ? QTextCursor(box->document()) : marks.first().cursor;
+        if (marks.isEmpty()) cursor.movePosition(QTextCursor::End);
+        else cursor.clearSelection();
+        box->setTextCursor(cursor);
+        box->ensureCursorVisible();
+    }
+}
+
 void RouteRuleEditor::detachInline(bool keepText) {
-    if (inlineState.edit == nullptr) return;
-    if (keepText) inlineState.text = inlineState.edit->text();
-    inlineState.edit->removeEventFilter(this);
+    QWidget* widget = inlineWidget();
+    if (widget == nullptr) return;
+    if (keepText) inlineState.text = inlineText();
+    widget->removeEventFilter(this);
     inlineState.edit = nullptr;
+    inlineState.box = nullptr;
 }
 
 void RouteRuleEditor::scheduleRefill(const QString& attr) {
@@ -845,11 +1020,8 @@ void RouteRuleEditor::applyScheduled() {
         refreshIssues();
     }
     if (!menuAttr.isEmpty()) openSelectMenu(std::exchange(menuAttr, {}), addConditionButton);
-    if (inlineState.open && inlineState.edit != nullptr) {
-        if (std::exchange(focusInline, false)) {
-            inlineState.edit->setFocus(Qt::OtherFocusReason);
-            inlineState.edit->end(false);
-        }
+    if (inlineState.open && inlineWidget() != nullptr) {
+        if (std::exchange(focusInline, false)) focusInlineWidget();
         focusAttr.clear();
     } else if (!focusAttr.isEmpty()) {
         focusLine(std::exchange(focusAttr, {}), std::exchange(focusIndex, -1));
@@ -868,24 +1040,27 @@ void RouteRuleEditor::focusLine(const QString& attr, int index) {
     if (target != nullptr) target->setFocus(Qt::OtherFocusReason);
 }
 
-void RouteRuleEditor::startInline(const QString& attr, const QString& value, bool replacing) {
-    if (current == nullptr) return;
-    if (inlineState.open) {
-        const QString typed = inlineState.edit != nullptr ? inlineState.edit->text() : inlineState.text;
-        if (!typed.trimmed().isEmpty()) {
-            commitInline(false, false);
-            // Its lines failed: that field stays open and keeps the focus.
-            if (inlineState.open) {
-                focusInline = true;
-                return;
-            }
-        } else {
-            const QString previous = inlineState.attr;
-            detachInline(false);
-            inlineState = Inline{};
-            scheduleRefill(previous);
+bool RouteRuleEditor::closeInline() {
+    if (!inlineState.open) return true;
+    if (inlineState.asText || !inlineText().trimmed().isEmpty()) {
+        commitInline(false, false);
+        // Its lines failed: that field stays open and keeps the focus.
+        if (inlineState.open) {
+            if (inlineWidget() != nullptr) focusInlineWidget();
+            else focusInline = true;
+            return false;
         }
+        return true;
     }
+    const QString previous = inlineState.attr;
+    detachInline(false);
+    inlineState = Inline{};
+    scheduleRefill(previous);
+    return true;
+}
+
+void RouteRuleEditor::startInline(const QString& attr, const QString& value, bool replacing) {
+    if (current == nullptr || !closeInline()) return;
     inlineState = Inline{};
     inlineState.open = true;
     inlineState.attr = attr;
@@ -896,70 +1071,114 @@ void RouteRuleEditor::startInline(const QString& attr, const QString& value, boo
     scheduleRefill(attr);
 }
 
+void RouteRuleEditor::startText(const QString& attr) {
+    if (current == nullptr) return;
+    if (inlineState.open && inlineState.asText && inlineState.attr == attr) {
+        focusInlineWidget();
+        return;
+    }
+    if (!closeInline()) return;
+    inlineState = Inline{};
+    inlineState.open = true;
+    inlineState.attr = attr;
+    inlineState.asText = true;
+    inlineState.text = current->get_current_value_string(attr).join(QLatin1Char('\n'));
+    focusInline = true;
+    scheduleRefill(attr);
+}
+
+// Each value goes where ShapeAttr sends it, so a pasted list can fill several conditions of one box.
 void RouteRuleEditor::commitInline(bool keepOpen, bool focusAfter, const QString& extra) {
     if (!inlineState.open || current == nullptr) return;
     const QString attr = inlineState.attr;
-    QString text = inlineState.edit != nullptr ? inlineState.edit->text() : inlineState.text;
-    detachInline(false);
+    const bool whole = inlineState.asText;
+    QString text = inlineText();
     if (!extra.isEmpty()) text = text.trimmed().isEmpty() ? extra : text + QLatin1Char('\n') + extra;
-    static const QRegularExpression breaks(QStringLiteral("[\\r\\n\\x{2028}\\x{2029}]"));
 
-    QStringList values = current->get_current_value_string(attr);
-    int replaceAt = inlineState.replacing ? static_cast<int>(values.indexOf(inlineState.original)) : -1;
+    QMap<QString, QStringList> lists;
+    const auto load = [&](const QString& key) {
+        if (!lists.contains(key)) lists.insert(key, current->get_current_value_string(key));
+    };
+    load(attr);
+    if (whole) lists[attr].clear();
+    int replaceAt = inlineState.replacing ? static_cast<int>(lists[attr].indexOf(inlineState.original)) : -1;
     int focusAt = replaceAt;
     QStringList failed;
     QString error;
-    bool edited = false;
-    for (const QString& raw : text.split(breaks, Qt::SkipEmptyParts)) {
-        const QString value = raw.trimmed();
-        if (value.isEmpty()) continue;
-        const Configs::RuleIssue issue = Configs::RouteRule::check_value(attr, value);
+    for (const QString& parsed : RouteEditor::SplitValues(attr, text)) {
+        const QString target = RouteEditor::ShapeAttr(attr, parsed);
+        const QString value = target == attr ? parsed : RouteEditor::TidyValue(target, parsed);
+        const Configs::RuleIssue issue = Configs::RouteRule::check_value(target, value);
         if (!issue.message.isEmpty() && issue.severity == Validation::Severity::Error) {
             failed << value;
             if (error.isEmpty()) error = QStringLiteral("\"%1\": %2").arg(RouteEditor::ElideValue(value), issue.message);
             continue;
         }
         if (replaceAt >= 0) {
-            if (values.at(replaceAt) != value) {
-                const int duplicate = static_cast<int>(values.indexOf(value));
-                if (duplicate >= 0) {
-                    values.removeAt(replaceAt);
-                    focusAt = duplicate > replaceAt ? duplicate - 1 : duplicate;
-                } else {
-                    values[replaceAt] = value;
-                    focusAt = replaceAt;
-                }
-                edited = true;
+            QStringList& own = lists[attr];
+            const int duplicate = target == attr ? static_cast<int>(own.indexOf(value)) : -1;
+            if (target != attr || (duplicate >= 0 && duplicate != replaceAt)) {
+                own.removeAt(replaceAt);
+                focusAt = duplicate < 0 ? -1 : duplicate > replaceAt ? duplicate - 1 : duplicate;
             } else {
+                own[replaceAt] = value;
                 focusAt = replaceAt;
             }
             replaceAt = -1;
             inlineState.replacing = false;
             inlineState.original.clear();
-            continue;
+            if (target == attr) continue;
         }
+        load(target);
+        QStringList& values = lists[target];
         // Duplicates are ignored.
-        if (values.contains(value)) continue;
-        values << value;
-        edited = true;
+        if (!values.contains(value)) values << value;
     }
-    if (edited) {
-        current->set_field_value(attr, values);
-        pending.removeAll(attr);
+
+    // A text box applies all of it or nothing, and keeps its text and focus while a line fails.
+    if (whole && !failed.isEmpty()) {
+        inlineState.text = text;
+        inlineState.error = error;
+        inlineState.failed = failed;
+        if (QPlainTextEdit* box = inlineState.box.data()) {
+            ruleEditorMarkLines(box, failed);
+            if (focusAfter) focusInlineWidget();
+        } else {
+            focusInline = focusAfter;
+            scheduleRefill(attr);
+        }
+        refreshIssues();
+        return;
+    }
+    detachInline(false);
+
+    QStringList touched;
+    for (auto it = lists.cbegin(); it != lists.cend(); ++it) {
+        if (it.value() == current->get_current_value_string(it.key())) continue;
+        current->set_field_value(it.key(), it.value());
+        pending.removeAll(it.key());
+        touched << it.key();
     }
     inlineState.text = failed.join(QLatin1Char('\n'));
     inlineState.error = error;
-    if (failed.isEmpty() && !keepOpen) inlineState = Inline{};
+    inlineState.failed.clear();
+    if (failed.isEmpty() && (!keepOpen || whole)) inlineState = Inline{};
     else if (failed.isEmpty()) {
         inlineState.replacing = false;
         inlineState.original.clear();
     }
+    // Every value went elsewhere or was removed: the empty condition goes with its field.
+    const bool gone = !inlineState.open && Configs::RouteRule::is_attribute_at_default(*current, attr);
+    if (gone) pending.removeAll(attr);
     focusInline = inlineState.open && focusAfter;
     if (!inlineState.open && focusAfter) {
-        focusAttr = attr;
-        focusIndex = focusAt;
+        const auto other = std::find_if(touched.cbegin(), touched.cend(), [&attr](const QString& key) { return key != attr; });
+        focusAttr = !gone ? attr : other != touched.cend() ? *other : QString();
+        focusIndex = gone ? -1 : focusAt;
+        if (focusAttr.isEmpty()) addConditionButton->setFocus(Qt::OtherFocusReason);
     }
-    if (edited) emitChanged();
+    if (!touched.isEmpty()) emitChanged();
+    for (const QString& key : std::as_const(touched)) scheduleRefill(key);
     scheduleRefill(attr);
 }
 
@@ -1018,6 +1237,26 @@ void RouteRuleEditor::openSelectMenu(const QString& attr, QWidget* anchor) {
         connect(action, &QAction::triggered, this, [this, attr, value] { setSelectValue(attr, value); });
     }
     menu->popup(anchor->mapToGlobal(QPoint(0, anchor->height())));
+}
+
+void RouteRuleEditor::openLeafMenu(const QString& attr, const QPoint& globalPos, const QString& value) {
+    if (current == nullptr) return;
+    QStringList values;
+    for (const QString& item : current->get_current_value_string(attr)) {
+        if (!item.trimmed().isEmpty()) values << item;
+    }
+    auto* menu = new QMenu(this);
+    menu->setAttribute(Qt::WA_DeleteOnClose);
+    if (!value.isEmpty()) {
+        menu->addAction(tr("Copy \"%1\"").arg(RouteEditor::ElideValue(value)), this, [value] { QGuiApplication::clipboard()->setText(value); });
+    }
+    QAction* all = menu->addAction(tr("Copy all values"), this, [values] { QGuiApplication::clipboard()->setText(values.join(QLatin1Char('\n'))); });
+    all->setEnabled(!values.isEmpty());
+    if (ruleEditorIsList(attr)) {
+        menu->addSeparator();
+        menu->addAction(tr("Edit as text"), this, [this, attr] { startText(attr); });
+    }
+    menu->popup(globalPos);
 }
 
 void RouteRuleEditor::setSelectValue(const QString& attr, const QString& value) {
@@ -1202,11 +1441,11 @@ void RouteRuleEditor::refreshIssues() {
             chip->setIssue(current->disabled ? Validation::Severity::Warning : issue.severity, issue.message);
         }
     }
-    if (inlineState.edit != nullptr) {
+    if (QWidget* widget = inlineWidget()) {
         const bool invalid = !inlineState.error.isEmpty();
-        if (inlineState.edit->property("invalid").toBool() != invalid) {
-            inlineState.edit->setProperty("invalid", invalid);
-            ruleEditorRestyle(inlineState.edit);
+        if (widget->property("invalid").toBool() != invalid) {
+            widget->setProperty("invalid", invalid);
+            ruleEditorRestyle(widget);
         }
     }
 }
@@ -1239,9 +1478,14 @@ QWidget* RouteRuleEditor::reveal(const QString& attr, const QString& value) {
         if (ruleEditorOptionAttrs().contains(attr)) setOptionsOpen(true);
         return setting.value()->isVisibleTo(this) ? setting.value() : thenPicker;
     }
+    if (!lines.contains(attr)) return thenPicker;
+    if (inlineState.open && inlineState.attr == attr && inlineWidget() != nullptr) return inlineWidget();
+    if (!value.isEmpty() && !expanded.contains(attr) && current->get_current_value_string(attr).indexOf(value) >= ruleEditorFoldAfter) {
+        expanded.insert(attr);
+        fillLine(attr);
+        refreshIssues();
+    }
     const auto line = lines.constFind(attr);
-    if (line == lines.cend()) return thenPicker;
-    if (inlineState.open && inlineState.attr == attr && inlineState.edit != nullptr) return inlineState.edit;
     if (!value.isEmpty()) {
         for (RouteEditor::ValueChip* chip : line->chips) {
             if (chip->text() == value) return chip;
@@ -1291,6 +1535,33 @@ bool RouteRuleEditor::eventFilter(QObject* watched, QEvent* event) {
             }
         }
         return QWidget::eventFilter(watched, event);
+    }
+    if (inlineState.box != nullptr && watched == inlineState.box.data()) {
+        if (event->type() == QEvent::KeyPress) {
+            const auto* key = static_cast<QKeyEvent*>(event);
+            if ((key->key() == Qt::Key_Return || key->key() == Qt::Key_Enter) && key->modifiers().testFlag(Qt::ControlModifier)) {
+                commitInline(false, true);
+                return true;
+            }
+            if (key->key() == Qt::Key_Escape) {
+                cancelInline(true);
+                return true;
+            }
+        } else if (event->type() == QEvent::FocusOut) {
+            const Qt::FocusReason reason = static_cast<QFocusEvent*>(event)->reason();
+            if (reason != Qt::PopupFocusReason && reason != Qt::ActiveWindowFocusReason) commitInline(false, false);
+        }
+        return QWidget::eventFilter(watched, event);
+    }
+    if (event->type() == QEvent::ContextMenu) {
+        auto* host = qobject_cast<QWidget*>(watched);
+        const QString attr = host != nullptr ? host->property(ruleEditorLeafProperty).toString() : QString();
+        if (!attr.isEmpty() && Configs::RouteRule::get_input_type(attr) == Configs::text) {
+            const QPoint global = static_cast<QContextMenuEvent*>(event)->globalPos();
+            const auto* chip = qobject_cast<RouteEditor::ValueChip*>(host->childAt(host->mapFromGlobal(global)));
+            openLeafMenu(attr, global, chip != nullptr ? chip->text() : QString());
+            return true;
+        }
     }
     if (event->type() == QEvent::MouseButtonPress) {
         auto* host = qobject_cast<QWidget*>(watched);

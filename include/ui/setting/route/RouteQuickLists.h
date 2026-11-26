@@ -23,6 +23,9 @@ namespace QuickLists {
     // The entries of profile.Rules[first, first + count), in display order.
     QList<Entry> Entries(const Configs::RouteProfile& profile, int first, int count);
 
+    // The lines Canonical takes from typed or pasted text: one per value, with Clash rule and hosts file lines read.
+    QStringList SplitLines(const QString& text);
+
     // "prefix:value" for a line typed by its prefix or by its shape; empty, with *error set, when it is neither.
     QString Canonical(const QString& line, QString* error);
 
@@ -57,6 +60,12 @@ public:
     // Selects that entry; returns the widget to focus.
     QWidget* revealEntry(const QuickLists::Entry& entry);
 
+    // The first line "Edit as text" rejected while it is still open: saving would drop that text.
+    [[nodiscard]] Configs::RuleIssue pendingIssue() const;
+
+    // Puts the cursor on the first rejected line; returns the widget to focus.
+    QWidget* revealPending();
+
 signals:
     // Entries were added or removed; a new rule may now follow the row, so rows must be rebuilt.
     void changed();
@@ -67,6 +76,11 @@ private:
 
     void reload(int current, int scroll);
     void submit();
-    void removeEntry(int row);
+    void removeEntries(QList<int> rows);
     void editEntry(int row);
+    void showEntryMenu(const QPoint& globalPos);
+    void openText();
+    void closeText();
+    // Leaves the text open, its failing lines marked, when any line is not an entry.
+    bool applyText(bool focus);
 };

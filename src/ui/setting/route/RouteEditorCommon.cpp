@@ -9,13 +9,21 @@
 #include <QCoreApplication>
 #include <QFontMetrics>
 #include <QHash>
+#include <QHostAddress>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPainter>
 #include <QRect>
+#include <QRegularExpression>
+#include <QSet>
 #include <QSize>
+#include <QUrl>
 
 #include <algorithm>
 #include <cmath>
 #include <iterator>
+#include <tuple>
 
 namespace RouteEditor {
     namespace {
@@ -601,5 +609,231 @@ namespace RouteEditor {
                          tr("This rule has no conditions, so it would catch all traffic. Add a condition, or turn the rule off."), {}, {}});
         }
         return out;
+    }
+
+    namespace {
+        enum class SplitMode { Words, Commas, Lines };
+
+        SplitMode splitModeOf(const QString& attr) {
+            static const QSet<QString> lines = {"domain_regex", "process_path", "process_path_regex", "wifi_ssid"};
+            if (lines.contains(attr)) return SplitMode::Lines;
+            if (attr == QLatin1String("process_name")) return SplitMode::Commas;
+            return SplitMode::Words;
+        }
+
+        bool isDomainAttr(const QString& attr) {
+            return attr == QLatin1String("domain") || attr == QLatin1String("domain_suffix") || attr == QLatin1String("domain_keyword");
+        }
+
+        bool isRangeAttr(const QString& attr) {
+            return attr == QLatin1String("port_range") || attr == QLatin1String("source_port_range");
+        }
+
+        QString aceDomain(const QString& domain) {
+            if (std::all_of(domain.cbegin(), domain.cend(), [](QChar c) { return c.unicode() < 0x80; })) return domain;
+            const qsizetype dot = domain.startsWith(u'.') ? 1 : 0;
+            const QByteArray ace = QUrl::toAce(domain.mid(dot));
+            return ace.isEmpty() ? domain : domain.left(dot) + QString::fromLatin1(ace);
+        }
+
+        // Only \\, \", \/ and \uXXXX count: \n, \t or \b are as likely to be a Windows path such as C:\new\bin.
+        bool jsonEscaped(const QString& inner) {
+            bool escaped = false;
+            for (qsizetype i = 0; i < inner.size(); ++i) {
+                if (inner.at(i) != u'\\') continue;
+                const QChar next = i + 1 < inner.size() ? inner.at(i + 1) : QChar();
+                bool hex = false;
+                if (next == u'u' && i + 5 < inner.size()) std::ignore = QStringView(inner).mid(i + 2, 4).toUInt(&hex, 16);
+                if (next == u'\\' || next == u'"' || next == u'/') {
+                    ++i;
+                } else if (hex) {
+                    i += 5;
+                } else {
+                    return false;
+                }
+                escaped = true;
+            }
+            return escaped;
+        }
+
+        QStringList splitCommas(const QString& line) {
+            static const QRegularExpression separators(QStringLiteral("[,;\\t]+"));
+            QStringList words;
+            for (const QString& piece : line.split(separators, Qt::SkipEmptyParts)) {
+                const QString word = Unquote(piece, true);
+                if (!word.isEmpty()) words << word;
+            }
+            return words;
+        }
+    } // namespace
+
+    QStringList ValueLines(const QString& text) {
+        static const QRegularExpression breaks(QStringLiteral("[\\r\\n\\x{2028}\\x{2029}]"));
+        static const QRegularExpression bullet(QStringLiteral("^[-*+\\x{2022}]\\s+"));
+        QStringList lines;
+        for (const QString& raw : text.split(breaks, Qt::SkipEmptyParts)) {
+            QString line = raw.trimmed();
+            if (line.startsWith(u'#') || line.startsWith(u'!') || line.startsWith(QLatin1String("//"))) continue;
+            line = line.remove(bullet).trimmed();
+            if (!line.isEmpty()) lines << line;
+        }
+        return lines;
+    }
+
+    QStringList SplitWords(const QString& line) {
+        static const QRegularExpression separators(QStringLiteral("[,;\\s]+"));
+        static const QRegularExpression jsonKey(QStringLiteral("^\"[^\"]*\"\\s*:$"));
+        QStringList words;
+        for (const QString& piece : line.section(u'#', 0, 0).split(separators, Qt::SkipEmptyParts)) {
+            if (piece.contains(u'{') || piece.contains(u'}') || jsonKey.match(piece).hasMatch()) continue;
+            const QString word = Unquote(piece, true);
+            if (!word.isEmpty()) words << word;
+        }
+        return words;
+    }
+
+    void DropHostsAddress(QStringList& words) {
+        if (words.size() < 2 || HostSuffix(words.at(1)).isEmpty()) return;
+        const QString& first = words.first();
+        if (first == QLatin1String("0.0.0.0") || first == QLatin1String("127.0.0.1") || first == QLatin1String("::") || first == QLatin1String("::1"))
+            words.removeFirst();
+    }
+
+    QString Unquote(const QString& text, bool brackets) {
+        QString t = text.trimmed();
+        if (brackets) {
+            qsizetype from = 0;
+            qsizetype to = t.size();
+            while (from < to && t.at(from) == u'[') ++from;
+            while (to > from && t.at(to - 1) == u']') --to;
+            t = t.mid(from, to - from).trimmed();
+        }
+        const auto quote = [](QChar c) { return c == u'"' || c == u'\'' || c == u'`'; };
+        if (t.size() >= 3 && t.endsWith(u',') && quote(t.front()) && t.at(t.size() - 2) == t.front()) t.chop(1);
+        if (t.size() < 2 || !quote(t.front()) || t.back() != t.front()) return t;
+        if (t.front() == u'"' && jsonEscaped(t.mid(1, t.size() - 2))) {
+            const QJsonDocument doc = QJsonDocument::fromJson("[" + t.toUtf8() + "]");
+            if (doc.isArray() && doc.array().size() == 1 && doc.array().first().isString()) return doc.array().first().toString().trimmed();
+        }
+        return t.mid(1, t.size() - 2).trimmed();
+    }
+
+    QString ClashRuleValue(const QString& line, QString* kind) {
+        static const QRegularExpression rule(
+            QStringLiteral("^(DOMAIN(?:-SUFFIX|-KEYWORD|-REGEX)?|IP-CIDR6?|SRC-IP-CIDR|DST-PORT|SRC-PORT|PROCESS-NAME|PROCESS-PATH)\\s*,\\s*([^,]+)"),
+            QRegularExpression::CaseInsensitiveOption);
+        QRegularExpressionMatch match = rule.match(line);
+        if (!match.hasMatch()) match = rule.match(Unquote(line, false));
+        if (!match.hasMatch()) return {};
+        if (kind != nullptr) *kind = match.captured(1).toUpper();
+        return Unquote(match.captured(2), false);
+    }
+
+    QStringList SplitValues(const QString& attr, const QString& text) {
+        QStringList out;
+        QSet<QString> seen;
+        const auto add = [&](const QString& raw) {
+            const QString value = TidyValue(attr, raw);
+            if (value.isEmpty() || seen.contains(value)) return;
+            seen.insert(value);
+            out << value;
+        };
+        const QString whole = text.trimmed();
+        if (whole.startsWith(u'[') || whole.startsWith(u'{')) {
+            const QJsonDocument doc = QJsonDocument::fromJson(whole.toUtf8());
+            QJsonArray items = doc.array();
+            if (doc.isObject()) {
+                const QJsonValue field = doc.object().value(attr);
+                items = field.isArray() ? field.toArray() : field.isString() || field.isDouble() ? QJsonArray{field} : QJsonArray();
+            }
+            for (const QJsonValue& item : std::as_const(items)) {
+                if (item.isString()) add(item.toString());
+                else if (item.isDouble()) add(QString::number(item.toInteger()));
+            }
+            if (!out.isEmpty()) return out;
+        }
+        const SplitMode mode = splitModeOf(attr);
+        for (const QString& line : ValueLines(text)) {
+            if (const QString clash = ClashRuleValue(line); !clash.isEmpty()) {
+                add(clash);
+                continue;
+            }
+            if (mode == SplitMode::Lines) {
+                add(Unquote(line, false));
+                continue;
+            }
+            QStringList words = mode == SplitMode::Words ? SplitWords(line) : splitCommas(line);
+            DropHostsAddress(words);
+            for (const QString& word : std::as_const(words)) add(word);
+        }
+        return out;
+    }
+
+    QString TidyValue(const QString& attr, const QString& value) {
+        QString v = value.trimmed();
+        if (isRangeAttr(attr)) return v.replace(u'-', u':');
+        if (!isDomainAttr(attr)) return v;
+        if (v.startsWith(QLatin1String("||"))) v = v.mid(2);
+        if (v.endsWith(u'^')) v.chop(1);
+        if (v.contains(QLatin1String("://"))) {
+            const QUrl url(v);
+            if (url.isValid() && !url.host().isEmpty()) v = url.host(QUrl::FullyEncoded);
+        }
+        // Left whole for ShapeAttr, which sends it to ip_cidr.
+        if (IpShape(v)) return v;
+        static const QRegularExpression hostPort(QStringLiteral("^([^:/]+):\\d+(?:/.*)?$"));
+        if (const QRegularExpressionMatch match = hostPort.match(v); match.hasMatch()) v = match.captured(1);
+        else if (v.contains(u'/')) v = v.section(u'/', 0, 0);
+        if (attr == QLatin1String("domain_suffix")) {
+            if (v.startsWith(QLatin1String("+."))) v = v.mid(2);
+            else if (v.startsWith(QLatin1String("*."))) v = v.mid(1);
+        }
+        if (v.size() > 1 && v.endsWith(u'.')) v.chop(1);
+        if (attr != QLatin1String("domain_keyword")) v = aceDomain(v);
+        return v.toLower();
+    }
+
+    QString ShapeAttr(const QString& attr, const QString& value) {
+        const bool domains = attr == QLatin1String("domain") || attr == QLatin1String("domain_suffix");
+        const bool ruleSet = attr == QLatin1String("rule_set");
+        const bool ips = attr == QLatin1String("ip_cidr");
+        if ((domains || ruleSet) && IpShape(value)) return QStringLiteral("ip_cidr");
+        if ((domains || ips) && RuleSetShape(value)) return QStringLiteral("rule_set");
+        if (attr == QLatin1String("domain") && (value.startsWith(QLatin1String("*.")) || value.startsWith(QLatin1String("+."))))
+            return QStringLiteral("domain_suffix");
+        if ((ips || ruleSet) && !RuleSetShape(value)) {
+            const QString host = TidyValue(QStringLiteral("domain_suffix"), value);
+            if (!IpShape(host) && !HostSuffix(host).isEmpty()) return QStringLiteral("domain_suffix");
+        }
+        static const QRegularExpression single(QStringLiteral("^\\d+$"));
+        static const QRegularExpression range(QStringLiteral("^(?=.*\\d)\\d*[-:]\\d*$"));
+        if (attr == QLatin1String("port") && range.match(value).hasMatch()) return QStringLiteral("port_range");
+        if (attr == QLatin1String("source_port") && range.match(value).hasMatch()) return QStringLiteral("source_port_range");
+        if (attr == QLatin1String("port_range") && single.match(value).hasMatch()) return QStringLiteral("port");
+        if (attr == QLatin1String("source_port_range") && single.match(value).hasMatch()) return QStringLiteral("source_port");
+        return attr;
+    }
+
+    bool IpShape(const QString& text) {
+        const QString address = text.section(u'/', 0, 0);
+        // QHostAddress also reads shorthands such as 10.1, which the core does not.
+        if (!address.contains(u':') && address.count(u'.') != 3) return false;
+        QHostAddress host;
+        return host.setAddress(address);
+    }
+
+    bool RuleSetShape(const QString& text) {
+        return !text.trimmed().isEmpty() && Configs::RouteRule::check_value(QStringLiteral("rule_set"), text).message.isEmpty();
+    }
+
+    QString HostSuffix(const QString& text) {
+        const QString host = text.startsWith(QLatin1String("*.")) ? text.mid(1) : text;
+        if (!host.contains(u'.')) return {};
+        bool named = false;
+        for (const QChar c : host) {
+            if (c.isLetterOrNumber()) named = true;
+            else if (c != u'-' && c != u'_' && c != u'.') return {};
+        }
+        return named ? host.toLower() : QString();
     }
 } // namespace RouteEditor

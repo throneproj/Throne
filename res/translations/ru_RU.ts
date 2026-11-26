@@ -16911,6 +16911,30 @@ Remove that endpoint from this routing profile as well?</source>
         <source>The %1 list also has rows at %2.</source>
         <translation>У списка «%1» есть и другие строки: %2.</translation>
     </message>
+    <message>
+        <source>Edit as text</source>
+        <translation>Редактировать как текст</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation>Готово</translation>
+    </message>
+    <message>
+        <source>One entry per line</source>
+        <translation>По одной записи в строке</translation>
+    </message>
+    <message>
+        <source>Copy</source>
+        <translation>Копировать</translation>
+    </message>
+    <message>
+        <source>Copy all</source>
+        <translation>Копировать все</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
 </context>
 <context>
     <name>EndpointRulePanel</name>
@@ -17138,6 +17162,42 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Records</source>
         <translation>Записи</translation>
+    </message>
+    <message>
+        <source>Done</source>
+        <translation>Готово</translation>
+    </message>
+    <message>
+        <source>%1 applies, Esc reverts</source>
+        <translation>%1 — применить, Esc — отменить</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more</source>
+        <translation>
+            <numerusform>ещё %n</numerusform>
+            <numerusform>ещё %n</numerusform>
+            <numerusform>ещё %n</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Show all values</source>
+        <translation>Показать все значения</translation>
+    </message>
+    <message>
+        <source>Edit as text</source>
+        <translation>Редактировать как текст</translation>
+    </message>
+    <message>
+        <source>Type or paste values</source>
+        <translation>Введите или вставьте значения</translation>
+    </message>
+    <message>
+        <source>Copy &quot;%1&quot;</source>
+        <translation>Копировать «%1»</translation>
+    </message>
+    <message>
+        <source>Copy all values</source>
+        <translation>Копировать все значения</translation>
     </message>
 </context>
 <context>

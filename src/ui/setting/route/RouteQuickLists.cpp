@@ -8,32 +8,37 @@
 
 #include <QAbstractListModel>
 #include <QApplication>
+#include <QClipboard>
 #include <QCompleter>
+#include <QContextMenuEvent>
 #include <QCoreApplication>
+#include <QFocusEvent>
 #include <QHBoxLayout>
 #include <QHash>
-#include <QHostAddress>
+#include <QItemSelectionModel>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
+#include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPersistentModelIndex>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QScrollBar>
 #include <QSet>
 #include <QStyle>
 #include <QStyledItemDelegate>
+#include <QTextBlock>
 #include <QTimer>
-#include <QUrl>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include <algorithm>
 #include <array>
 #include <functional>
-#include <string_view>
 
 namespace {
     struct QuickAttr {
@@ -88,44 +93,54 @@ namespace {
         }
     }
 
-    bool knownRuleSet(const QString& name) {
-        const QByteArray utf8 = name.toUtf8();
-        const std::string_view key(utf8.constData(), static_cast<size_t>(utf8.size()));
-        const auto it = std::lower_bound(ruleSetList.begin(), ruleSetList.end(), key,
-                                         [](const auto& entry, std::string_view k) { return entry.first < k; });
-        return it != ruleSetList.end() && it->first == key;
-    }
-
-    bool ruleSetUrl(const QString& text) {
-        if (!text.startsWith(QLatin1String("http://"), Qt::CaseInsensitive) && !text.startsWith(QLatin1String("https://"), Qt::CaseInsensitive))
-            return false;
-        const QUrl url(text, QUrl::StrictMode);
-        return url.isValid() && !url.host().isEmpty() && url.path().endsWith(QLatin1String(".srs"), Qt::CaseInsensitive);
-    }
-
-    bool ipShape(const QString& text) {
-        const QString address = text.section(QLatin1Char('/'), 0, 0);
-        // QHostAddress also reads shorthands such as 10.1, which the core does not.
-        if (!address.contains(QLatin1Char(':')) && address.count(QLatin1Char('.')) != 3) return false;
-        QHostAddress host;
-        return host.setAddress(address);
-    }
-
     bool pathShape(const QString& text) {
         if (text.contains(QLatin1Char('\\')) || text.contains(QLatin1Char('/'))) return true;
         return text.size() >= 2 && text.at(1) == QLatin1Char(':') && text.at(0).isLetter();
     }
 
-    // The domain suffix a host name stands for, lowercased; empty when text is not one.
-    QString hostSuffix(const QString& text) {
-        const QString host = text.startsWith(QLatin1String("*.")) ? text.mid(1) : text;
-        if (!host.contains(QLatin1Char('.'))) return {};
-        bool named = false;
-        for (const QChar c : host) {
-            if (c.isLetterOrNumber()) named = true;
-            else if (c != QLatin1Char('-') && c != QLatin1Char('_') && c != QLatin1Char('.')) return {};
-        }
-        return named ? host.toLower() : QString();
+    // example.com/page or example.com:8080/page: slashes, but a host first.
+    bool hostWithPath(const QString& text) {
+        if (text.contains(QLatin1Char('\\')) || text.startsWith(QLatin1Char('/'))) return false;
+        return !RouteEditor::HostSuffix(text.section(QLatin1Char('/'), 0, 0).section(QLatin1Char(':'), 0, 0)).isEmpty();
+    }
+
+    // An absolute process path, which may hold spaces; URLs and CIDR lists hold slashes too.
+    bool wholePath(const QString& text) {
+        if (text.contains(QLatin1String("://"))) return false;
+        if (text.startsWith(QLatin1Char('/')) || text.startsWith(QLatin1Char('\\')) || text.startsWith(QLatin1String("~/"))) return true;
+        return text.size() >= 3 && text.at(0).isLetter() && text.at(1) == QLatin1Char(':') && (text.at(2) == QLatin1Char('\\') || text.at(2) == QLatin1Char('/'));
+    }
+
+    bool wholeValue(const QString& prefix) {
+        return prefix == QLatin1String("regex") || prefix == QLatin1String("processName") || prefix == QLatin1String("processPath");
+    }
+
+    QString clashPrefix(const QString& kind) {
+        static const QHash<QString, QString> prefixes = {
+            {"DOMAIN", "domain"}, {"DOMAIN-SUFFIX", "suffix"}, {"DOMAIN-KEYWORD", "keyword"}, {"DOMAIN-REGEX", "regex"},
+            {"IP-CIDR", "ip"}, {"IP-CIDR6", "ip"}, {"PROCESS-NAME", "processName"}, {"PROCESS-PATH", "processPath"},
+        };
+        return prefixes.value(kind);
+    }
+
+    QString alreadyInList() {
+        return QCoreApplication::translate("QuickLists", "Already in this list.");
+    }
+
+    // Entries compare by this: domain, suffix and keyword are stored lowercased.
+    QString entryKey(const QString& prefix, const QString& value) {
+        return prefix + QLatin1Char(':') + (storedLowercase(prefix) ? value.toLower() : value);
+    }
+
+    // The key of a "prefix:value" line; empty when it has no known prefix.
+    QString lineKey(const QString& line) {
+        const qsizetype colon = line.indexOf(QLatin1Char(':'));
+        const QString prefix = colon > 0 ? line.left(colon).trimmed() : QString();
+        return quickAttr(prefix) != nullptr ? entryKey(prefix, line.mid(colon + 1).trimmed()) : QString();
+    }
+
+    QString lineOf(const QuickLists::Entry& entry) {
+        return entry.prefix + QLatin1Char(':') + entry.value;
     }
 
     QString uniqueRuleName(const Configs::RouteProfile& profile, const QString& base) {
@@ -152,7 +167,7 @@ namespace {
         const auto type = RouteEditor::QuickListType(list, kindOfPrefix(prefix));
         for (const auto& rule : std::as_const(profile.Rules)) {
             if (rule->type == type && ((*rule).*(attr->member)).contains(value)) {
-                if (error != nullptr) *error = QCoreApplication::translate("QuickLists", "Already in this list.");
+                if (error != nullptr) *error = alreadyInList();
                 return false;
             }
         }
@@ -183,6 +198,46 @@ namespace QuickLists {
         return entries;
     }
 
+    QStringList SplitLines(const QString& text) {
+        static const QRegularExpression yamlKey(QStringLiteral("^[A-Za-z_][\\w-]*:$"));
+        QStringList lines;
+        for (const QString& line : RouteEditor::ValueLines(text)) {
+            QString kind;
+            if (const QString value = RouteEditor::ClashRuleValue(line, &kind); !value.isEmpty()) {
+                const QString prefix = clashPrefix(kind);
+                lines << (prefix.isEmpty() ? value : prefix + QLatin1Char(':') + value);
+                continue;
+            }
+            const qsizetype colon = line.indexOf(QLatin1Char(':'));
+            const QString prefix = colon > 0 ? line.left(colon).trimmed() : QString();
+            if (quickAttr(prefix) != nullptr) {
+                const QString rest = line.mid(colon + 1);
+                if (wholeValue(prefix)) {
+                    lines << prefix + QLatin1Char(':') + RouteEditor::Unquote(rest, false);
+                    continue;
+                }
+                const QStringList words = RouteEditor::SplitWords(rest);
+                // A bare prefix still reaches Canonical, which says what is missing.
+                if (words.isEmpty()) lines << prefix + QLatin1Char(':') + rest.trimmed();
+                for (const QString& word : words) {
+                    const bool prefixed = word.contains(QLatin1Char(':')) && quickAttr(word.section(QLatin1Char(':'), 0, 0)) != nullptr;
+                    lines << (prefixed ? word : prefix + QLatin1Char(':') + word);
+                }
+                continue;
+            }
+            // A Clash rule provider's "payload:".
+            if (yamlKey.match(line).hasMatch()) continue;
+            if (const QString whole = RouteEditor::Unquote(line, false); wholePath(whole)) {
+                lines << whole;
+                continue;
+            }
+            QStringList words = RouteEditor::SplitWords(line);
+            RouteEditor::DropHostsAddress(words);
+            lines << words;
+        }
+        return lines;
+    }
+
     QString Canonical(const QString& line, QString* error) {
         if (error != nullptr) error->clear();
         const QString text = line.trimmed();
@@ -192,24 +247,30 @@ namespace QuickLists {
         const QString prefix = colon > 0 ? text.left(colon).trimmed() : QString();
         if (quickAttr(prefix) != nullptr) {
             result = prefix + QLatin1Char(':') + text.mid(colon + 1).trimmed();
-        } else if (ipShape(text)) {
+        } else if (RouteEditor::IpShape(text)) {
             result = QStringLiteral("ip:") + text;
-        } else if (knownRuleSet(text) || ruleSetUrl(text)) {
+        } else if (RouteEditor::RuleSetShape(text)) {
             result = QStringLiteral("ruleset:") + text;
-        } else if (text.contains(QLatin1String("://"))) {
-            // Its slashes would otherwise make it a process path.
-            if (error != nullptr)
-                *error = QCoreApplication::translate("Validation", "Write only the domain, without a scheme such as https://; as written, this never matches.");
-            return {};
-        } else if (pathShape(text)) {
-            result = QStringLiteral("processPath:") + text;
-        } else if (text.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive)) {
-            result = QStringLiteral("processName:") + text;
-        } else if (const QString suffix = hostSuffix(text); !suffix.isEmpty()) {
-            result = QStringLiteral("suffix:") + suffix;
         } else {
-            if (error != nullptr) *error = QCoreApplication::translate("QuickLists", "Add a prefix such as keyword: or processName: to say what this is.");
-            return {};
+            const bool url = text.contains(QLatin1String("://"));
+            // Paths and .exe names keep their case, so only the host checks read the tidied text.
+            const QString host = RouteEditor::TidyValue(QStringLiteral("domain_suffix"), text);
+            if (!url && pathShape(text) && !hostWithPath(text)) {
+                result = QStringLiteral("processPath:") + text;
+            } else if (!url && text.endsWith(QLatin1String(".exe"), Qt::CaseInsensitive)) {
+                result = QStringLiteral("processName:") + text;
+            } else if (RouteEditor::IpShape(host)) {
+                result = QStringLiteral("ip:") + host;
+            } else if (const QString suffix = RouteEditor::HostSuffix(host); !suffix.isEmpty()) {
+                result = QStringLiteral("suffix:") + suffix;
+            } else if (url) {
+                if (error != nullptr)
+                    *error = QCoreApplication::translate("Validation", "Write only the domain, without a scheme such as https://; as written, this never matches.");
+                return {};
+            } else {
+                if (error != nullptr) *error = QCoreApplication::translate("QuickLists", "Add a prefix such as keyword: or processName: to say what this is.");
+                return {};
+            }
         }
         const auto issue = Configs::RouteProfile::CheckSimpleRule(result);
         if (issue.severity == Validation::Severity::Error && !issue.message.isEmpty()) {
@@ -357,22 +418,23 @@ namespace QuickListsDetail {
         return -1;
     }
 
-    // Adds each line of the field; lines that fail stay in it, and the first failure shows under it.
+    // Adds each value of the field; values that fail stay in it, and the first failure shows under it.
     bool submitLines(QLineEdit* input, QLabel* errorLabel, const std::function<bool(const QString&, QString*)>& add, QString* lastAdded) {
-        static const QRegularExpression breaks(QStringLiteral("[\\r\\n\\x{2028}\\x{2029}]"));
+        const QStringList lines = QuickLists::SplitLines(input->text());
+        // Pasted lists repeat values; only a single typed duplicate gets a word.
+        const bool bulk = lines.size() > 1;
         QStringList failed;
         QString firstError;
         bool added = false;
-        for (const QString& raw : input->text().split(breaks, Qt::SkipEmptyParts)) {
-            const QString line = raw.trimmed();
-            if (line.isEmpty()) continue;
+        for (const QString& line : lines) {
             QString error;
             if (add(line, &error)) {
                 added = true;
                 *lastAdded = QuickLists::Canonical(line, nullptr);
                 continue;
             }
-            failed << line;
+            if (bulk && error == alreadyInList()) continue;
+            if (!failed.contains(line)) failed << line;
             if (firstError.isEmpty()) firstError = error;
         }
         input->setText(failed.join(QLatin1Char('\n')));
@@ -386,6 +448,10 @@ namespace QuickListsDetail {
         input->setText(text.isEmpty() ? line : text + QLatin1Char('\n') + line);
         input->setFocus(Qt::OtherFocusReason);
         input->end(false);
+    }
+
+    void copyLines(const QStringList& lines) {
+        if (!lines.isEmpty()) QGuiApplication::clipboard()->setText(lines.join(QLatin1Char('\n')));
     }
 
     class EntryModel : public QAbstractListModel {
@@ -501,20 +567,21 @@ namespace QuickListsDetail {
         mutable bool valid = false;
     };
 
-    // Painted entries: × or Delete removes one, a double-click takes it back into the add field.
+    // Painted entries: × removes one, Delete the selected ones, a double-click takes one back into the add field.
     class EntryView : public QListView {
     public:
         explicit EntryView(QWidget* parent) : QListView(parent), delegate(new EntryDelegate(this)) {
             setItemDelegate(delegate);
             setMouseTracking(true);
-            setSelectionMode(QAbstractItemView::SingleSelection);
+            setSelectionMode(QAbstractItemView::ExtendedSelection);
             setEditTriggers(QAbstractItemView::NoEditTriggers);
             setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
             setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
         }
 
-        std::function<void(int)> onRemove;
+        std::function<void(const QList<int>&)> onRemove;
         std::function<void(int)> onEdit;
+        std::function<void(const QPoint&)> onMenu;
         QString emptyText;
         int hoverRow = -1;
         bool hoverRemove = false;
@@ -540,23 +607,69 @@ namespace QuickListsDetail {
             QListView::reset();
         }
 
+        [[nodiscard]] bool hasSelection() const {
+            return selectionModel() != nullptr && selectionModel()->hasSelection();
+        }
+
+        // In view order.
+        [[nodiscard]] QList<int> selectedRowList() const {
+            QList<int> rows;
+            if (selectionModel() != nullptr) {
+                for (const QModelIndex& index : selectionModel()->selectedIndexes()) rows << index.row();
+            }
+            std::sort(rows.begin(), rows.end());
+            rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
+            return rows;
+        }
+
+        void copySelected() const {
+            const auto* entries = static_cast<const EntryModel*>(model());
+            if (entries == nullptr) return;
+            QStringList lines;
+            for (const int row : selectedRowList()) {
+                if (row < entries->entries.size()) lines << lineOf(entries->entries.at(row));
+            }
+            copyLines(lines);
+        }
+
+        void removeSelected() {
+            if (hasSelection()) deferRemove(selectionModel()->selectedIndexes());
+        }
+
     protected:
         bool event(QEvent* event) override {
-            // Delete must reach keyPressEvent even when a Delete shortcut is set further up.
-            if (event->type() == QEvent::ShortcutOverride && isRemoveKey(static_cast<QKeyEvent*>(event)) && currentIndex().isValid()) {
-                event->accept();
-                return true;
+            // Delete and Copy must reach keyPressEvent even when a shortcut for them is set further up.
+            if (event->type() == QEvent::ShortcutOverride && hasSelection()) {
+                const auto* key = static_cast<QKeyEvent*>(event);
+                if (isRemoveKey(key) || key->matches(QKeySequence::Copy)) {
+                    event->accept();
+                    return true;
+                }
             }
             return QListView::event(event);
         }
 
         void keyPressEvent(QKeyEvent* event) override {
-            if (isRemoveKey(event) && currentIndex().isValid()) {
-                defer(&EntryView::onRemove, currentIndex());
+            if (event->matches(QKeySequence::Copy)) {
+                copySelected();
+                event->accept();
+                return;
+            }
+            if (isRemoveKey(event) && hasSelection()) {
+                removeSelected();
                 event->accept();
                 return;
             }
             QListView::keyPressEvent(event);
+        }
+
+        void contextMenuEvent(QContextMenuEvent* event) override {
+            if (!onMenu) {
+                QListView::contextMenuEvent(event);
+                return;
+            }
+            event->accept();
+            onMenu(event->globalPos());
         }
 
         void mouseMoveEvent(QMouseEvent* event) override {
@@ -582,7 +695,7 @@ namespace QuickListsDetail {
                 const int pressed = pressedRemove;
                 pressedRemove = -1;
                 const QModelIndex index = indexAt(event->position().toPoint());
-                if (index.isValid() && index.row() == pressed && removeRectOf(index).contains(event->position().toPoint())) defer(&EntryView::onRemove, index);
+                if (index.isValid() && index.row() == pressed && removeRectOf(index).contains(event->position().toPoint())) deferRemove({index});
                 event->accept();
                 return;
             }
@@ -644,6 +757,18 @@ namespace QuickListsDetail {
             const QPersistentModelIndex target(index);
             QTimer::singleShot(0, this, [this, handler, target] {
                 if (target.isValid() && (this->*handler)) (this->*handler)(target.row());
+            });
+        }
+
+        void deferRemove(const QModelIndexList& indexes) {
+            QList<QPersistentModelIndex> targets;
+            for (const QModelIndex& index : indexes) targets << QPersistentModelIndex(index);
+            QTimer::singleShot(0, this, [this, targets] {
+                QList<int> rows;
+                for (const auto& target : targets) {
+                    if (target.isValid()) rows << target.row();
+                }
+                if (!rows.isEmpty() && onRemove) onRemove(rows);
             });
         }
     };
@@ -742,6 +867,59 @@ namespace QuickListsDetail {
             QLineEdit::keyPressEvent(event);
         }
     };
+
+    // Ctrl+Enter or leaving applies, Esc reverts; neither key reaches the dialog.
+    class EntryText : public QPlainTextEdit {
+    public:
+        explicit EntryText(QWidget* parent) : QPlainTextEdit(parent) {
+            setLineWrapMode(QPlainTextEdit::NoWrap);
+            setTabChangesFocus(true);
+        }
+
+        std::function<void()> onApply;
+        std::function<void()> onRevert;
+        std::function<void()> onLeave;
+
+    protected:
+        bool event(QEvent* event) override {
+            if (event->type() == QEvent::ShortcutOverride) {
+                const auto* key = static_cast<QKeyEvent*>(event);
+                if (isRevertKey(key) || isApplyKey(key)) {
+                    event->accept();
+                    return true;
+                }
+            }
+            return QPlainTextEdit::event(event);
+        }
+
+        void keyPressEvent(QKeyEvent* event) override {
+            if (isRevertKey(event) || isApplyKey(event)) {
+                event->accept();
+                const auto& handler = isRevertKey(event) ? onRevert : onApply;
+                if (handler) handler();
+                return;
+            }
+            QPlainTextEdit::keyPressEvent(event);
+        }
+
+        void focusOutEvent(QFocusEvent* event) override {
+            QPlainTextEdit::focusOutEvent(event);
+            if (event->reason() != Qt::PopupFocusReason && event->reason() != Qt::ActiveWindowFocusReason && onLeave) onLeave();
+        }
+
+    private:
+        static Qt::KeyboardModifiers modifiersOf(const QKeyEvent* event) {
+            return event->modifiers() & ~Qt::KeyboardModifiers(Qt::KeypadModifier);
+        }
+
+        static bool isRevertKey(const QKeyEvent* event) {
+            return event->key() == Qt::Key_Escape && modifiersOf(event) == Qt::NoModifier;
+        }
+
+        static bool isApplyKey(const QKeyEvent* event) {
+            return (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) && modifiersOf(event) == Qt::ControlModifier;
+        }
+    };
 } // namespace QuickListsDetail
 
 using namespace QuickListsDetail;
@@ -760,12 +938,27 @@ struct QuickListEditor::Private {
     EntryModel* model = nullptr;
     EntryView* view = nullptr;
     EntryInput* input = nullptr;
+    QPushButton* addButton = nullptr;
     QLabel* addError = nullptr;
+    QToolButton* textButton = nullptr;
+    EntryText* text = nullptr;
+    bool textMode = false;
+    // The first line the last apply rejected.
+    Configs::RuleIssue textIssue;
 
     void refreshRow() {
         rows = RouteEditor::BuildRows(*profile);
         const int at = RouteEditor::RowOfRule(rows, static_cast<int>(profile->Rules.indexOf(firstRule)));
         if (at >= 0) row = rows.at(at);
+    }
+
+    [[nodiscard]] bool allOff() const {
+        const int end = qMin(row.first + row.count, static_cast<int>(profile->Rules.size()));
+        bool off = row.first < end;
+        for (int i = qMax(0, row.first); i < end; ++i) {
+            if (!profile->Rules.at(i)->disabled) off = false;
+        }
+        return off;
     }
 };
 
@@ -778,9 +971,15 @@ QuickListEditor::QuickListEditor(std::shared_ptr<Configs::RouteProfile> profile,
     d->title = makeLabel(this, Tone::Text, false);
     boldFont(d->title, 1.3);
     d->pill = new RouteEditor::ThenPill(this);
+    d->textButton = new QToolButton(this);
+    d->textButton->setText(tr("Edit as text"));
+    d->textButton->setAutoRaise(true);
+    d->textButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    d->textButton->setCursor(Qt::PointingHandCursor);
     header->addWidget(d->title);
     header->addWidget(d->pill);
     header->addStretch(1);
+    header->addWidget(d->textButton);
     layout->addLayout(header);
 
     d->intro = makeLabel(this, Tone::Muted, true);
@@ -794,9 +993,22 @@ QuickListEditor::QuickListEditor(std::shared_ptr<Configs::RouteProfile> profile,
     d->view = new EntryView(this);
     d->view->setModel(d->model);
     d->view->emptyText = tr("No entries. An empty list is left out of the config.");
-    d->view->onRemove = [this](int row) { removeEntry(row); };
+    d->view->onRemove = [this](const QList<int>& rows) { removeEntries(rows); };
     d->view->onEdit = [this](int row) { editEntry(row); };
+    d->view->onMenu = [this](const QPoint& pos) { showEntryMenu(pos); };
     layout->addWidget(d->view, 1);
+
+    d->text = new EntryText(this);
+    d->text->setPlaceholderText(tr("One entry per line"));
+    d->text->onApply = [this] { applyText(true); };
+    d->text->onRevert = [this] { closeText(); };
+    d->text->onLeave = [this] { applyText(false); };
+    d->text->hide();
+    layout->addWidget(d->text, 1);
+    connect(d->textButton, &QToolButton::clicked, this, [this] {
+        if (d->textMode) applyText(true);
+        else openText();
+    });
 
     auto* addRow = new QHBoxLayout();
     d->input = new EntryInput(this);
@@ -804,11 +1016,11 @@ QuickListEditor::QuickListEditor(std::shared_ptr<Configs::RouteProfile> profile,
     d->input->setClearButtonEnabled(true);
     attachCompleter(d->input, completionModel(this));
     d->input->onSubmit = [this] { submit(); };
-    auto* addButton = new QPushButton(tr("Add"), this);
-    addButton->setAutoDefault(false);
-    connect(addButton, &QPushButton::clicked, this, [this] { submit(); });
+    d->addButton = new QPushButton(tr("Add"), this);
+    d->addButton->setAutoDefault(false);
+    connect(d->addButton, &QPushButton::clicked, this, [this] { submit(); });
     addRow->addWidget(d->input, 1);
-    addRow->addWidget(addButton);
+    addRow->addWidget(d->addButton);
     layout->addLayout(addRow);
 
     d->addError = makeLabel(this, Tone::Danger, true);
@@ -829,6 +1041,7 @@ void QuickListEditor::setRow(const RouteEditor::Row& row, const QList<RouteEdito
     d->rows = rows;
     d->firstRule = first;
     if (!same) {
+        closeText();
         d->addError->clear();
         d->addError->hide();
     }
@@ -836,6 +1049,15 @@ void QuickListEditor::setRow(const RouteEditor::Row& row, const QList<RouteEdito
 }
 
 QWidget* QuickListEditor::revealEntry(const QuickLists::Entry& entry) {
+    if (d->textMode) {
+        const QString line = lineOf(entry);
+        for (QTextBlock block = d->text->document()->begin(); block.isValid(); block = block.next()) {
+            if (block.text().trimmed() != line) continue;
+            d->text->setTextCursor(QTextCursor(block));
+            break;
+        }
+        return d->text;
+    }
     const auto& entries = d->model->entries;
     for (int i = 0; i < entries.size(); ++i) {
         const auto& shown = entries.at(i);
@@ -856,12 +1078,7 @@ void QuickListEditor::reload(int current, int scroll) {
     d->intro->setText(list == Configs::warpBypass ? noWarpHint() : QString());
     d->intro->setVisible(list == Configs::warpBypass);
 
-    const int end = qMin(d->row.first + d->row.count, static_cast<int>(d->profile->Rules.size()));
-    bool allOff = d->row.first < end;
-    for (int i = qMax(0, d->row.first); i < end; ++i) {
-        if (!d->profile->Rules.at(i)->disabled) allOff = false;
-    }
-    d->offNote->setVisible(allOff);
+    d->offNote->setVisible(d->allOff());
 
     QStringList others;
     for (int i = 0; i < d->rows.size(); ++i) {
@@ -890,11 +1107,15 @@ void QuickListEditor::submit() {
     emit changed();
 }
 
-void QuickListEditor::removeEntry(int row) {
-    if (row < 0 || row >= d->model->entries.size()) return;
+void QuickListEditor::removeEntries(QList<int> rows) {
+    const auto& entries = d->model->entries;
+    std::sort(rows.begin(), rows.end());
+    rows.erase(std::unique(rows.begin(), rows.end()), rows.end());
+    rows.removeIf([&entries](int row) { return row < 0 || row >= entries.size(); });
+    if (rows.isEmpty()) return;
     int current = d->view->currentIndex().row();
-    if (current > row) --current;
-    QuickLists::Remove(d->model->entries.at(row));
+    if (current >= 0) current -= static_cast<int>(std::count_if(rows.cbegin(), rows.cend(), [current](int row) { return row < current; }));
+    for (const int row : std::as_const(rows)) QuickLists::Remove(entries.at(row));
     reload(current, d->view->verticalScrollBar()->value());
     emit changed();
 }
@@ -904,6 +1125,162 @@ void QuickListEditor::editEntry(int row) {
     const auto entry = d->model->entries.at(row);
     QuickLists::Remove(entry);
     reload(-1, d->view->verticalScrollBar()->value());
-    putLine(d->input, entry.prefix + QLatin1Char(':') + entry.value);
+    putLine(d->input, lineOf(entry));
     emit changed();
+}
+
+void QuickListEditor::showEntryMenu(const QPoint& globalPos) {
+    const bool any = d->view->hasSelection();
+    QMenu menu(this);
+    QAction* copy = menu.addAction(tr("Copy"));
+    copy->setShortcut(QKeySequence::Copy);
+    copy->setEnabled(any);
+    QAction* copyAll = menu.addAction(tr("Copy all"));
+    copyAll->setEnabled(!d->model->entries.isEmpty());
+    menu.addSeparator();
+    QAction* remove = menu.addAction(tr("Remove"));
+    remove->setShortcut(QKeySequence::Delete);
+    remove->setEnabled(any);
+    const QAction* picked = menu.exec(globalPos);
+    if (picked == copy) {
+        d->view->copySelected();
+    } else if (picked == copyAll) {
+        QStringList lines;
+        for (const auto& entry : std::as_const(d->model->entries)) lines << lineOf(entry);
+        copyLines(lines);
+    } else if (picked == remove) {
+        d->view->removeSelected();
+    }
+}
+
+void QuickListEditor::openText() {
+    if (d->textMode) return;
+    QStringList lines;
+    for (const auto& entry : QuickLists::Entries(*d->profile, d->row.first, d->row.count)) lines << lineOf(entry);
+    d->text->setPlainText(lines.isEmpty() ? QString() : lines.join(QLatin1Char('\n')) + QLatin1Char('\n'));
+    d->text->setExtraSelections({});
+    d->textIssue = {};
+    d->textMode = true;
+    d->addError->clear();
+    d->addError->hide();
+    d->view->hide();
+    d->input->hide();
+    d->addButton->hide();
+    d->text->show();
+    d->textButton->setText(tr("Done"));
+    d->text->moveCursor(QTextCursor::End);
+    d->text->setFocus(Qt::OtherFocusReason);
+}
+
+void QuickListEditor::closeText() {
+    if (!d->textMode) return;
+    // First, so the focus leaving the box below applies nothing.
+    d->textMode = false;
+    d->textIssue = {};
+    d->view->show();
+    d->input->show();
+    d->addButton->show();
+    if (d->text->hasFocus()) d->view->setFocus(Qt::OtherFocusReason);
+    d->text->hide();
+    d->text->setExtraSelections({});
+    d->text->clear();
+    d->textButton->setText(tr("Edit as text"));
+    d->addError->clear();
+    d->addError->hide();
+}
+
+bool QuickListEditor::applyText(bool focus) {
+    if (!d->textMode) return false;
+    const auto entries = QuickLists::Entries(*d->profile, d->row.first, d->row.count);
+    QSet<QString> existing;
+    for (const auto& entry : entries) existing.insert(entryKey(entry.prefix, entry.value));
+    QSet<QString> keep;
+    QStringList fresh;
+    QList<int> failedBlocks;
+    Configs::RuleIssue issue;
+    for (QTextBlock block = d->text->document()->begin(); block.isValid(); block = block.next()) {
+        // An entry already in the row passes as written, even one the list flags.
+        if (const QString key = lineKey(block.text().trimmed()); existing.contains(key)) {
+            keep.insert(key);
+            continue;
+        }
+        for (const QString& line : QuickLists::SplitLines(block.text())) {
+            if (const QString key = lineKey(line); existing.contains(key)) {
+                keep.insert(key);
+                continue;
+            }
+            QString error;
+            const QString canonical = QuickLists::Canonical(line, &error);
+            if (canonical.isEmpty()) {
+                if (issue.message.isEmpty()) {
+                    issue.value = line;
+                    issue.message = error;
+                }
+                if (failedBlocks.isEmpty() || failedBlocks.last() != block.blockNumber()) failedBlocks << block.blockNumber();
+                continue;
+            }
+            const QString key = lineKey(canonical);
+            if (keep.contains(key)) continue;
+            keep.insert(key);
+            if (!existing.contains(key)) fresh << canonical;
+        }
+    }
+
+    if (!failedBlocks.isEmpty()) {
+        d->textIssue = issue;
+        d->addError->setText(QStringLiteral("\"%1\": %2").arg(RouteEditor::ElideValue(issue.value), issue.message));
+        d->addError->show();
+        QColor tint = themeManager()->tokens.danger;
+        tint.setAlphaF(0.18f);
+        QList<QTextEdit::ExtraSelection> marks;
+        for (const int number : std::as_const(failedBlocks)) {
+            QTextEdit::ExtraSelection mark;
+            mark.format.setBackground(tint);
+            mark.format.setProperty(QTextFormat::FullWidthSelection, true);
+            mark.cursor = QTextCursor(d->text->document()->findBlockByNumber(number));
+            marks << mark;
+        }
+        d->text->setExtraSelections(marks);
+        revealPending();
+        if (focus) d->text->setFocus(Qt::OtherFocusReason);
+        return false;
+    }
+
+    bool edited = false;
+    for (const auto& entry : entries) {
+        if (keep.contains(entryKey(entry.prefix, entry.value))) continue;
+        QuickLists::Remove(entry);
+        edited = true;
+    }
+    for (const QString& line : std::as_const(fresh)) {
+        // Fails only for a value another row of this list already holds.
+        if (!QuickLists::Add(*d->profile, d->row, line, nullptr)) continue;
+        d->refreshRow();
+        edited = true;
+    }
+    closeText();
+    if (edited) {
+        reload(-1, 0);
+        emit changed();
+    }
+    return true;
+}
+
+Configs::RuleIssue QuickListEditor::pendingIssue() const {
+    if (!d->textMode || d->textIssue.message.isEmpty()) return {};
+    Configs::RuleIssue issue = d->textIssue;
+    // A turned-off list never blocks saving.
+    issue.severity = d->allOff() ? Validation::Severity::Warning : Validation::Severity::Error;
+    return issue;
+}
+
+QWidget* QuickListEditor::revealPending() {
+    if (!d->textMode) return d->view;
+    if (const auto marks = d->text->extraSelections(); !marks.isEmpty()) {
+        QTextCursor cursor = marks.first().cursor;
+        cursor.clearSelection();
+        cursor.movePosition(QTextCursor::EndOfBlock);
+        d->text->setTextCursor(cursor);
+    }
+    return d->text;
 }

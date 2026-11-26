@@ -4,7 +4,9 @@
 
 #include <QAbstractButton>
 #include <QBoxLayout>
+#include <QClipboard>
 #include <QFontMetrics>
+#include <QGuiApplication>
 #include <QHelpEvent>
 #include <QKeyEvent>
 #include <QMouseEvent>
@@ -324,6 +326,11 @@ namespace RouteEditor {
             }
             return true;
         }
+        // Copy must reach keyPressEvent even when a Ctrl+C shortcut is set further up.
+        if (event->type() == QEvent::ShortcutOverride && static_cast<QKeyEvent*>(event)->matches(QKeySequence::Copy)) {
+            event->accept();
+            return true;
+        }
         return QWidget::event(event);
     }
 
@@ -413,6 +420,11 @@ namespace RouteEditor {
     }
 
     void ValueChip::keyPressEvent(QKeyEvent* event) {
+        if (event->matches(QKeySequence::Copy)) {
+            QGuiApplication::clipboard()->setText(value);
+            event->accept();
+            return;
+        }
         switch (event->key()) {
             case Qt::Key_Delete:
             case Qt::Key_Backspace:
