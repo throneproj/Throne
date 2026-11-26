@@ -66,6 +66,8 @@ static const ULONG32 THRONE_LOG_STREAM = 0x10000;
 
 static wchar_t g_dumpPathTemplate[MAX_PATH] = L"";
 static bool g_crashDirReady = false;
+// %TEMP%, used until logging picks the real folder.
+static wchar_t g_fallbackDumpDir[MAX_PATH] = L"";
 static bool g_interactive = true;
 static LONG g_reporting = 0;
 static char g_logStream[128 * 1024];
@@ -210,7 +212,9 @@ static void WriteCrashArtifacts(EXCEPTION_POINTERS *pException) {
     if (InterlockedCompareExchange(&g_reporting, 1, 0) != 0) return;
 
     Logging::FlushForCrash();
-    if (!g_crashDirReady) return;
+    const wchar_t *dumpDir = g_crashDirReady ? g_dumpPathTemplate : g_fallbackDumpDir;
+    // wsprintfW takes no buffer size: leave room for the file name.
+    if (*dumpDir == L'\0' || lstrlenW(dumpDir) > MAX_PATH - 64) return;
 
     SYSTEMTIME st;
     GetLocalTime(&st);
@@ -218,10 +222,10 @@ static void WriteCrashArtifacts(EXCEPTION_POINTERS *pException) {
     wchar_t dumpPath[MAX_PATH];
     wchar_t sidecarPath[MAX_PATH];
     wsprintfW(dumpPath, L"%s\\Throne_%s_%s_%04d%02d%02d-%02d%02d%02d.dmp",
-              g_dumpPathTemplate, L"" NKR_VERSION, THRONE_ARCH,
+              dumpDir, L"" NKR_VERSION, THRONE_ARCH,
               st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
     wsprintfW(sidecarPath, L"%s\\Throne_%s_%s_%04d%02d%02d-%02d%02d%02d.txt",
-              g_dumpPathTemplate, L"" NKR_VERSION, THRONE_ARCH,
+              dumpDir, L"" NKR_VERSION, THRONE_ARCH,
               st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 
     bool dumpWritten = false;
@@ -260,7 +264,7 @@ static void WriteCrashArtifacts(EXCEPTION_POINTERS *pException) {
         const HANDLE err = GetStdHandle(STD_ERROR_HANDLE);
         if (err != nullptr && err != INVALID_HANDLE_VALUE) {
             char narrow[MAX_PATH * 3] = "";
-            WideCharToMultiByte(CP_UTF8, 0, g_dumpPathTemplate, -1, narrow, sizeof(narrow) - 1, nullptr, nullptr);
+            WideCharToMultiByte(CP_UTF8, 0, dumpDir, -1, narrow, sizeof(narrow) - 1, nullptr, nullptr);
             AppendA(err, "Throne crashed; a crash report was saved to ");
             AppendA(err, narrow);
             AppendA(err, "\r\n");
@@ -279,7 +283,7 @@ static void WriteCrashArtifacts(EXCEPTION_POINTERS *pException) {
               L"" NKR_VERSION, THRONE_ARCH,
               record != nullptr ? record->ExceptionCode : 0,
               addrHex,
-              g_dumpPathTemplate);
+              dumpDir);
     MessageBoxW(nullptr, msg, L"Throne crashed", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
 }
 
@@ -328,6 +332,9 @@ static void OnNewFailed() { ReportSynthetic(THRONE_EXC_NEWFAIL); }
 
 void Windows_SetCrashHandler(bool interactive) {
     g_interactive = interactive;
+    const DWORD tempLength = GetTempPathW(MAX_PATH, g_fallbackDumpDir);
+    if (tempLength == 0 || tempLength >= MAX_PATH) g_fallbackDumpDir[0] = L'\0';
+    else if (g_fallbackDumpDir[tempLength - 1] == L'\\') g_fallbackDumpDir[tempLength - 1] = L'\0';
     SetErrorMode(interactive ? SEM_FAILCRITICALERRORS
                              : SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
     if (!interactive) {
