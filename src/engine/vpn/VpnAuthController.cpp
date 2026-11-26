@@ -214,7 +214,8 @@ namespace Engine {
         if (Lifecycle::ResumeTargetId() < 0) return;
         if (m_vpnChallengeBusy.exchange(true)) return;
 
-        runOnNewThread([this] {
+        const auto runSerial = m_vpnRunSerial;
+        runOnNewThread([this, runSerial] {
             bool rpcOK = false;
             const auto status = API::defaultClient->QueryVPNStatus(&rpcOK, {});
 
@@ -272,6 +273,12 @@ namespace Engine {
             runOnUiThread([=, this] {
                 m_vpnChallengeBusy.store(false);
                 if (m_vpnChallengeTimer == nullptr || !m_vpnChallengeTimer->isActive()) return;
+                // The core lists every OpenVPN/OpenConnect endpoint of the box, custom configs included, so none means this run
+                // has nothing to poll (#2171). The serial keeps an answer from the previous run from stopping this one.
+                if (rpcOK && endpointStates.isEmpty() && runSerial == m_vpnRunSerial) {
+                    m_vpnChallengeTimer->stop();
+                    return;
+                }
                 updateEndpointStates(endpointStates);
                 m_vpnPendingChallenges.clear();
                 for (const auto &challenge : pending) {
