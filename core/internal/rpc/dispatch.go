@@ -155,6 +155,9 @@ var handlers = map[string]handlerFn{
 	"ServiceTest":          handle(globalServer.ServiceTest),
 	"QueryServiceTest":     handle(globalServer.QueryServiceTest),
 	"ParseServiceChecks":   handle(globalServer.ParseServiceChecks),
+	"CustomTest":           handle(globalServer.CustomTest),
+	"QueryCustomTest":      handle(globalServer.QueryCustomTest),
+	"CheckCustomTest":      handle(globalServer.CheckCustomTest),
 }
 
 func dispatch(methodName string, payload []byte) ([]byte, error) {

@@ -54,6 +54,9 @@ service LibcoreService {
   rpc ServiceTest(ServiceTestRequest) returns (ServiceTestResponse);
   rpc QueryServiceTest(EmptyReq) returns (QueryServiceTestResponse);
   rpc ParseServiceChecks(ParseServiceChecksRequest) returns (ParseServiceChecksResponse);
+  rpc CustomTest(CustomTestRequest) returns (CustomTestResponse);
+  rpc QueryCustomTest(EmptyReq) returns (QueryCustomTestResponse);
+  rpc CheckCustomTest(CheckCustomTestRequest) returns (ErrorResp);
 }
 
 message EmptyReq {}
@@ -868,4 +871,41 @@ message ParseServiceChecksResponse {
   optional int64 revision = 3 [default = 0];
   repeated ServiceCategory categories = 4;
   repeated ServiceCheckInfo checks = 5;
+}
+
+message CustomTestRequest {
+  optional string config = 1 [default = ""];
+  repeated string outbound_tags = 2;
+  optional bool use_default_outbound = 3 [default = false];
+  optional int32 max_concurrency = 4 [default = 0];
+  optional int32 test_timeout_ms = 5 [default = 0];
+  optional bool need_xray = 6 [default = false];
+  optional string xray_config = 7 [default = ""];
+  repeated string xray_full_configs = 8;
+  optional string xray_outbound_dns_strategy = 9 [default = ""];
+  optional string script = 10 [default = ""];
+}
+
+message CustomTestResult {
+  optional string outbound_tag = 1 [default = ""];
+  optional string text = 2 [default = ""];
+  optional string color = 3 [default = ""];
+  optional string tooltip = 4 [default = ""];
+  optional string error = 5 [default = ""];
+  // 0 = none (sort by text), 1 = number (sort_number), 2 = string (sort_string)
+  optional int32 sort_kind = 6 [default = 0];
+  optional double sort_number = 7 [default = 0];
+  optional string sort_string = 8 [default = ""];
+}
+
+message CustomTestResponse {
+  repeated CustomTestResult results = 1;
+}
+
+message QueryCustomTestResponse {
+  repeated CustomTestResult results = 1;
+}
+
+message CheckCustomTestRequest {
+  optional string script = 1 [default = ""];
 }
