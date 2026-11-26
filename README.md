@@ -11,6 +11,7 @@
 [![Stars](https://img.shields.io/github/stars/throneproj/Throne?style=flat-square&logo=github&label=stars)](https://github.com/throneproj/Throne/stargazers)
 [![License](https://img.shields.io/github/license/throneproj/Throne?style=flat-square&color=6E7781)](LICENSE)
 [![Telegram](https://img.shields.io/badge/Telegram-@ThroneProj-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/ThroneProj)
+[![Sponsor](https://img.shields.io/badge/Sponsor-Throne-EA4AAA?style=flat-square&logo=githubsponsors&logoColor=white)](#supporting-throne)
 
 </div>
 
@@ -68,6 +69,16 @@ Various formats are supported, including share links, various JSON representatio
 
 Deep links are also supported, read the [documentation](https://throneproj.github.io/advanced/deeplinks/) for more information.
 
+## Supporting Throne
+
+If Throne is useful to you, you can support its development through [GitHub Sponsors](https://github.com/sponsors/Mahdi-zarei) or with a crypto donation to one of these addresses:
+
+| Coin | Network | Address |
+|:--|:--|:--|
+| **USDT** · **TRX** | TRON (TRC20) | `THR2gbWMaTZh8ACk3VYAAyNRVffvdTRikj` |
+| **USDT** · **USDC** | BNB Smart Chain (BEP20) · Ethereum (ERC20) | `0x7c2dF1867f5AaEE807a835fB3c55E4de4507888A` |
+| **XMR** | Monero | `4AYwwN8qMQCSUb3XfwzfrLNPMHfDme6U7CmNtQY4idCF8GtHHLG68VA3iZK867ypuKFr8J7CjXiJ96eFUA2T6aLVRUbgY3A` |
+
 ## Credits
 
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)
@@ -79,13 +90,3 @@ Deep links are also supported, read the [documentation](https://throneproj.githu
 - [quirc](https://github.com/dlbeer/quirc)
 - [srombauts/sqlitecpp](https://github.com/srombauts/sqlitecpp)
 - Service logos: [Simple Icons](https://github.com/simple-icons/simple-icons), [theSVG](https://github.com/glincker/thesvg) and [selfh.st/icons](https://github.com/selfhst/icons) (CC BY 4.0)
-
-## Supporting Throne
-
-If Throne is useful to you, you can support its development through [GitHub Sponsors](https://github.com/sponsors/Mahdi-zarei) or with a crypto donation to one of these addresses:
-
-| Coin | Network | Address |
-|:--|:--|:--|
-| **USDT** · **TRX** | TRON (TRC20) | `THR2gbWMaTZh8ACk3VYAAyNRVffvdTRikj` |
-| **USDT** · **USDC** | BNB Smart Chain (BEP20) · Ethereum (ERC20) | `0x7c2dF1867f5AaEE807a835fB3c55E4de4507888A` |
-| **XMR** | Monero | `4AYwwN8qMQCSUb3XfwzfrLNPMHfDme6U7CmNtQY4idCF8GtHHLG68VA3iZK867ypuKFr8J7CjXiJ96eFUA2T6aLVRUbgY3A` |

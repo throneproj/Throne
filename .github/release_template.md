@@ -1,4 +1,8 @@
 
+---
+
+Join [Throne's Telegram channel](https://t.me/ThroneProj) for announcements and community support. If Throne is useful to you, consider [supporting its development](https://github.com/throneproj/Throne/blob/dev/.github/donate/Donate.md).
+
 **Download based on your OS:**
 
 <table>

@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Questions and community support
+    url: https://t.me/ThroneProj
+    about: Ask usage questions and get help on Throne's Telegram channel.
+  - name: Support Throne
+    url: https://github.com/throneproj/Throne/blob/dev/.github/donate/Donate.md
+    about: Sponsor Throne on GitHub or donate with crypto.

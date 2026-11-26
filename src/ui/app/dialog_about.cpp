@@ -69,6 +69,11 @@ DialogAbout::DialogAbout(QWidget *parent) : QDialog(parent) {
     connect(github, &QPushButton::clicked, this, [] {
         QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/throneproj/Throne")));
     });
+    auto *telegram = new QPushButton(QStringLiteral("Telegram"), this);
+    telegram->setAutoDefault(false);
+    connect(telegram, &QPushButton::clicked, this, [] {
+        QDesktopServices::openUrl(QUrl(QStringLiteral("https://t.me/ThroneProj")));
+    });
     auto *support = new QPushButton(tr("Support Throne"), this);
     support->setAutoDefault(false);
     connect(support, &QPushButton::clicked, this, [] {
@@ -78,6 +83,7 @@ DialogAbout::DialogAbout(QWidget *parent) : QDialog(parent) {
     auto *buttons = new QHBoxLayout;
     buttons->addStretch();
     buttons->addWidget(github);
+    buttons->addWidget(telegram);
     buttons->addWidget(support);
     buttons->addStretch();
 
