@@ -521,6 +521,10 @@ private:
     QPointer<CommandPalette> commandPalette;
     QAction *commandPaletteAction = nullptr;
     QHash<QString, QAction *> settingsDialogOpeners;
+    QList<QAction *> customTestGroupActions_;
+    QList<QAction *> customTestSelectedActions_;
+
+    void rebuildCustomTestMenus();
 
     void setupCommandPalette();
 

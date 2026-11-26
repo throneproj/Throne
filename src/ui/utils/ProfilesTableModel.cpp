@@ -23,6 +23,30 @@ namespace {
         const auto group = Configs::dataManager->groupsRepo->GetGroup(profile.gid);
         return group == nullptr || group->show_services;
     }
+
+    QColor customTestForegroundColor(const QString &colorSpec, const ThemeTokens &tokens) {
+        const QString trimmed = colorSpec.trimmed();
+        if (trimmed.isEmpty()) return {};
+        const QString lower = trimmed.toLower();
+        if (lower == QLatin1String("green") || lower == QLatin1String("ok") || lower == QLatin1String("success")) {
+            return tokens.success;
+        }
+        if (lower == QLatin1String("red") || lower == QLatin1String("error") || lower == QLatin1String("danger")) {
+            return tokens.danger;
+        }
+        if (lower == QLatin1String("yellow") || lower == QLatin1String("orange")
+            || lower == QLatin1String("warn") || lower == QLatin1String("warning")) {
+            return tokens.warning;
+        }
+        if (lower == QLatin1String("blue") || lower == QLatin1String("info")) {
+            return tokens.info;
+        }
+        if (lower == QLatin1String("gray") || lower == QLatin1String("grey") || lower == QLatin1String("muted")) {
+            return tokens.muted;
+        }
+        const QColor parsed = QColor::fromString(trimmed);
+        return parsed.isValid() ? parsed : QColor();
+    }
 }
 
 ProfilesTableModel::ProfilesTableModel(QObject *parent)
@@ -35,7 +59,7 @@ int ProfilesTableModel::rowCount(const QModelIndex &parent) const {
 
 int ProfilesTableModel::columnCount(const QModelIndex &parent) const {
     if (parent.isValid()) return 0;
-    return ColumnCount;
+    return BuiltInColumnCount + static_cast<int>(Configs::dataManager->settingsRepo->custom_tests.size());
 }
 
 Qt::ItemFlags ProfilesTableModel::flags(const QModelIndex &index) const {
@@ -98,7 +122,7 @@ void ProfilesTableModel::evictOne() const {
 
 QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid() || index.row() < 0 || index.row() >= m_profileIds.size()
-        || index.column() < 0 || index.column() >= ColumnCount) {
+        || index.column() < 0 || index.column() >= columnCount()) {
         return {};
     }
     const int profileId = m_profileIds[index.row()];
@@ -150,7 +174,12 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         case ColExitIP: return profile->DisplayExitIP();
         case ColSpeed: return profile->DisplaySpeed();
         case ColTraffic: return profile->DisplayTraffic();
-        default: return {};
+        default: {
+            const QString testId = customTestIdForColumn(index.column());
+            if (testId.isEmpty()) return {};
+            const auto itRes = profile->custom_test_results.constFind(testId);
+            return itRes != profile->custom_test_results.constEnd() ? itRes.value().displayText() : QVariant();
+        }
         }
     }
     if (role == Qt::ToolTipRole) {
@@ -165,12 +194,28 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         if (index.column() == ColExitIP && !profile->service_checks.isEmpty() && showsServices(*profile)) {
             return ServiceCheckHtml::summaryLine(*profile);
         }
+        if (const QString testId = customTestIdForColumn(index.column()); !testId.isEmpty()) {
+            const auto itRes = profile->custom_test_results.constFind(testId);
+            if (itRes == profile->custom_test_results.constEnd()) return {};
+            const auto &res = itRes.value();
+            if (!res.tooltip.isEmpty()) return res.tooltip;
+            if (!res.error.isEmpty()) return res.error;
+            if (res.text.size() > 40) return res.text;
+        }
         return {};
     }
     if (role == Qt::ForegroundRole) {
         if (index.column() == ColLatency) {
             const QColor latencyColor = profile->DisplayLatencyColor();
             if (latencyColor.isValid()) return latencyColor;
+        }
+        if (const QString testId = customTestIdForColumn(index.column()); !testId.isEmpty()) {
+            const auto itRes = profile->custom_test_results.constFind(testId);
+            if (itRes != profile->custom_test_results.constEnd()) {
+                const auto &res = itRes.value();
+                if (const QColor c = customTestForegroundColor(res.color, tokens); c.isValid()) return c;
+                if (res.text.isEmpty() && !res.error.isEmpty()) return tokens.danger;
+            }
         }
         if (isRunning && linkColor.isValid()) return linkColor;
         return {};
@@ -197,7 +242,11 @@ QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation
         case ColExitIP: return tr("Exit IP");
         case ColSpeed: return tr("Speed");
         case ColTraffic: return tr("Traffic");
-        default: return {};
+        default: {
+            const int idx = customTestIndexForColumn(section);
+            if (idx >= 0) return Configs::dataManager->settingsRepo->custom_tests.at(idx).name;
+            return {};
+        }
         }
     }
     return {};
@@ -371,6 +420,7 @@ int ProfilesTableModel::columnOfSort(const Configs::Group &group) {
         default: return -1;
         }
     case GroupSortMethod::ByTraffic: return ColTraffic;
+    case GroupSortMethod::ByCustomTest: return columnForCustomTestId(group.custom_sort_test_id);
     default: return -1;
     }
 }
@@ -384,8 +434,38 @@ GroupSortMethod::GroupSortMethod ProfilesTableModel::sortOfColumn(int column) {
     case ColExitIP:
     case ColSpeed: return GroupSortMethod::ByTestResult;
     case ColTraffic: return GroupSortMethod::ByTraffic;
-    default: return GroupSortMethod::Raw;
+    default: return customTestIndexForColumn(column) >= 0 ? GroupSortMethod::ByCustomTest : GroupSortMethod::Raw;
     }
+}
+
+int ProfilesTableModel::customTestIndexForColumn(int column) {
+    const int idx = column - BuiltInColumnCount;
+    const auto &tests = Configs::dataManager->settingsRepo->custom_tests;
+    if (idx < 0 || idx >= tests.size()) return -1;
+    return idx;
+}
+
+QString ProfilesTableModel::customTestIdForColumn(int column) {
+    const int idx = customTestIndexForColumn(column);
+    if (idx < 0) return {};
+    return Configs::dataManager->settingsRepo->custom_tests.at(idx).id;
+}
+
+int ProfilesTableModel::columnForCustomTestId(const QString &testId) {
+    if (testId.isEmpty()) return -1;
+    const auto &tests = Configs::dataManager->settingsRepo->custom_tests;
+    for (int i = 0; i < tests.size(); ++i) {
+        if (tests.at(i).id == testId) return BuiltInColumnCount + i;
+    }
+    return -1;
+}
+
+void ProfilesTableModel::syncCustomColumns() {
+    beginResetModel();
+    m_addressCache.clear();
+    m_filterKeys.clear();
+    m_filterIndexBuilt = false;
+    endResetModel();
 }
 
 bool ProfilesTableModel::isStartedRow(int sourceRow) const {

@@ -270,6 +270,8 @@ set(PROJECT_SOURCES
         src/ui/widget/json/SchemaStore.cpp
         include/ui/widget/json/JsonCodeEdit.h
         src/ui/widget/json/JsonCodeEdit.cpp
+        include/ui/widget/JsCodeEdit.h
+        src/ui/widget/JsCodeEdit.cpp
         include/ui/widget/json/JsonIssueList.h
         src/ui/widget/json/JsonIssueList.cpp
         include/ui/widget/json/JsonEditorDialog.h
@@ -425,6 +427,8 @@ set(PROJECT_SOURCES
         src/ui/setting/dialog_basic_settings.cpp
         include/ui/setting/dialog_basic_settings.h
         include/ui/setting/dialog_basic_settings.ui
+        include/ui/setting/dialog_custom_tests.h
+        src/ui/setting/dialog_custom_tests.cpp
 
         src/ui/setting/DiagnosticsTab.cpp
         include/ui/setting/DiagnosticsTab.h

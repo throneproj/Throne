@@ -412,6 +412,10 @@ Outbound: %4</source>
 <context>
     <name>DialogBasicSettings</name>
     <message>
+        <source>Custom Tests</source>
+        <translation>自定义测试</translation>
+    </message>
+    <message>
         <source>Basic Settings</source>
         <translation>基本设置</translation>
     </message>
@@ -8159,6 +8163,30 @@ Close without saving?</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Custom test failed: %1</source>
+        <translation>自定义测试失败: %1</translation>
+    </message>
+    <message>
+        <source>Custom test finished!</source>
+        <translation>自定义测试完成！</translation>
+    </message>
+    <message>
+        <source>Custom test not found or script is empty.</source>
+        <translation>未找到自定义测试或脚本为空。</translation>
+    </message>
+    <message>
+        <source>Run this test</source>
+        <translation>运行该测试</translation>
+    </message>
+    <message>
+        <source>Running custom test: %1</source>
+        <translation>正在运行自定义测试: %1</translation>
+    </message>
+    <message>
+        <source>[%1] custom test error: %2</source>
+        <translation>[%1] 自定义测试错误: %2</translation>
+    </message>
+    <message>
         <source>Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?</source>
         <translation>更改顺序后，将无法恢复到排序前的顺序。确定更改顺序？</translation>
     </message>
@@ -10019,6 +10047,10 @@ Error: %2</source>
 </context>
 <context>
     <name>QObject</name>
+    <message>
+        <source>Custom Test</source>
+        <translation>自定义测试</translation>
+    </message>
     <message>
         <source>Auto Selector</source>
         <translation>自动选择器</translation>
@@ -17089,6 +17121,137 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>unsupported protocol version</source>
         <translation>不支持的协议版本</translation>
+    </message>
+</context>
+<context>
+    <name>DialogCustomTests</name>
+    <message>
+        <source> (Copy)</source>
+        <translation> (副本)</translation>
+    </message>
+    <message>
+        <source>(Untitled)</source>
+        <translation>(未命名)</translation>
+    </message>
+    <message>
+        <source>API Reference</source>
+        <translation>API 参考</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>添加</translation>
+    </message>
+    <message>
+        <source>Check Syntax</source>
+        <translation>检查语法</translation>
+    </message>
+    <message>
+        <source>Core is not connected.</source>
+        <translation>核心未连接。</translation>
+    </message>
+    <message>
+        <source>Custom Test</source>
+        <translation>自定义测试</translation>
+    </message>
+    <message>
+        <source>Custom Tests</source>
+        <translation>自定义测试</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <source>Duplicate</source>
+        <translation>复制</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>名称</translation>
+    </message>
+    <message>
+        <source>Please enter a name for each custom test.</source>
+        <translation>请为每个自定义测试输入名称。</translation>
+    </message>
+    <message>
+        <source>Script (JavaScript)</source>
+        <translation>脚本 (JavaScript)</translation>
+    </message>
+    <message>
+        <source>Script cannot be empty.</source>
+        <translation>脚本不能为空。</translation>
+    </message>
+    <message>
+        <source>Syntax OK</source>
+        <translation>语法正确</translation>
+    </message>
+    <message>
+        <source>Test name</source>
+        <translation>测试名称</translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation>超时 (ms)</translation>
+    </message>
+    <message>
+        <source>Entry Point</source>
+        <translation>入口函数</translation>
+    </message>
+    <message>
+        <source>Scripts may define multiple helper functions; %1 (sync or %2) is the entry point and returns the result. %3 holds the configured timeout in milliseconds.</source>
+        <translation>脚本中可以定义多个辅助函数；%1（同步或 %2）作为入口函数并返回测试结果。%3 表示当前配置的超时时间（毫秒）。</translation>
+    </message>
+    <message>
+        <source>Return Value</source>
+        <translation>返回值</translation>
+    </message>
+    <message>
+        <source>Primitive (%1): displayed directly (numbers sort numerically; text sorts alphabetically).</source>
+        <translation>基础类型（%1）：直接显示（数字按数值大小排序；文本按字典序排序）。</translation>
+    </message>
+    <message>
+        <source>Object %1:</source>
+        <translation>对象 %1：</translation>
+    </message>
+    <message>
+        <source>%1 — text displayed in the table column.</source>
+        <translation>%1 — 显示在表格列中的文本。</translation>
+    </message>
+    <message>
+        <source>%1 (optional) — semantic name (%2) or CSS hex color (%3).</source>
+        <translation>%1（可选）— 语义颜色名（%2）或十六进制颜色（%3）。</translation>
+    </message>
+    <message>
+        <source>%1 (optional) — number or string used for sorting; when omitted, sorting uses the display text.</source>
+        <translation>%1（可选）— 用于排序的数字或字符串；省略时按显示文本排序。</translation>
+    </message>
+    <message>
+        <source>%1 (optional) — hover tooltip text.</source>
+        <translation>%1（可选）— 鼠标悬停提示文本。</translation>
+    </message>
+    <message>
+        <source>Built-in Helpers</source>
+        <translation>内置函数</translation>
+    </message>
+    <message>
+        <source>all network traffic goes through the tested proxy</source>
+        <translation>所有网络请求均通过被测代理发出</translation>
+    </message>
+    <message>
+        <source>%1 — performs an HTTP request and returns %2. Options: %3.</source>
+        <translation>%1 — 发起 HTTP 请求并返回 %2。支持选项：%3。</translation>
+    </message>
+    <message>
+        <source>%1 — convenience HTTP helpers returning %2.</source>
+        <translation>%1 — 便捷 HTTP 请求方法，返回 %2。</translation>
+    </message>
+    <message>
+        <source>%1 — measures TCP connection latency and returns %2.</source>
+        <translation>%1 — 测试 TCP 连接延迟并返回 %2。</translation>
+    </message>
+    <message>
+        <source>%1 — wait, Base64 encode/decode, and log output.</source>
+        <translation>%1 — 延时等待、Base64 编解码与日志输出。</translation>
     </message>
 </context>
 </TS>

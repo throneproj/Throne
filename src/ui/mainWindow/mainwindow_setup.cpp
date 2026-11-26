@@ -463,10 +463,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         if (group == nullptr || method == GroupSortMethod::Raw) return;
         GroupSortAction action{method, false};
         const bool sameColumn = ProfilesTableModel::columnOfSort(*group) == logicalIndex;
-        if (logicalIndex == ProfilesTableModel::ColExitIP) group->test_sort_by = Configs::testBy::ipOut;
-        else if (logicalIndex == ProfilesTableModel::ColSpeed &&
-                 group->test_sort_by != Configs::testBy::dlSpeed && group->test_sort_by != Configs::testBy::ulSpeed)
+        if (method == GroupSortMethod::ByCustomTest) {
+            const QString testId = ProfilesTableModel::customTestIdForColumn(logicalIndex);
+            if (testId.isEmpty()) return;
+            group->custom_sort_test_id = testId;
+        } else if (logicalIndex == ProfilesTableModel::ColExitIP) {
+            group->test_sort_by = Configs::testBy::ipOut;
+        } else if (logicalIndex == ProfilesTableModel::ColSpeed &&
+                   group->test_sort_by != Configs::testBy::dlSpeed && group->test_sort_by != Configs::testBy::ulSpeed) {
             group->test_sort_by = Configs::testBy::dlSpeed;
+        }
         if (sameColumn) action.descending = !group->sort.descending;
         sortCurrentGroup(action);
     });
@@ -476,8 +482,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         const auto savedWidths = group->column_width;
         group->column_width.clear();
         auto *header = ui->profilesTableView->horizontalHeader();
-        for (int i = 0; i < header->count(); i++) {
+        const int builtInCount = qMin<int>(ProfilesTableModel::BuiltInColumnCount, header->count());
+        for (int i = 0; i < builtInCount; i++) {
             group->column_width.push_back(header->isSectionHidden(i) ? savedWidths.value(i, 0) : header->sectionSize(i));
+        }
+        for (int i = ProfilesTableModel::BuiltInColumnCount; i < header->count(); i++) {
+            if (header->isSectionHidden(i)) continue;
+            const QString testId = ProfilesTableModel::customTestIdForColumn(i);
+            if (!testId.isEmpty() && header->sectionSize(i) > 0) {
+                group->custom_column_width.insert(testId, header->sectionSize(i));
+            }
         }
         Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
     });
@@ -493,6 +507,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             QAction *clearResults = nullptr;
             QAction *runTest = nullptr;
             std::optional<Engine::TestKind> testKind;
+            QString customTestId;
             QString testLabel;
             switch (columnIndex) {
                 case ProfilesTableModel::ColLatency:
@@ -507,7 +522,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                     testKind = Engine::TestKind::Speed;
                     testLabel = tr("Test speed");
                     break;
-                default: break;
+                default:
+                    customTestId = ProfilesTableModel::customTestIdForColumn(columnIndex);
+                    if (!customTestId.isEmpty()) {
+                        testKind = Engine::TestKind::Custom;
+                        testLabel = tr("Run this test");
+                    }
+                    break;
             }
             if (testKind) {
                 if (!menu.isEmpty()) menu.addSeparator();
@@ -523,19 +544,34 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             menu.addSeparator();
             auto *showLabel = menu.addAction(tr("Show:"));
             showLabel->setEnabled(false);
-            std::array<QAction*, ProfilesTableModel::ColumnCount> visibilityActions{};
-            for (int column = 0; column < ProfilesTableModel::ColumnCount; ++column) {
+            const int totalColumns = profilesTableModel->columnCount();
+            QList<QAction*> visibilityActions;
+            visibilityActions.reserve(totalColumns);
+            for (int column = 0; column < totalColumns; ++column) {
                 auto *action = menu.addAction(profilesTableModel->headerData(column, Qt::Horizontal).toString());
                 action->setCheckable(true);
-                action->setChecked(group->visible_columns & (1 << column));
-                visibilityActions[column] = action;
+                if (column < ProfilesTableModel::BuiltInColumnCount) {
+                    action->setChecked(group->visible_columns & (1 << column));
+                } else {
+                    const QString tid = ProfilesTableModel::customTestIdForColumn(column);
+                    action->setChecked(!tid.isEmpty() && !group->hidden_custom_tests.contains(tid));
+                }
+                visibilityActions.append(action);
             }
             auto* chosen = menu.exec(header->mapToGlobal(pos));
             if (chosen == nullptr) return nullptr;
-            for (int column = 0; column < ProfilesTableModel::ColumnCount; ++column) {
+            for (int column = 0; column < totalColumns; ++column) {
                 if (chosen != visibilityActions[column]) continue;
-                if (chosen->isChecked()) group->visible_columns |= 1 << column;
-                else group->visible_columns &= ~(1 << column);
+                if (column < ProfilesTableModel::BuiltInColumnCount) {
+                    if (chosen->isChecked()) group->visible_columns |= 1 << column;
+                    else group->visible_columns &= ~(1 << column);
+                } else {
+                    const QString tid = ProfilesTableModel::customTestIdForColumn(column);
+                    if (!tid.isEmpty()) {
+                        if (chosen->isChecked()) group->hidden_custom_tests.removeAll(tid);
+                        else if (!group->hidden_custom_tests.contains(tid)) group->hidden_custom_tests.append(tid);
+                    }
+                }
                 Configs::dataManager->groupsRepo->Save(group);
                 if (group == Configs::dataManager->groupsRepo->CurrentGroup()) refresh_proxy_list_column_size();
                 return nullptr;
@@ -547,13 +583,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                     case Engine::TestKind::Ip: tests()->runIpTests(profileIds); break;
                     case Engine::TestKind::Speed: tests()->runSpeedTests(profileIds); break;
                     case Engine::TestKind::Service: break;
-                    case Engine::TestKind::Custom: break;
+                    case Engine::TestKind::Custom:
+                        if (!customTestId.isEmpty()) tests()->runCustomTest(customTestId, profileIds);
+                        break;
                 }
                 return nullptr;
             }
             if (chosen == clearResults) {
                 const auto profileIds = group->Profiles();
-                Engine::host()->clearTestResults(profileIds, testKind);
+                Engine::host()->clearTestResults(profileIds, testKind, customTestId);
                 // The service icons share the Exit IP column.
                 if (testKind == Engine::TestKind::Ip && group->show_services) {
                     Engine::host()->clearTestResults(profileIds, Engine::TestKind::Service);
@@ -836,6 +874,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         auto ent = Configs::dataManager->groupsRepo->CurrentGroup();
         if (ent == nullptr) return;
         ent->column_width.clear();
+        ent->custom_column_width.clear();
         Configs::dataManager->groupsRepo->Save(ent);
         show_group(ent->id);
     });
@@ -888,6 +927,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionService_Check_Group, &QAction::triggered, this, [startServiceChecks] {
         if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup()) startServiceChecks(group->DisplayedProfiles());
     });
+    rebuildCustomTestMenus();
     ui->menu_stop_testing->setEnabled(false);
     // Kept on the window so Ctrl+. works while no menu holds it; the menus add it only to show it.
     addAction(ui->menu_stop_testing);
@@ -1104,5 +1144,61 @@ void MainWindow::show_traffic_graph_options() {
         m_trafficGraphSaveDebounce->start();
     });
     dialog->open();
+}
+
+void MainWindow::rebuildCustomTestMenus() {
+    auto clearActions = [](QMenu *menu, QList<QAction *> &list) {
+        for (QAction *act : list) {
+            if (act == nullptr) continue;
+            if (menu != nullptr) menu->removeAction(act);
+            delete act;
+        }
+        list.clear();
+    };
+    clearActions(ui->menu_test_group, customTestGroupActions_);
+    clearActions(ui->menu_test_selected, customTestSelectedActions_);
+
+    auto anchorBeforeStop = [this](QMenu *menu) -> QAction * {
+        if (menu == nullptr) return nullptr;
+        const auto actions = menu->actions();
+        for (int i = 0; i < actions.size(); ++i) {
+            if (actions.at(i) == ui->menu_stop_testing) {
+                if (i > 0 && actions.at(i - 1)->isSeparator()) return actions.at(i - 1);
+                return actions.at(i);
+            }
+        }
+        return nullptr;
+    };
+
+    QAction *groupBefore = anchorBeforeStop(ui->menu_test_group);
+    QAction *selectedBefore = anchorBeforeStop(ui->menu_test_selected);
+
+    for (const auto &test : Configs::dataManager->settingsRepo->custom_tests) {
+        if (test.id.isEmpty()) continue;
+        const QString label = QString(test.name).replace(QLatin1Char('&'), QStringLiteral("&&"));
+        const QString testId = test.id;
+
+        if (ui->menu_test_group != nullptr) {
+            auto *grpAct = new QAction(label, ui->menu_test_group);
+            ui->menu_test_group->insertAction(groupBefore, grpAct);
+            connect(grpAct, &QAction::triggered, this, [this, testId] {
+                if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup()) {
+                    tests()->runCustomTest(testId, group->DisplayedProfiles());
+                }
+            });
+            customTestGroupActions_.append(grpAct);
+        }
+
+        if (ui->menu_test_selected != nullptr) {
+            auto *selAct = new QAction(label, ui->menu_test_selected);
+            ui->menu_test_selected->insertAction(selectedBefore, selAct);
+            connect(selAct, &QAction::triggered, this, [this, testId] {
+                tests()->runCustomTest(testId, get_now_selected_list());
+            });
+            customTestSelectedActions_.append(selAct);
+        }
+    }
+
+    refresh_action_states();
 }
 

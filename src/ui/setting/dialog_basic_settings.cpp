@@ -15,6 +15,7 @@
 #include "include/engine/services/BackupArchive.h"
 #include "include/engine/services/SettingsService.h"
 #include "include/ui/setting/ServiceCheckSelector.h"
+#include "include/ui/setting/dialog_custom_tests.h"
 #include "include/ui/utils/ValidationForm.h"
 
 #include <QStyleFactory>
@@ -248,6 +249,17 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     });
     serviceChecks_ = new ServiceCheckSelector(snapshot_.service_check_disabled, ui->service_check_box);
     ui->serviceCheckLayout->addWidget(serviceChecks_);
+    connect(ui->custom_tests_btn, &QPushButton::clicked, this, [this] {
+        QString family = ui->log_font_family->currentFont().family();
+        if (snapshot_.log_font_family.isEmpty() && family == CACHE.shownLogFontFamily) family.clear();
+        int pointSize = ui->log_font_size->currentText().toInt();
+        if (snapshot_.log_font_size <= 0 && pointSize == CACHE.shownLogFontSize) pointSize = 0;
+        const QFont monoFont = BuildMonospaceFont(family, pointSize);
+        DialogCustomTests dialog(Configs::dataManager->settingsRepo->custom_tests, monoFont, this);
+        if (dialog.exec() == QDialog::Accepted) {
+            snapshot_.custom_tests = dialog.resultTests();
+        }
+    });
     S_LOAD_BOOL(disable_tray)
     ui->reset_proxy_on_disable_sp->setChecked(snapshot_.reset_proxy_on_disable_sp);
     ui->url_timeout->setText(Int2String(snapshot_.url_test_timeout_ms));

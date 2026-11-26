@@ -446,6 +446,10 @@ Outbound: %4</translation>
 <context>
     <name>DialogBasicSettings</name>
     <message>
+        <source>Custom Tests</source>
+        <translation>Пользовательские тесты</translation>
+    </message>
+    <message>
         <source>Basic Settings</source>
         <translation>Основные настройки</translation>
     </message>
@@ -8241,6 +8245,30 @@ Close without saving?</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Custom test failed: %1</source>
+        <translation>Пользовательский тест не удался: %1</translation>
+    </message>
+    <message>
+        <source>Custom test finished!</source>
+        <translation>Пользовательский тест завершён!</translation>
+    </message>
+    <message>
+        <source>Custom test not found or script is empty.</source>
+        <translation>Пользовательский тест не найден или скрипт пуст.</translation>
+    </message>
+    <message>
+        <source>Run this test</source>
+        <translation>Запустить этот тест</translation>
+    </message>
+    <message>
+        <source>Running custom test: %1</source>
+        <translation>Выполняется тест: %1</translation>
+    </message>
+    <message>
+        <source>[%1] custom test error: %2</source>
+        <translation>[%1] ошибка пользовательского теста: %2</translation>
+    </message>
+    <message>
         <source>Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?</source>
         <translation>После изменения порядка восстановить порядок до сортировки будет невозможно. Вы уверены, что хотите изменить порядок?</translation>
     </message>
@@ -10048,6 +10076,10 @@ Error: %2</source>
 </context>
 <context>
     <name>QObject</name>
+    <message>
+        <source>Custom Test</source>
+        <translation>Пользовательский тест</translation>
+    </message>
     <message>
         <source>The selected TLS version is not supported on this system.</source>
         <translation>Выбранная версия TLS не поддерживается в этой системе.</translation>
@@ -17233,6 +17265,137 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Disable</source>
         <translation>Отключить</translation>
+    </message>
+</context>
+<context>
+    <name>DialogCustomTests</name>
+    <message>
+        <source> (Copy)</source>
+        <translation> (Копия)</translation>
+    </message>
+    <message>
+        <source>(Untitled)</source>
+        <translation>(Без названия)</translation>
+    </message>
+    <message>
+        <source>API Reference</source>
+        <translation>Справка API</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>Добавить</translation>
+    </message>
+    <message>
+        <source>Check Syntax</source>
+        <translation>Проверить синтаксис</translation>
+    </message>
+    <message>
+        <source>Core is not connected.</source>
+        <translation>Ядро не подключено.</translation>
+    </message>
+    <message>
+        <source>Custom Test</source>
+        <translation>Пользовательский тест</translation>
+    </message>
+    <message>
+        <source>Custom Tests</source>
+        <translation>Пользовательские тесты</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>Duplicate</source>
+        <translation>Дублировать</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>Название</translation>
+    </message>
+    <message>
+        <source>Please enter a name for each custom test.</source>
+        <translation>Введите название для каждого пользовательского теста.</translation>
+    </message>
+    <message>
+        <source>Script (JavaScript)</source>
+        <translation>Скрипт (JavaScript)</translation>
+    </message>
+    <message>
+        <source>Script cannot be empty.</source>
+        <translation>Скрипт не может быть пустым.</translation>
+    </message>
+    <message>
+        <source>Syntax OK</source>
+        <translation>Синтаксис корректен</translation>
+    </message>
+    <message>
+        <source>Test name</source>
+        <translation>Название теста</translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation>Таймаут (мс)</translation>
+    </message>
+    <message>
+        <source>Entry Point</source>
+        <translation>Точка входа</translation>
+    </message>
+    <message>
+        <source>Scripts may define multiple helper functions; %1 (sync or %2) is the entry point and returns the result. %3 holds the configured timeout in milliseconds.</source>
+        <translation>В скрипте можно объявить несколько вспомогательных функций; %1 (синхронная или %2) является точкой входа и возвращает результат. %3 содержит настроенный таймаут в миллисекундах.</translation>
+    </message>
+    <message>
+        <source>Return Value</source>
+        <translation>Возвращаемое значение</translation>
+    </message>
+    <message>
+        <source>Primitive (%1): displayed directly (numbers sort numerically; text sorts alphabetically).</source>
+        <translation>Примитив (%1): отображается напрямую (числа сортируются по величине, текст — по алфавиту).</translation>
+    </message>
+    <message>
+        <source>Object %1:</source>
+        <translation>Объект %1:</translation>
+    </message>
+    <message>
+        <source>%1 — text displayed in the table column.</source>
+        <translation>%1 — текст, отображаемый в столбце таблицы.</translation>
+    </message>
+    <message>
+        <source>%1 (optional) — semantic name (%2) or CSS hex color (%3).</source>
+        <translation>%1 (необязательно) — семантическое имя (%2) или hex-цвет CSS (%3).</translation>
+    </message>
+    <message>
+        <source>%1 (optional) — number or string used for sorting; when omitted, sorting uses the display text.</source>
+        <translation>%1 (необязательно) — число или строка для сортировки; если не указано, используется отображаемый текст.</translation>
+    </message>
+    <message>
+        <source>%1 (optional) — hover tooltip text.</source>
+        <translation>%1 (необязательно) — текст всплывающей подсказки.</translation>
+    </message>
+    <message>
+        <source>Built-in Helpers</source>
+        <translation>Встроенные функции</translation>
+    </message>
+    <message>
+        <source>all network traffic goes through the tested proxy</source>
+        <translation>весь сетевой трафик идёт через проверяемый прокси</translation>
+    </message>
+    <message>
+        <source>%1 — performs an HTTP request and returns %2. Options: %3.</source>
+        <translation>%1 — выполняет HTTP-запрос и возвращает %2. Параметры: %3.</translation>
+    </message>
+    <message>
+        <source>%1 — convenience HTTP helpers returning %2.</source>
+        <translation>%1 — удобные HTTP-функции, возвращающие %2.</translation>
+    </message>
+    <message>
+        <source>%1 — measures TCP connection latency and returns %2.</source>
+        <translation>%1 — измеряет задержку TCP-подключения и возвращает %2.</translation>
+    </message>
+    <message>
+        <source>%1 — wait, Base64 encode/decode, and log output.</source>
+        <translation>%1 — ожидание, кодирование/декодирование Base64 и вывод в журнал.</translation>
     </message>
 </context>
 </TS>

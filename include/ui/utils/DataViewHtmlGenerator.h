@@ -32,10 +32,11 @@ public:
     };
 
     struct LatencyTestPanelState {
-        enum class Kind { Url, Ip, Service };
+        enum class Kind { Url, Ip, Service, Custom };
         bool visible = false;
         Kind kind = Kind::Url;
         int totalProfiles = 0;
+        QString customTestName;
     };
 
     struct AutoSelectorPanelState {
@@ -79,7 +80,7 @@ public:
 
     void setSpeedtestProgress(const QString &profileName, const libcore::SpeedTestResult &result);
 
-    void seedLatencyTest(LatencyTestPanelState::Kind kind, int totalProfiles);
+    void seedLatencyTest(LatencyTestPanelState::Kind kind, int totalProfiles, const QString &customTestName = {});
 
     void setAutoSelectorStatus(const QString &summary, const QString &detail);
 

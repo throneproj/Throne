@@ -99,7 +99,6 @@ void MainWindow::UpdateDataView(bool force)
 
 void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const QList<int> &profileIds, const QString &customTestId)
 {
-    Q_UNUSED(customTestId)
     int column = -1;
     switch (kind) {
         case Engine::TestKind::Latency:
@@ -118,10 +117,35 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
             column = ProfilesTableModel::ColSpeed;
             break;
-        case Engine::TestKind::Custom:
+        case Engine::TestKind::Custom: {
+            QString testName;
+            for (const auto &test : Configs::dataManager->settingsRepo->custom_tests) {
+                if (test.id == customTestId) {
+                    testName = test.name;
+                    break;
+                }
+            }
+            dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Custom, totalProfiles, testName);
             break;
+        }
     }
     runOnUiThread([this] { ui->menu_stop_testing->setEnabled(true); });
+    if (kind == Engine::TestKind::Custom) {
+        if (customTestId.isEmpty()) return;
+        runOnUiThread([this, customTestId, profileIds] {
+            QSet<int> groups;
+            for (const auto &profile : Configs::dataManager->profilesRepo->GetProfileBatch(profileIds)) groups.insert(profile->gid);
+            bool currentChanged = false;
+            for (int gid : groups) {
+                const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+                if (!group || group->hidden_custom_tests.removeAll(customTestId) == 0) continue;
+                Configs::dataManager->groupsRepo->Save(group);
+                currentChanged |= gid == Configs::dataManager->settingsRepo->current_group;
+            }
+            if (currentChanged) refresh_proxy_list_column_size();
+        });
+        return;
+    }
     if (column < 0) return;
     runOnUiThread([this, kind, column, profileIds] {
         QSet<int> groups;
@@ -402,6 +426,9 @@ void MainWindow::refresh_action_states() {
     ui->menu_resolve_selected->setEnabled(anySelected);
     ui->actionResolve_Selected_Out_IP->setEnabled(anySelected);
     ui->actionService_Check_Selected->setEnabled(anySelected);
+    for (QAction *act : customTestSelectedActions_) {
+        if (act != nullptr) act->setEnabled(anySelected);
+    }
     ui->menu_find_warp_endpoint->setEnabled(selectedRows == 1 && warpFinderTarget() != nullptr);
 
     const bool running = runningSnapshot() != nullptr;
@@ -486,9 +513,17 @@ void MainWindow::refresh_proxy_list_column_size() {
         QScrollBar *vBar = ui->profilesTableView->verticalScrollBar();
         const bool vBarBlocked = vBar->blockSignals(true);
         // Header signals stay live: QTableView repaints its cells from sectionResized.
-        constexpr int columnCount = ProfilesTableModel::ColumnCount;
+        constexpr int columnCount = ProfilesTableModel::BuiltInColumnCount;
+        const int totalColumns = profilesTableModel->columnCount();
         for (int column = 0; column < columnCount; ++column) {
             ui->profilesTableView->setColumnHidden(column, !(group->visible_columns & (1 << column)));
+        }
+        bool anyCustomVisible = false;
+        for (int column = columnCount; column < totalColumns; ++column) {
+            const QString testId = ProfilesTableModel::customTestIdForColumn(column);
+            const bool hidden = testId.isEmpty() || group->hidden_custom_tests.contains(testId);
+            ui->profilesTableView->setColumnHidden(column, hidden);
+            if (!hidden) anyCustomVisible = true;
         }
         if (!group->column_width.isEmpty() && group->column_width.size() != columnCount) {
             group->column_width.clear();
@@ -510,7 +545,7 @@ void MainWindow::refresh_proxy_list_column_size() {
                     hHeader->resizeSection(col, group->calculated_column_width[col]);
                 }
             }
-            ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            ui->profilesTableView->setHorizontalScrollBarPolicy(anyCustomVisible ? Qt::ScrollBarAsNeeded : Qt::ScrollBarAlwaysOff);
             group->clearCalculatedColumnWidth();
             for (int i = 0; i < columnCount; i++) {
                 const auto size = hHeader->isSectionHidden(i) ? 0 : hHeader->sectionSize(i);
@@ -528,6 +563,18 @@ void MainWindow::refresh_proxy_list_column_size() {
                 else ui->profilesTableView->resizeColumnToContents(i);
             }
             ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        }
+        for (int i = columnCount; i < totalColumns; ++i) {
+            hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
+            if (hHeader->isSectionHidden(i)) continue;
+            const QString testId = ProfilesTableModel::customTestIdForColumn(i);
+            const int width = group->custom_column_width.value(testId, 0);
+            if (width > 0) {
+                hHeader->resizeSection(i, width);
+            } else {
+                ui->profilesTableView->resizeColumnToContents(i);
+                if (hHeader->sectionSize(i) < 90) hHeader->resizeSection(i, 90);
+            }
         }
         hHeader->adjustPositions();
         vBar->blockSignals(vBarBlocked);

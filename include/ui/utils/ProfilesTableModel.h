@@ -29,7 +29,8 @@ public:
         ColExitIP,
         ColSpeed,
         ColTraffic,
-        ColumnCount,
+        BuiltInColumnCount,
+        ColumnCount = BuiltInColumnCount,
     };
 
     // One service check result; names, words and region are lowercase.
@@ -104,6 +105,11 @@ public:
 
     // Raw for a column that does not sort.
     static GroupSortMethod::GroupSortMethod sortOfColumn(int column);
+
+    static int customTestIndexForColumn(int column);
+    static QString customTestIdForColumn(int column);
+    static int columnForCustomTestId(const QString &testId);
+    void syncCustomColumns();
 
 signals:
     void pinnedCountChanged();
