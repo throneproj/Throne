@@ -25,7 +25,8 @@ namespace Subscription {
     };
 
     // Profiles are handed to the sink in document order; the body is consumed in place.
-    void ParseDocument(QByteArray body, const ParseSink &sink);
+    // fileName names the profile of a file that holds just one and gives it no name of its own.
+    void ParseDocument(QByteArray body, const ParseSink &sink, const QString &fileName = {});
 
     void ParseText(const QString &text, const ParseSink &sink);
 

@@ -789,12 +789,16 @@ namespace Subscription {
         }, finish});
     }
 
-    void GroupUpdater::ImportBatch(const QStringList &payloads, const Finish &finish) {
-        if (payloads.isEmpty()) return;
+    void GroupUpdater::ImportFiles(const QList<ImportFile> &files, const Finish &finish) {
+        if (files.isEmpty()) return;
         QList<QByteArray> documents;
-        for (const auto &payload : payloads) documents << payload.trimmed().toUtf8();
+        QStringList names;
+        for (const auto &file : files) {
+            documents << file.text.trimmed().toUtf8();
+            names << file.name.trimmed();
+        }
         enqueue({-1, false, [=, this]() mutable {
-            importDocuments(-1, std::move(documents));
+            importDocuments(-1, std::move(documents), {}, false, names);
             emit asyncUpdateCallback(-1);
         }, finish});
     }
@@ -1035,14 +1039,17 @@ namespace Subscription {
         return true;
     }
 
-    UpdateOutcome GroupUpdater::importDocuments(int gid, QList<QByteArray> documents, const QString &emptyReason, bool quiet) {
+    UpdateOutcome GroupUpdater::importDocuments(int gid, QList<QByteArray> documents, const QString &emptyReason, bool quiet,
+                                                const QStringList &fileNames) {
         auto &settings = Configs::dataManager->settingsRepo;
         settings->imported_count = 0;
         ImportSink sink(gid, nullptr);
         ImportReport report;
 
         MW_show_log(">>>>>>>> " + QObject::tr("Processing subscription data..."));
-        for (auto &document : documents) ParseDocument(std::move(document), sinkFor(sink, report));
+        for (qsizetype i = 0; i < documents.size(); ++i) {
+            ParseDocument(std::move(documents[i]), sinkFor(sink, report), fileNames.value(i));
+        }
         sink.finish();
         MW_show_log(">>>>>>>> " + QObject::tr("Process complete, applying..."));
 

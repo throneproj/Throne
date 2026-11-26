@@ -79,11 +79,12 @@ void commitRemoteRouteUpdate(const std::shared_ptr<Configs::RouteProfile> &route
 
 void MainWindow::importFromFiles(const QStringList &paths)
 {
-    QStringList payloads;
+    QList<Subscription::ImportFile> payloads;
     QStringList problems;
 
     for (const QString &path : paths) {
-        const auto name = QFileInfo(path).fileName();
+        const QFileInfo info(path);
+        const auto name = info.fileName();
         auto file = QFile(path);
         if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
             problems << tr("%1: cannot be opened").arg(name);
@@ -111,9 +112,10 @@ void MainWindow::importFromFiles(const QStringList &paths)
                 problems << tr("%1: no QR code found").arg(name);
                 continue;
             }
+            // An image's file name is usually a camera or screenshot name, so QR payloads go unnamed.
             for (const QString &text : texts) {
                 MW_show_log("QR Code Result:\n" + text);
-                payloads << text.trimmed();
+                payloads << Subscription::ImportFile{text.trimmed(), {}};
             }
             continue;
         }
@@ -123,22 +125,23 @@ void MainWindow::importFromFiles(const QStringList &paths)
             problems << tr("%1: not a readable config file").arg(name);
             continue;
         }
-        payloads << text.trimmed();
+        payloads << Subscription::ImportFile{text.trimmed(), info.completeBaseName()};
     }
 
     for (const QString &problem : problems) MW_show_log(problem);
 
-    QStringList batch;
-    for (const QString &payload : payloads) {
-        if (payload.startsWith("http://") || payload.startsWith("https://")) {
-            import_text(payload);
-        } else if (payload.startsWith("throne://") && !payload.contains('\n')) {
-            import_or_handle_deeplink(payload);
+    QList<Subscription::ImportFile> batch;
+    for (const auto &payload : payloads) {
+        const auto &text = payload.text;
+        if (text.startsWith("http://") || text.startsWith("https://")) {
+            import_text(text);
+        } else if (text.startsWith("throne://") && !text.contains('\n')) {
+            import_or_handle_deeplink(text);
         } else {
             batch << payload;
         }
     }
-    if (!batch.isEmpty() && importTargetAccepted()) Subscription::updater()->ImportBatch(batch);
+    if (!batch.isEmpty() && importTargetAccepted()) Subscription::updater()->ImportFiles(batch);
 
     if (payloads.isEmpty() && !problems.isEmpty()) {
         MessageBoxWarning(software_name, tr("Nothing could be imported:") + "\n" + problems.join("\n"));

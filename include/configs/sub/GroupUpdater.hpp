@@ -56,6 +56,12 @@ namespace Subscription {
         [[nodiscard]] bool ok() const { return failure == Failure::None; }
     };
 
+    // An imported file's text; name is its base name, empty for text that did not come from a file.
+    struct ImportFile {
+        QString text;
+        QString name;
+    };
+
     // Jobs run one at a time on a background worker, in FIFO order.
     class GroupUpdater : public QObject {
         Q_OBJECT
@@ -89,7 +95,7 @@ namespace Subscription {
 
         void ImportText(const QString &text, int gid = -1, const Finish &finish = nullptr);
 
-        void ImportBatch(const QStringList &payloads, const Finish &finish = nullptr);
+        void ImportFiles(const QList<ImportFile> &files, const Finish &finish = nullptr);
 
         // Copies land in the current group and keep their source's endpoint, which no link carries.
         void CloneProfiles(const QList<int> &ids, const Finish &finish = nullptr);
@@ -140,7 +146,9 @@ namespace Subscription {
         // The post-update URL test, when the group asks for one.
         void startUrlTest(int gid, const QList<int> &profileIDs, bool interactive);
         // emptyReason replaces the generic "nothing found" when no profile is imported; quiet never shows a report box.
-        UpdateOutcome importDocuments(int gid, QList<QByteArray> documents, const QString &emptyReason = {}, bool quiet = false);
+        // fileNames: each document's file name, see ParseDocument.
+        UpdateOutcome importDocuments(int gid, QList<QByteArray> documents, const QString &emptyReason = {}, bool quiet = false,
+                                      const QStringList &fileNames = {});
         // *routing gets the "routing" header (a Happ routing link), empty when absent.
         bool fetch(const QString &url, const QString &name, const RequestIdentity &identity, QByteArray &body,
                    Configs::SubUserInfo &subInfo, QString *error = nullptr, QString *routing = nullptr);

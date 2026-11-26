@@ -694,19 +694,38 @@ namespace Subscription {
 
         class Parser {
         public:
-            explicit Parser(const ParseSink &sink) : sink(sink) {}
+            Parser(const ParseSink &sink, QString fileName) : sink(sink), fileName(std::move(fileName)) {}
 
             void document(std::string_view raw, bool allowBase64, bool needParse, int depth, const QString &overrideName = QString());
 
+            // Names a lone unnamed profile after the file, then hands it to the sink.
+            void finish() {
+                if (held != nullptr) setNameIfEmpty(*held, {fileName});
+                release();
+            }
+
         private:
             const ParseSink &sink;
+            const QString fileName;
+            // A file's first profile waits until it is known to be the only one.
+            ProfilePtr held;
             int produced = 0;
             int reported = 0;
 
             void produce(ProfilePtr ent) {
                 if (ent == nullptr) return;
                 ++produced;
+                if (!fileName.isEmpty() && produced == 1) {
+                    held = std::move(ent);
+                    return;
+                }
+                release();
                 if (sink.profile) sink.profile(std::move(ent));
+            }
+
+            void release() {
+                if (held != nullptr && sink.profile) sink.profile(std::move(held));
+                held.reset();
             }
 
             // `source` is a callable: labels are only built for items that have something to report.
@@ -758,8 +777,8 @@ namespace Subscription {
             void clash(std::string_view text);
             void clashProxy(const fkyaml::node &node, int index);
             void wireguardFile(std::string_view text, const QString &overrideName);
-            void openVpnFile(std::string_view text);
-            void openConnectProfile(std::string_view text);
+            void openVpnFile(std::string_view text, const QString &fallbackName);
+            void openConnectProfile(std::string_view text, const QString &fallbackName);
             void link(std::string_view line, int depth, const QString &overrideName);
             void jsonLink(const QString &str, bool throneAdd);
             void vpnLink(const QString &str, int depth);
@@ -808,13 +827,14 @@ namespace Subscription {
                 return;
             }
 
+            // At depth 0 the whole file is this one config.
             if (looksLikeOvpnConfig(text)) {
-                openVpnFile(text);
+                openVpnFile(text, depth == 0 ? fileName : QString());
                 return;
             }
 
             if (looksLikeOpenConnectProfile(text)) {
-                openConnectProfile(text);
+                openConnectProfile(text, depth == 0 ? fileName : QString());
                 return;
             }
 
@@ -1092,9 +1112,11 @@ namespace Subscription {
             });
         }
 
-        void Parser::openVpnFile(std::string_view text) {
+        // fallbackName is set before the parse: the config's friendly name overrides it, the server host only fills an empty one.
+        void Parser::openVpnFile(std::string_view text, const QString &fallbackName) {
             QStringList problems;
             auto ent = Configs::ProfilesRepo::NewProfile("openvpn");
+            ent->outbound->name = fallbackName;
             Validation::Issues issues;
             const bool ok = scoped([&] { return Configs::ParseOvpnConfig(toQString(text), *ent->OpenVPN(), &problems); }, issues);
             appendImporterNotes(issues, problems, ok);
@@ -1103,7 +1125,7 @@ namespace Subscription {
             });
         }
 
-        void Parser::openConnectProfile(std::string_view text) {
+        void Parser::openConnectProfile(std::string_view text, const QString &fallbackName) {
             QStringList problems;
             const auto str = toQString(text);
             const auto kind = [] { return QCoreApplication::translate("Validation", "OpenConnect profile"); };
@@ -1127,6 +1149,8 @@ namespace Subscription {
             }
 
             auto ent = Configs::ProfilesRepo::NewProfile("openconnect");
+            // As in openVpnFile: the server address only fills an empty name.
+            ent->outbound->name = fallbackName;
             Validation::Issues issues;
             const bool ok = scoped([&] { return Configs::ParseOpenConnectProfile(str, *ent->OpenConnect(), &problems); }, issues);
             appendImporterNotes(issues, problems, ok);
@@ -1313,7 +1337,7 @@ namespace Subscription {
         }
     }
 
-    void ParseDocument(QByteArray body, const ParseSink &sink) {
+    void ParseDocument(QByteArray body, const ParseSink &sink, const QString &fileName) {
         scan::trimInPlace(body);
         if (body.isEmpty()) return;
 
@@ -1323,8 +1347,9 @@ namespace Subscription {
             if (auto decoded = QByteArray::fromBase64(body); !decoded.isEmpty()) body = std::move(decoded);
         }
 
-        Parser parser(sink);
+        Parser parser(sink, fileName);
         parser.document(scan::view(body), false, true, 0);
+        parser.finish();
     }
 
     QString ShippedRoutingLink(QByteArray body) {
