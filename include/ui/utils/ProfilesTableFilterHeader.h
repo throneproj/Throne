@@ -27,6 +27,7 @@ public:
     explicit ProfilesTableFilterHeader(QWidget *parent = nullptr)
         : QHeaderView(Qt::Horizontal, parent), m_subCard(new SubscriptionInfoCard(parent)) {
         setSectionsClickable(true);
+        setSectionsMovable(true);
         setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
         // Clicks on the band must not reach QHeaderView, which would sort by the section under them.
@@ -69,6 +70,7 @@ public:
         for (QLineEdit *edit : filterEdits()) edit->installEventFilter(this);
 
         connect(this, &QHeaderView::sectionResized, this, &ProfilesTableFilterHeader::adjustPositions);
+        connect(this, &QHeaderView::sectionMoved, this, &ProfilesTableFilterHeader::adjustPositions);
 
         setFiltersVisible(false);
     }

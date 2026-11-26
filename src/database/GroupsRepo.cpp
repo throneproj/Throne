@@ -47,6 +47,7 @@ namespace Configs {
                 show_services INTEGER NOT NULL DEFAULT 1,
                 visible_columns INTEGER NOT NULL DEFAULT 79,
                 custom_order_json TEXT NOT NULL DEFAULT '[]',
+                column_order_json TEXT NOT NULL DEFAULT '[]',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -70,6 +71,8 @@ namespace Configs {
             db.exec("ALTER TABLE groups ADD COLUMN import_sub_route INTEGER NOT NULL DEFAULT 0");
         if (!groupsColumnExists("custom_order_json"))
             db.exec("ALTER TABLE groups ADD COLUMN custom_order_json TEXT NOT NULL DEFAULT '[]'");
+        if (!groupsColumnExists("column_order_json"))
+            db.exec("ALTER TABLE groups ADD COLUMN column_order_json TEXT NOT NULL DEFAULT '[]'");
         if (!groupsColumnExists("visible_columns")) {
             db.exec("ALTER TABLE groups ADD COLUMN visible_columns INTEGER NOT NULL DEFAULT 79");
             // The old combined column always showed latency, plus the exit IP and speed test_items_to_show kept.
@@ -149,6 +152,7 @@ namespace Configs {
         json["route_id"] = group->route_id;
         json["import_sub_route"] = group->import_sub_route;
         json["column_width"] = QListInt2QJsonArray(group->column_width);
+        json["column_order"] = QListInt2QJsonArray(group->column_order);
         json["visible_columns"] = group->visible_columns;
         json["profiles"] = QListInt2QJsonArray(group->profiles);
         json["custom_order"] = QListInt2QJsonArray(group->custom_order);
@@ -185,6 +189,9 @@ namespace Configs {
         group->route_id = json["route_id"].toInt(-1);
         group->import_sub_route = json["import_sub_route"].toBool();
         group->column_width = QJsonArray2QListInt(json["column_width"].toArray());
+        for (const auto &column : json["column_order"].toArray()) {
+            group->column_order.append(column.toInt(-1));
+        }
         group->visible_columns = json["visible_columns"].toInt(group->visible_columns);
         if (group->column_width.size() == 5) {
             group->column_width = {group->column_width[0], group->column_width[1], group->column_width[2],
@@ -219,6 +226,7 @@ namespace Configs {
         QString subMetadataJson = QString::fromUtf8(QJsonDocument(group->sub_info.toJson()).toJson(QJsonDocument::Compact));
         QString endpointJson = QString::fromUtf8(QJsonDocument(group->endpoint.ToJson()).toJson(QJsonDocument::Compact));
         const auto customOrderJson = QJsonDocument(QListInt2QJsonArray(group->custom_order)).toJson(QJsonDocument::Compact);
+        const auto columnOrderJson = QJsonDocument(QListInt2QJsonArray(group->column_order)).toJson(QJsonDocument::Compact);
         QString pinnedJson = QString::fromUtf8(QJsonDocument(QListInt2QJsonArray(group->pinned)).toJson(QJsonDocument::Compact));
 
         db.exec(R"(
@@ -227,8 +235,8 @@ namespace Configs {
              front_proxy_id, landing_proxy_id,
              column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
              type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-             route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json, column_order_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
                 auto_clear_unavailable = excluded.auto_clear_unavailable, name = excluded.name,
@@ -243,6 +251,7 @@ namespace Configs {
                 route_id = excluded.route_id, import_sub_route = excluded.import_sub_route,
                 pinned_json = excluded.pinned_json, show_services = excluded.show_services,
                 visible_columns = excluded.visible_columns, custom_order_json = excluded.custom_order_json,
+                column_order_json = excluded.column_order_json,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -271,7 +280,8 @@ namespace Configs {
             pinnedJson.toStdString(),
             group->show_services ? 1 : 0,
             group->visible_columns,
-            customOrderJson.toStdString()
+            customOrderJson.toStdString(),
+            columnOrderJson.toStdString()
         );
     }
 
@@ -281,7 +291,7 @@ namespace Configs {
                    front_proxy_id, landing_proxy_id,
                    column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
                    type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-                   route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json
+                   route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json, column_order_json
             FROM groups WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -345,6 +355,11 @@ namespace Configs {
         if (const auto customOrderDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(26).getText()));
             customOrderDoc.isArray()) {
             json["custom_order"] = customOrderDoc.array();
+        }
+
+        if (const auto columnOrderDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(27).getText()));
+            columnOrderDoc.isArray()) {
+            json["column_order"] = columnOrderDoc.array();
         }
 
         auto group = groupFromJson(json);

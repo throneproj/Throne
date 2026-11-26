@@ -411,6 +411,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     profilesFilterModel = new ProfilesFilterProxyModel(this);
     profilesFilterModel->setSourceModel(profilesTableModel);
     ui->profilesTableView->setModel(profilesFilterModel);
+    auto *profilesHeader = ui->profilesTableView->horizontalHeader();
+    connect(profilesHeader, &QHeaderView::sectionMoved, this, [this, profilesHeader] {
+        const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+        if (m_adjustingColumns || Configs::dataManager->settingsRepo->refreshing_group || !group) return;
+        group->column_order.clear();
+        for (int visualIndex = 0; visualIndex < profilesHeader->count(); ++visualIndex) {
+            group->column_order.append(profilesHeader->logicalIndex(visualIndex));
+        }
+        Configs::dataManager->groupsRepo->Save(group);
+    });
     connect(ui->profilesTableView->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this] {
         refresh_startstop_button();
         refresh_action_states();

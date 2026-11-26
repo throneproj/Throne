@@ -151,6 +151,8 @@ namespace Configs
         EndpointSource endpoint;
 
         QList<int> column_width;
+        // Logical profiles-table column IDs in visual order; empty uses the default order.
+        QList<int> column_order;
         // Bits of ProfilesTableModel::Column; type, address, name, latency and traffic by default.
         int visible_columns = 0x4F;
         QList<int> calculated_column_width; // memory only, no need to save to db
