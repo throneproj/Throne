@@ -27,7 +27,9 @@ legacy_modfile() {
   go mod edit -require=github.com/refraction-networking/utls@v1.8.3-0.20260301010127-aa6edf4b11af \
     -droprequire=github.com/molecule-man/go-brrr "$LEGACY_WORK/go.mod"
   go mod download -modfile="$LEGACY_WORK/go.mod" github.com/refraction-networking/utls
-  modules=$(go list -modfile="$LEGACY_WORK/go.mod" -m -f '{{if not .Main}}{{.Path}} {{.GoVersion}}{{end}}' all)
+  # -mod=mod: a module newer than the lowered go line makes plain go list demand a go.mod update; the line is lowered
+  # again below, once every such module is replaced
+  modules=$(go list -mod=mod -modfile="$LEGACY_WORK/go.mod" -m -f '{{if not .Main}}{{.Path}} {{.GoVersion}}{{end}}' all)
   while read -r path go_version; do
     if [[ -n "$go_version" ]] && ! printf '%s\n%s\n' "$go_version" "$legacy" | sort -V -C; then
       stale+=("$path")
@@ -35,7 +37,7 @@ legacy_modfile() {
   done <<< "$modules"
   [[ ${#stale[@]} -gt 0 ]] || return 0
   go mod download -modfile="$LEGACY_WORK/go.mod" "${stale[@]}"
-  modules=$(go list -modfile="$LEGACY_WORK/go.mod" -m -f '{{.Path}}|{{.Version}}|{{.Dir}}' "${stale[@]}")
+  modules=$(go list -mod=mod -modfile="$LEGACY_WORK/go.mod" -m -f '{{.Path}}|{{.Version}}|{{.Dir}}' "${stale[@]}")
   while IFS='|' read -r path version dir; do
     n=$((n + 1))
     cp -R "$dir" "$LEGACY_WORK/mod$n"
@@ -44,6 +46,7 @@ legacy_modfile() {
     go mod edit -replace="$path@$version=$LEGACY_WORK/mod$n" "$LEGACY_WORK/go.mod"
     echo "$path@$version needs a newer Go than $legacy, building a copy with its go line lowered"
   done <<< "$modules"
+  go mod edit -go="$legacy" -toolchain=none "$LEGACY_WORK/go.mod"
 }
 
 if [[ "$GOOS" == "windows" || "$GOOS" == "linux" ]]; then

@@ -14,10 +14,10 @@ on:
         default: false
 env:
   # Every job's Go, and the golang image the Dockerfile builds thronectl with. The legacy builds use MetaCubeX's Go 1.26.
-  GO_VERSION: "1.27.3"
+  GO_VERSION: "1.27.4"
   PROTOC_VERSION: "36.2"
   # throneproj/cronet-go commit whose Chromium toolchain builds the Linux core.
-  CRONET_GO_REF: "2ee86b72426042457b8eb879ab32296f5752bf2f"
+  CRONET_GO_REF: "a95ae18edac8608c1b9ba8584344c04b2933e513"
   # thronectl's source for the Linux zips and packages, the Docker image and the tests; the commit must be pushed to
   # throneproj/Throne-api.
   # A THRONE_API_REF repository variable overrides it.

@@ -8,7 +8,7 @@
 #   docker buildx build --platform linux/amd64,linux/arm64 -f docker/Dockerfile --build-arg THRONE_API_REF=<commit> <context>
 
 # build.yml passes its GO_VERSION; this default is for local builds.
-ARG GO_VERSION=1.27.3
+ARG GO_VERSION=1.27.4
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS thronectl
 ARG THRONE_API_REF
