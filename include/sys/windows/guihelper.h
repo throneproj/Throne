@@ -1,5 +1,6 @@
 #pragma once
 
+class QIcon;
 class QString;
 class QWidget;
 
@@ -9,3 +10,6 @@ bool Windows_IsInAdmin();
 
 // The path with links resolved and every name in its on-disk case, as the OS reports a running image; empty on failure.
 QString Windows_FinalPath(const QString& path);
+
+// What Task Manager shows for a program without an icon of its own; null on failure.
+QIcon Windows_DefaultProgramIcon();

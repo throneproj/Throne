@@ -296,6 +296,8 @@ set(PROJECT_SOURCES
         include/ui/utils/ItemViewFit.h
         include/ui/utils/ConnectionsTreeModel.h
         src/ui/utils/ConnectionsTreeModel.cpp
+        include/ui/utils/ProcessIcon.h
+        src/ui/utils/ProcessIcon.cpp
         include/ui/utils/ConnectionsTreeFilterProxyModel.h
         src/ui/utils/ConnectionsTreeFilterProxyModel.cpp
         include/ui/utils/ScreenQrScanner.h

@@ -10,7 +10,6 @@
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
-#include <QFileIconProvider>
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -34,6 +33,7 @@
 #include "include/database/TrafficStatsRepo.h"
 #include "include/global/Utils.hpp"
 #include "include/ui/utils/NativeFileDialog.h"
+#include "include/ui/utils/ProcessIcon.h"
 #ifdef Q_OS_WIN
 #include "include/sys/windows/guihelper.h"
 #endif
@@ -185,17 +185,6 @@ namespace {
 #endif
     }
 
-    QIcon processPickerIcon(const QString& path) {
-        // Never destroyed: icons must not outlive the application object at exit.
-        static auto* provider = new QFileIconProvider;
-        static auto* cache = new QHash<QString, QIcon>;
-        const auto cached = cache->constFind(path);
-        if (cached != cache->cend()) return *cached;
-        const QIcon found = path.isEmpty() ? provider->icon(QAbstractFileIconProvider::File) : provider->icon(QFileInfo(path));
-        cache->insert(path, found);
-        return found;
-    }
-
     // UI thread only.
     struct ProcessCatalog {
         QList<ProcessPickerProgram> programs;
@@ -295,7 +284,7 @@ public:
                 if (index.column() == ColStatus) return processPickerStatus(program);
                 return program.path.isEmpty() ? ProcessPicker::tr("The core could not read where this program is.") : program.path;
             case Qt::DecorationRole:
-                if (index.column() == ColProgram) return processPickerIcon(program.path);
+                if (index.column() == ColProgram) return ProcessIcon::ForPath(program.path);
                 return {};
             default:
                 return {};
@@ -619,7 +608,7 @@ QVariant ProcessCompletionModel::data(const QModelIndex& index, int role) const 
         const auto& suggestion = programs.at(row);
         if (text) return suggestion.text;
         // Lazy file icon engines: sizing every row is cheap, the shell lookup happens only for painted rows.
-        if (role == Qt::DecorationRole && !suggestion.path.isEmpty()) return processPickerIcon(suggestion.path);
+        if (role == Qt::DecorationRole && !suggestion.path.isEmpty()) return ProcessIcon::ForPath(suggestion.path);
         if (role == Qt::ToolTipRole && !suggestion.tip.isEmpty()) return suggestion.tip;
         return {};
     }

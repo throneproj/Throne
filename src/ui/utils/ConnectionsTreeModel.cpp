@@ -1,5 +1,6 @@
 #include "include/ui/utils/ConnectionsTreeModel.h"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/ProcessIcon.h"
 
 #include <QHash>
 
@@ -136,6 +137,9 @@ QVariant ConnectionsTreeModel::data(const QModelIndex &index, int role) const {
             default:
                 return {};
             }
+        case Qt::DecorationRole:
+            if (index.column() != ColTarget) return {};
+            return ProcessIcon::ForPath(group->processPath);
         case Qt::ToolTipRole:
             if (index.column() == ColOutbound && group->sameOutbound) return group->commonOutbound;
             if (index.column() != ColTarget) return {};
@@ -244,6 +248,7 @@ void ConnectionsTreeModel::setConnections(const QList<Stats::ConnectionMetadata>
             group->commonOutboundText = outboundText(c.outboundName);
             group->commonSource = c.sourceDisplay;
         }
+        if (group->processPath.isEmpty()) group->processPath = c.processPath;
         group->sameOutbound = group->sameOutbound && group->commonOutbound == c.outboundName;
         group->sameSource = group->sameSource && group->commonSource == c.sourceDisplay;
         group->totalConnections++;

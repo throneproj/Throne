@@ -38,6 +38,7 @@ struct ConnectionLeafItem : public TreeItem {
 struct ProcessGroupItem : public TreeItem {
     bool isProcess() const override { return true; }
     QString processName; // empty when the core could not attribute the sockets to a process
+    QString processPath; // the first one any socket reports
     std::vector<std::unique_ptr<ConnectionLeafItem>> children;
     long long totalUpload = 0;
     long long totalDownload = 0;
