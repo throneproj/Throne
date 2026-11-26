@@ -2,9 +2,14 @@ package mobile
 
 import (
 	"context"
+	"errors"
+	"net/netip"
+	"slices"
+	"sync"
 	"time"
 
 	"ThroneCore/internal/probe"
+	"ThroneCore/internal/scan"
 	"ThroneCore/internal/testenv"
 
 	box "github.com/sagernet/sing-box"
@@ -48,6 +53,7 @@ type TestRequest struct {
 	xrayFullConfigs []string
 	vpnEndpointTags []string
 	serviceOnly     []string
+	systemResolvers []string
 }
 
 func (r *TestRequest) AddOutboundTag(tag string) {
@@ -63,8 +69,16 @@ func (r *TestRequest) AddXrayFullConfig(config string) {
 	r.xrayFullConfigs = append(r.xrayFullConfigs, config)
 }
 
+// URL tests only: one of the physical network's DNS servers, an IP literal, asked whether the local network is up when
+// a test fails; with none that check gives no verdict.
+func (r *TestRequest) AddSystemResolver(address string) {
+	r.systemResolvers = append(r.systemResolvers, address)
+}
+
 type URLTestHandler interface {
-	OnResult(tag string, latencyMs int32, err string)
+	// inconclusive: the test failed while the local network was down or lost, so err says nothing about the server (the
+	// desktop's URLTestResp.inconclusive). Never set for a pass or an aborted test.
+	OnResult(tag string, latencyMs int32, err string, inconclusive bool)
 	// After the results, once per AddVPNEndpointTag tag whose test failed: whether that tunnel is up anyway (the
 	// desktop's TestResp.vpn_status).
 	OnVPNStatus(tag string, connected bool, state string, err string)
@@ -247,6 +261,48 @@ func vpnEndpointVerdict(box probe.Box, tag string) (connected bool, state string
 	return false, "", "endpoint is not an openvpn/openconnect client: " + tag
 }
 
+const (
+	localNetworkCheckTimeout = 2 * time.Second
+	localNetworkVerdictTTL   = 2 * time.Second
+)
+
+// Held across the check, so concurrent tests wait for one probe and share its verdict; another network's resolvers
+// ask again.
+var localNetwork struct {
+	sync.Mutex
+	resolvers []netip.AddrPort
+	checkedAt time.Time
+	up        bool
+}
+
+func localNetworkUp(resolvers []netip.AddrPort) bool {
+	localNetwork.Lock()
+	defer localNetwork.Unlock()
+	if !slices.Equal(localNetwork.resolvers, resolvers) || time.Since(localNetwork.checkedAt) >= localNetworkVerdictTTL {
+		localNetwork.up = checkLocalNetwork(resolvers)
+		localNetwork.resolvers = resolvers
+		localNetwork.checkedAt = time.Now()
+	}
+	return localNetwork.up
+}
+
+// No resolvers is no verdict, so failures stand.
+func checkLocalNetwork(resolvers []netip.AddrPort) bool {
+	if monitor := runningInstanceMonitor(); monitor != nil && monitor.DefaultInterface() == nil {
+		return false
+	}
+	up, _ := scan.CheckInternetDNS(context.Background(), scanEgress{}, resolvers, localNetworkCheckTimeout)
+	return up
+}
+
+// The desktop decides once per batch; results stream here, so each failure is decided as it is reported.
+func inconclusiveFailure(err error, egressLost func() bool, resolvers []netip.AddrPort) bool {
+	if err == nil || errors.Is(err, probe.ErrTestAborted) || errors.Is(err, context.Canceled) {
+		return false
+	}
+	return egressLost() || !localNetworkUp(resolvers)
+}
+
 // current is only consulted when request.TestCurrent is set; platform wires protect, the interface
 // monitor and the local DNS transport into the probe box and may be nil off-device.
 func StartURLTest(current *Instance, platform PlatformInterface, request *TestRequest, handler URLTestHandler) error {
@@ -265,15 +321,20 @@ func StartURLTest(current *Instance, platform PlatformInterface, request *TestRe
 	// A muxed config needs a warm connection; the live instance already is one.
 	twice := !request.TestCurrent
 	timeout := time.Duration(request.TimeoutMs) * time.Millisecond
+	// A probe box's monitor follows the same default network as the running box's, and is the only one when none runs.
+	egressLost, stopWatch := watchDefaultInterface(env.Box.Network().InterfaceMonitor())
+	resolvers := systemResolverTargets(request.systemResolvers)
 	go func() {
 		defer handler.OnDone()
 		defer env.Close()
+		defer stopWatch()
 		failed := make(map[string]bool, len(env.Tags))
 		newTestReporter(env.Tags, probe.URLReporter.Results,
 			func(result *probe.URLTestResult) string { return result.Tag },
 			func(result *probe.URLTestResult) {
 				failed[result.Tag] = result.Error != nil
-				handler.OnResult(result.Tag, int32(result.Duration.Milliseconds()), errorString(result.Error))
+				handler.OnResult(result.Tag, int32(result.Duration.Milliseconds()), errorString(result.Error),
+					inconclusiveFailure(result.Error, egressLost, resolvers))
 			},
 		).run(func() []*probe.URLTestResult {
 			return probe.BatchURLTest(testCtx, env.Box, env.Tags, request.URL, int(request.MaxConcurrency), twice, timeout)
