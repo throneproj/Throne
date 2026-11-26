@@ -1,3 +1,28 @@
+#### 1.4.5
+
+* Add Find WARP endpoint **1**
+* Rework the route editor
+* Rework scanning around WARP and DNS tunnel profiles **2**
+* Split test results into Latency, Exit IP and Speed columns
+* Improve menus, toolbar icons and log colors
+* Improve the connections table and the subscription card
+* Improve OpenVPN and OpenConnect sign-ins
+* Improve share link import
+* Remove Simple interface mode
+* Remove Tor and Juicity **3**
+* Remove redundant options and move rarely used ones into Advanced sections
+* Update sing-box, Qt to 6.12.1 and Go to 1.27.4
+* Fixes and Improvements
+
+**1**:
+Find WARP endpoint, in a WARP profile's editor or context menu, searches for endpoints and settings that work on your network, so WARP connects without a server of your own. Refer to the [documentation](https://throneproj.github.io/advanced/warp/#no-server) for more details.
+
+**2**:
+The IP Scanner window, its CDN scan and the DPI evasion settings scan are removed. Resolvers are now found from a DNS tunnel profile, and IP Lists open from Routing Settings.
+
+**3**:
+Tor Browser on top of Tun mode works better than the Tor egress, and TUIC covers what Juicity offered.
+
 #### 1.4.2
 
 * Add Tor as an egress option **1**
