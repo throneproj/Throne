@@ -69,12 +69,13 @@ void DataViewHtmlGenerator::setSpeedtestProgress(const QString &profileName, con
     speedtest_.serverName = QString::fromStdString(result.server_name.value());
 }
 
-void DataViewHtmlGenerator::seedLatencyTest(LatencyTestPanelState::Kind kind, int totalProfiles) {
+void DataViewHtmlGenerator::seedLatencyTest(LatencyTestPanelState::Kind kind, int totalProfiles, const QString &customTestName) {
     QMutexLocker lk(&mu_);
     testProgress.store(0);
     latencyTest_.visible = true;
     latencyTest_.kind = kind;
     latencyTest_.totalProfiles = totalProfiles;
+    latencyTest_.customTestName = customTestName;
     testsStopping_ = false;
 }
 
@@ -265,6 +266,11 @@ QString DataViewHtmlGenerator::latencyTestSectionHtml() {
     QString content = MainWindowTr::tr("Running URL test");
     if (latencyTest_.kind == LatencyTestPanelState::Kind::Ip) content = MainWindowTr::tr("Running exit IP test");
     else if (latencyTest_.kind == LatencyTestPanelState::Kind::Service) content = MainWindowTr::tr("Running service check");
+    else if (latencyTest_.kind == LatencyTestPanelState::Kind::Custom) {
+        const QString name = latencyTest_.customTestName.trimmed();
+        content = MainWindowTr::tr("Running custom test: %1")
+                      .arg((name.isEmpty() ? QObject::tr("Custom Test") : name).toHtmlEscaped());
+    }
     if (latencyTest_.totalProfiles > 1) {
         auto progress = getProgressBar(testProgress.load(), latencyTest_.totalProfiles);
         progress += QString(" ") + Int2String(100 * testProgress.load() / latencyTest_.totalProfiles) + "%";

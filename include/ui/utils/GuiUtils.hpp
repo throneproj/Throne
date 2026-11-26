@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QFont>
 #include <QList>
 #include <QObject>
 
@@ -21,6 +22,9 @@ QString SettingsApplyErrorText(const Engine::ServiceError &error);
 
 // Appended to a delete confirmation; empty unless a group uses one of the profiles as its front or landing proxy.
 QString HopReferenceWarning(const QList<int> &profileIds, int deletedGroup = -1);
+
+QFont BuildMonospaceFont(const QString &family, int pointSize);
+QFont ConfiguredMonospaceFont();
 
 #define QRegExpValidator_Number new QRegularExpressionValidator(QRegularExpression("^[0-9]+$"), this)
 

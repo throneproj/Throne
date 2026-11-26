@@ -1,5 +1,6 @@
 #pragma once
 #include <QDateTime>
+#include <QHash>
 #include <QJsonObject>
 #include <QList>
 #include <QMutex>
@@ -169,6 +170,9 @@ namespace Configs
         GroupSortAction sort;
         // Service check icons in the Exit IP column.
         bool show_services = true;
+        QStringList hidden_custom_tests;
+        QHash<QString, int> custom_column_width;
+        QString custom_sort_test_id;
         // Memory only. Pairs of (profileID, row as displayed).
         QList<std::pair<int, int>> selectedProfilesIdIdxPairs;
 

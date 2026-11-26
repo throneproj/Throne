@@ -67,6 +67,12 @@ namespace API {
         // Empty checks describes the core's embedded definitions; a non-empty reply.error rejects the document.
         libcore::ParseServiceChecksResponse ParseServiceChecks(bool *rpcOK, const QByteArray &checks, QString *coreError = nullptr);
 
+        libcore::CustomTestResponse CustomTest(bool *rpcOK, const libcore::CustomTestRequest &request, QString *coreError = nullptr, int timeoutMs = 0);
+
+        libcore::QueryCustomTestResponse QueryCustomTest(bool *rpcOK);
+
+        QString CheckCustomTest(bool *rpcOK, const QString &script) const;
+
         [[nodiscard]] libcore::QueryConnectionsResp QueryConnections() const;
 
         [[nodiscard]] libcore::QueryConnectionCountResp QueryConnectionCount(bool *rpcOK) const;

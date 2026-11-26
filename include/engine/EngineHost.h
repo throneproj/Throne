@@ -100,7 +100,8 @@ namespace Engine {
 
         bool chooseRoute(int routeId, bool interactive, quint64 serial) override;
 
-        int clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind = std::nullopt) override;
+        int clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind = std::nullopt,
+                             const QString &customTestId = {}) override;
 
         std::optional<LiveRates> freshLiveRates(qint64 maxAgeMs) const override;
 
@@ -115,6 +116,9 @@ namespace Engine {
         bool testsStopRequested() const override;
 
         bool runTests(TestKind kind, const QList<int> &profileIds, const std::function<void()> &onFinished) override;
+
+        bool runCustomTest(const QString &customTestId, const QList<int> &profileIds,
+                           const std::function<void()> &onFinished) override;
 
         void queueUrlTests(const QList<int> &profileIds, const std::function<void()> &onFinished) override;
 

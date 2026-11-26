@@ -13,6 +13,7 @@ namespace GroupSortMethod {
         BySecurity,
         // ByTestResult pinned to latency, whatever the group's test_sort_by.
         ByLatency,
+        ByCustomTest,
     };
 }
 

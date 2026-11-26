@@ -212,6 +212,7 @@ namespace Configs
                     return false;
                 case GroupSortMethod::ByTestResult:
                 case GroupSortMethod::ByLatency:
+                case GroupSortMethod::ByCustomTest:
                     return input == SortInput::Membership || input == SortInput::TestResult;
                 case GroupSortMethod::ByTraffic:
                     return input == SortInput::Membership || input == SortInput::Traffic;
@@ -271,6 +272,26 @@ namespace Configs
                     if (group.traffic_sort_by == trafficBy::dl) key.number = static_cast<double>(profile->traffic_downlink);
                     else if (group.traffic_sort_by == trafficBy::ul) key.number = static_cast<double>(profile->traffic_uplink);
                     else key.number = static_cast<double>(profile->traffic_downlink + profile->traffic_uplink);
+                } else if (method == GroupSortMethod::ByCustomTest) {
+                    const auto it = profile->custom_test_results.constFind(group.custom_sort_test_id);
+                    if (it == profile->custom_test_results.constEnd() || it.value().isEmpty()) {
+                        key.missing = true;
+                    } else {
+                        const auto &res = it.value();
+                        if (res.text.isEmpty() && !res.error.isEmpty()) {
+                            key.missing = true;
+                        } else if (res.sort_kind == CustomTestResult::SortKind::Number) {
+                            key.level = 0;
+                            key.number = res.sort_number;
+                            key.text = res.text;
+                        } else if (res.sort_kind == CustomTestResult::SortKind::String) {
+                            key.level = 1;
+                            key.text = res.sort_string;
+                        } else {
+                            key.level = 1;
+                            key.text = res.text;
+                        }
+                    }
                 }
                 return key;
             }
@@ -333,9 +354,13 @@ namespace Configs
         enum class Commit { Moved, Unchanged, Stale };
 
         // The keys were read unlocked, so a change that landed meanwhile means sorting again.
-        Commit commit(Group &group, const QList<int> &snapshot, const QList<int> &pins, GroupSortAction action, QList<int> order) {
+        Commit commit(Group &group, const QList<int> &snapshot, const QList<int> &pins, GroupSortAction action,
+                      const QString &customSortTestId, QList<int> order) {
             QMutexLocker locker(&group.mutex);
-            if (group.profiles != snapshot || group.pinned != pins || group.sort != action) return Commit::Stale;
+            if (group.profiles != snapshot || group.pinned != pins || group.sort != action
+                || (action.method == GroupSortMethod::ByCustomTest && group.custom_sort_test_id != customSortTestId)) {
+                return Commit::Stale;
+            }
             // A group sorted before the arrangement was kept restores to import order.
             const bool baseline = group.custom_order.isEmpty();
             if (baseline) {
@@ -395,12 +420,14 @@ namespace Configs
             QList<int> snapshot;
             QList<int> pins;
             GroupSortAction action;
+            QString customSortTestId;
             {
                 QMutexLocker locker(&mutex);
                 if (!KeepsSorted()) return false;
                 snapshot = profiles;
                 pins = pinned;
                 action = sort;
+                customSortTestId = custom_sort_test_id;
             }
 
             const SortRule rule(*this, action);
@@ -410,7 +437,7 @@ namespace Configs
             QList<int> order = snapshot;
             std::ranges::stable_sort(order, [&keys](int a, int b) { return keys.less(a, b); });
 
-            switch (commit(*this, snapshot, pins, action, std::move(order))) {
+            switch (commit(*this, snapshot, pins, action, customSortTestId, std::move(order))) {
                 case Commit::Moved: return true;
                 case Commit::Unchanged: return false;
                 case Commit::Stale: break;
@@ -426,6 +453,7 @@ namespace Configs
             QList<int> snapshot;
             QList<int> pins;
             GroupSortAction action;
+            QString customSortTestId;
             bool unplaced;
             {
                 QMutexLocker locker(&mutex);
@@ -433,6 +461,7 @@ namespace Configs
                 snapshot = profiles;
                 pins = pinned;
                 action = sort;
+                customSortTestId = custom_sort_test_id;
                 // Sorted before the arrangement was kept: the pins headed `profiles` outside the sort, so place every row once.
                 unplaced = custom_order.isEmpty() && !pinned.isEmpty();
             }
@@ -480,7 +509,7 @@ namespace Configs
                 order.insert(at, id);
             }
 
-            switch (commit(*this, snapshot, pins, action, std::move(order))) {
+            switch (commit(*this, snapshot, pins, action, customSortTestId, std::move(order))) {
                 case Commit::Moved: return true;
                 case Commit::Unchanged: return false;
                 case Commit::Stale: break;

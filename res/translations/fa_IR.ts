@@ -1197,6 +1197,14 @@ Throne در پس‌زمینه دوباره تلاش می‌کند و راه‌ا
         <translation>قلم</translation>
     </message>
     <message>
+        <source>Monospace Font</source>
+        <translation>فونت هم‌عرض</translation>
+    </message>
+    <message>
+        <source>Monospaced font for logs and code editors.</source>
+        <translation>فونت هم‌عرض برای گزارش‌ها و ویرایشگرهای کد.</translation>
+    </message>
+    <message>
         <source>Proxy Format</source>
         <translation>قالب پروکسی</translation>
     </message>

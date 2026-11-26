@@ -13,6 +13,7 @@
 
 #include "3rdparty/qv2ray/v2/ui/LogHighlighter.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
 #include "include/ui/utils/ThemedIcon.hpp"
 
 using Qv2ray::ui::LogLevel;
@@ -116,17 +117,7 @@ namespace {
 }
 
 void MainWindow::applyLogBrowserFont() {
-    const auto &settings = Configs::dataManager->settingsRepo;
-    // The whole list, not just the resolved family, so glyphs missing from the first font still fall back in order.
-    QFont logFont;
-    logFont.setFamilies(LogFontFamilies(settings->log_font_family));
-    logFont.setStyleHint(QFont::Monospace);
-    logFont.setFixedPitch(true);
-    int pt = settings->log_font_size;
-    if (pt <= 0) pt = qApp->font().pointSize();
-    if (pt <= 0) pt = settings->font_size;
-    if (pt > 0) logFont.setPointSize(pt);
-    ui->masterLogBrowser->setFont(logFont);
+    ui->masterLogBrowser->setFont(ConfiguredMonospaceFont());
 }
 
 void MainWindow::setLogHighlighter(bool darkMode) {

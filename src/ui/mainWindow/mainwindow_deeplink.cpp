@@ -366,6 +366,11 @@ void MainWindow::applySettingsUi(quint32 effects) {
         }
         refresh_proxy_list({}, true);
     }
+    if (has(Schema::UiCustomTests)) {
+        if (profilesTableModel != nullptr) profilesTableModel->syncCustomColumns();
+        rebuildCustomTestMenus();
+        refresh_proxy_list({}, true);
+    }
     if (has(Schema::UiShortcuts)) loadShortcuts();
 }
 

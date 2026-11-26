@@ -6,6 +6,7 @@
 #include <QStringList>
 
 #include "include/global/Const.hpp"
+#include "include/database/entities/CustomTest.h"
 #include "include/sys/UrlScheme.hpp"
 
 #ifdef Q_OS_WIN
@@ -32,6 +33,7 @@ namespace Configs {
         QString exit_lookup_provider = "auto";
         // Service Check ids turned off; checks that a newer definitions revision adds stay on.
         QStringList service_check_disabled = {};
+        QList<CustomTest> custom_tests = {};
         int url_test_timeout_ms = 3000;
         bool disable_tray = false;
         int test_concurrent = 10;

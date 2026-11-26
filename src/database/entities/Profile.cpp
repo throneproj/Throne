@@ -22,6 +22,7 @@ namespace Configs
         test_country.clear();
         ip_out.clear();
         service_checks.clear();
+        custom_test_results.clear();
         latency = 0;
         latency_at = 0;
         dl_speed.clear();

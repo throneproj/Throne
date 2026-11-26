@@ -270,6 +270,8 @@ set(PROJECT_SOURCES
         src/ui/widget/json/SchemaStore.cpp
         include/ui/widget/json/JsonCodeEdit.h
         src/ui/widget/json/JsonCodeEdit.cpp
+        include/ui/widget/JsCodeEdit.h
+        src/ui/widget/JsCodeEdit.cpp
         include/ui/widget/json/JsonIssueList.h
         src/ui/widget/json/JsonIssueList.cpp
         include/ui/widget/json/JsonEditorDialog.h
@@ -425,6 +427,8 @@ set(PROJECT_SOURCES
         src/ui/setting/dialog_basic_settings.cpp
         include/ui/setting/dialog_basic_settings.h
         include/ui/setting/dialog_basic_settings.ui
+        include/ui/setting/dialog_custom_tests.h
+        src/ui/setting/dialog_custom_tests.cpp
 
         src/ui/setting/DiagnosticsTab.cpp
         include/ui/setting/DiagnosticsTab.h
@@ -698,6 +702,7 @@ set(PROJECT_SOURCES
         include/database/entities/IpList.h
         include/database/entities/IpScan.h
         include/database/entities/EndpointSource.h
+        include/database/entities/CustomTest.h
 
         src/database/entities/Profile.cpp
         src/database/entities/Group.cpp
@@ -706,6 +711,7 @@ set(PROJECT_SOURCES
         src/database/entities/OtpProfile.cpp
         src/database/entities/IpScan.cpp
         src/database/entities/EndpointSource.cpp
+        src/database/entities/CustomTest.cpp
 
         src/database/ProfilesRepo.cpp
         src/database/GroupsRepo.cpp

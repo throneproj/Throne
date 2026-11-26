@@ -47,6 +47,9 @@ namespace Configs {
                 show_services INTEGER NOT NULL DEFAULT 1,
                 visible_columns INTEGER NOT NULL DEFAULT 79,
                 custom_order_json TEXT NOT NULL DEFAULT '[]',
+                hidden_custom_tests_json TEXT NOT NULL DEFAULT '[]',
+                custom_column_widths_json TEXT NOT NULL DEFAULT '{}',
+                custom_sort_test_id TEXT NOT NULL DEFAULT '',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -80,6 +83,12 @@ namespace Configs {
             db.exec("ALTER TABLE groups ADD COLUMN pinned_json TEXT NOT NULL DEFAULT '[]'");
         if (!groupsColumnExists("show_services"))
             db.exec("ALTER TABLE groups ADD COLUMN show_services INTEGER NOT NULL DEFAULT 1");
+        if (!groupsColumnExists("hidden_custom_tests_json"))
+            db.exec("ALTER TABLE groups ADD COLUMN hidden_custom_tests_json TEXT NOT NULL DEFAULT '[]'");
+        if (!groupsColumnExists("custom_column_widths_json"))
+            db.exec("ALTER TABLE groups ADD COLUMN custom_column_widths_json TEXT NOT NULL DEFAULT '{}'");
+        if (!groupsColumnExists("custom_sort_test_id"))
+            db.exec("ALTER TABLE groups ADD COLUMN custom_sort_test_id TEXT NOT NULL DEFAULT ''");
 
         db.exec(R"(
             CREATE TABLE IF NOT EXISTS groups_order (
@@ -160,6 +169,13 @@ namespace Configs {
         json["sort_method"] = static_cast<int>(group->sort.method);
         json["sort_descending"] = group->sort.descending;
         json["show_services"] = group->show_services;
+        json["hidden_custom_tests"] = QJsonArray::fromStringList(group->hidden_custom_tests);
+        QJsonObject customWidthsObj;
+        for (auto it = group->custom_column_width.cbegin(); it != group->custom_column_width.cend(); ++it) {
+            customWidthsObj.insert(it.key(), it.value());
+        }
+        json["custom_column_widths"] = customWidthsObj;
+        json["custom_sort_test_id"] = group->custom_sort_test_id;
 
         return json;
     }
@@ -197,11 +213,20 @@ namespace Configs {
         group->test_sort_by = static_cast<testBy>(json["test_sort_by"].toInt(0));
         group->traffic_sort_by = static_cast<trafficBy>(json["traffic_sort_by"].toInt(0));
         group->type_sort_by = static_cast<typeBy>(json["type_sort_by"].toInt(0));
-        if (const int method = json["sort_method"].toInt(0); method > 0 && method <= GroupSortMethod::ByLatency) {
+        if (const int method = json["sort_method"].toInt(0); method > 0 && method <= GroupSortMethod::ByCustomTest) {
             group->sort.method = static_cast<GroupSortMethod::GroupSortMethod>(method);
             group->sort.descending = json["sort_descending"].toBool();
         }
         group->show_services = json["show_services"].toBool(true);
+        for (const auto &v : json["hidden_custom_tests"].toArray()) {
+            const auto id = v.toString();
+            if (!id.isEmpty() && !group->hidden_custom_tests.contains(id)) group->hidden_custom_tests << id;
+        }
+        const auto customWidthsObj = json["custom_column_widths"].toObject();
+        for (auto it = customWidthsObj.constBegin(); it != customWidthsObj.constEnd(); ++it) {
+            if (!it.key().isEmpty() && it.value().toInt() > 0) group->custom_column_width.insert(it.key(), it.value().toInt());
+        }
+        group->custom_sort_test_id = json["custom_sort_test_id"].toString();
 
         return group;
     }
@@ -220,6 +245,12 @@ namespace Configs {
         QString endpointJson = QString::fromUtf8(QJsonDocument(group->endpoint.ToJson()).toJson(QJsonDocument::Compact));
         const auto customOrderJson = QJsonDocument(QListInt2QJsonArray(group->custom_order)).toJson(QJsonDocument::Compact);
         QString pinnedJson = QString::fromUtf8(QJsonDocument(QListInt2QJsonArray(group->pinned)).toJson(QJsonDocument::Compact));
+        QString hiddenCustomTestsJson = QString::fromUtf8(QJsonDocument(QJsonArray::fromStringList(group->hidden_custom_tests)).toJson(QJsonDocument::Compact));
+        QJsonObject customWidthsObj;
+        for (auto it = group->custom_column_width.cbegin(); it != group->custom_column_width.cend(); ++it) {
+            customWidthsObj.insert(it.key(), it.value());
+        }
+        QString customColumnWidthsJson = QString::fromUtf8(QJsonDocument(customWidthsObj).toJson(QJsonDocument::Compact));
 
         db.exec(R"(
             INSERT INTO groups
@@ -227,8 +258,9 @@ namespace Configs {
              front_proxy_id, landing_proxy_id,
              column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
              type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-             route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json,
+             hidden_custom_tests_json, custom_column_widths_json, custom_sort_test_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
                 auto_clear_unavailable = excluded.auto_clear_unavailable, name = excluded.name,
@@ -243,6 +275,9 @@ namespace Configs {
                 route_id = excluded.route_id, import_sub_route = excluded.import_sub_route,
                 pinned_json = excluded.pinned_json, show_services = excluded.show_services,
                 visible_columns = excluded.visible_columns, custom_order_json = excluded.custom_order_json,
+                hidden_custom_tests_json = excluded.hidden_custom_tests_json,
+                custom_column_widths_json = excluded.custom_column_widths_json,
+                custom_sort_test_id = excluded.custom_sort_test_id,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -271,7 +306,10 @@ namespace Configs {
             pinnedJson.toStdString(),
             group->show_services ? 1 : 0,
             group->visible_columns,
-            customOrderJson.toStdString()
+            customOrderJson.toStdString(),
+            hiddenCustomTestsJson.toStdString(),
+            customColumnWidthsJson.toStdString(),
+            group->custom_sort_test_id.toStdString()
         );
     }
 
@@ -281,7 +319,8 @@ namespace Configs {
                    front_proxy_id, landing_proxy_id,
                    column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
                    type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-                   route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json
+                   route_id, import_sub_route, pinned_json, show_services, visible_columns, custom_order_json,
+                   hidden_custom_tests_json, custom_column_widths_json, custom_sort_test_id
             FROM groups WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -346,6 +385,15 @@ namespace Configs {
             customOrderDoc.isArray()) {
             json["custom_order"] = customOrderDoc.array();
         }
+        if (const auto hiddenCustomDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(27).getText()));
+            hiddenCustomDoc.isArray()) {
+            json["hidden_custom_tests"] = hiddenCustomDoc.array();
+        }
+        if (const auto customWidthsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(28).getText()));
+            customWidthsDoc.isObject()) {
+            json["custom_column_widths"] = customWidthsDoc.object();
+        }
+        json["custom_sort_test_id"] = QString::fromStdString(query->getColumn(29).getText());
 
         auto group = groupFromJson(json);
         // Refreshes could map several identical servers onto one id, leaving it in the persisted list once per server (#1775).
