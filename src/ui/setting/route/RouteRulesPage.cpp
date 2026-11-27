@@ -22,6 +22,7 @@
 #include <QStackedWidget>
 #include <QStyleOption>
 #include <QTimer>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include <utility>
@@ -39,12 +40,6 @@ namespace {
             label->setFont(font);
         }
         return label;
-    }
-
-    QPushButton* rulesPageButton(const QString& text, QWidget* parent) {
-        auto* button = new QPushButton(text, parent);
-        button->setAutoDefault(false);
-        return button;
     }
 
     // Plain text, as names come from profiles. An empty accept asks Yes or No.
@@ -128,7 +123,14 @@ RouteRulesPage::RouteRulesPage(std::shared_ptr<Configs::RouteProfile> routeProfi
     leftLayout->setSpacing(6);
     auto* toolbar = new QHBoxLayout;
     toolbar->setSpacing(6);
-    newButton = rulesPageButton(tr("New rule"), left);
+    auto* newButton = new QToolButton(left);
+    newButton->setText(tr("New rule"));
+    newButton->setPopupMode(QToolButton::MenuButtonPopup);
+    auto* quickMenu = new QMenu(newButton);
+    quickMenu->addSection(RouteRuleList::tr("Quick list"));
+    for (const auto kind : RouteEditor::QuickListOrder())
+        quickMenu->addAction(RouteEditor::ListName(kind), this, [this, kind] { openQuickList(kind); });
+    newButton->setMenu(quickMenu);
     duplicateButton = new RulesPageIconButton(QStringLiteral("copy"), tr("Duplicate"), left);
     deleteButton = new RulesPageIconButton(QStringLiteral("trash"), tr("Delete"), left);
     filterEdit = new QLineEdit(left);
@@ -181,7 +183,7 @@ RouteRulesPage::RouteRulesPage(std::shared_ptr<Configs::RouteProfile> routeProfi
     // Weights until the handle is dragged; without them the list's size hint takes most of the width.
     splitter->setSizes({700, 1300});
 
-    connect(newButton, &QPushButton::clicked, this, &RouteRulesPage::addRule);
+    connect(newButton, &QToolButton::clicked, this, &RouteRulesPage::addRule);
     connect(duplicateButton, &QPushButton::clicked, this, [this] { duplicateRow(list->selectedRow()); });
     connect(deleteButton, &QPushButton::clicked, this, [this] { deleteRow(list->selectedRow()); });
     connect(filterEdit, &QLineEdit::textChanged, list, &RouteRuleList::setFilter);
@@ -295,12 +297,13 @@ int RouteRulesPage::rowOf(const std::shared_ptr<Configs::RouteRule>& rule) const
     return RouteEditor::RowOfRule(list->rows(), static_cast<int>(profile->Rules.indexOf(rule)));
 }
 
-void RouteRulesPage::rebuild(const std::shared_ptr<Configs::RouteRule>& keep, bool recompute) {
+void RouteRulesPage::rebuild(const std::shared_ptr<Configs::RouteRule>& keep, bool recompute, bool keepDraft) {
     list->rebuild(recompute);
     // The rebuilt list selects nothing and says nothing, so the page shows the row itself.
     const int row = rowOf(keep);
     if (row >= 0) list->setSelectedRow(row);
-    else onRowSelected(-1);
+    // Editing moves an entry into the input. Keep the editor open when that was its last entry.
+    else if (!keepDraft) onRowSelected(-1);
 }
 
 void RouteRulesPage::onRowSelected(int row) {
@@ -384,7 +387,8 @@ void RouteRulesPage::runQuickListRebuild() {
     if (!quickListRebuildQueued) return;
     quickListRebuildQueued = false;
     const auto edited = std::exchange(quickListEdited, nullptr);
-    rebuild(selected, false);
+    const bool draft = edited && selected == edited && stack->currentWidget() == quickListEditor && quickListEditor->hasPendingEntry();
+    rebuild(selected, false, draft);
     if (const int row = rowOf(edited); row >= 0) list->refreshRow(row);
     updateActions();
     emit changed();
@@ -408,6 +412,26 @@ void RouteRulesPage::addRule() {
     rebuild(rule, false);
     ruleEditor->focusName();
     emit changed();
+}
+
+void RouteRulesPage::openQuickList(Configs::simpleAction kind) {
+    filterEdit->clear();
+    const auto& shown = list->rows();
+    for (int i = 0; i < shown.size(); ++i) {
+        if (shown[i].kind == RouteEditor::RowKind::QuickList && shown[i].list == kind) {
+            list->setSelectedRow(i);
+            return;
+        }
+    }
+    for (const auto& row : RouteEditor::BuildRows(*profile, true)) {
+        if (row.kind != RouteEditor::RowKind::QuickList || row.list != kind) continue;
+        list->setSelectedRow(-1);
+        selected = profile->Rules.at(row.first);
+        quickListEditor->setRow(row, shown);
+        showPage(quickListEditor);
+        updateActions();
+        return;
+    }
 }
 
 void RouteRulesPage::duplicateRow(int row) {
@@ -471,9 +495,7 @@ void RouteRulesPage::clearQuickList(int row) {
         const auto& rule = profile->Rules.at(i);
         for (const QString& attr : RouteEditor::SetConditions(*rule)) rule->set_field_value(attr, {});
     }
-    list->refreshRow(at);
-    if (firstRuleOf(at) == selected) quickListEditor->setRow(now, list->rows());
-    updateActions();
+    rebuild(selected == first ? neighbourOf(at) : selected, false);
     emit changed();
 }
 
@@ -503,7 +525,7 @@ void RouteRulesPage::moveRow(int from, int to) {
     const int count = static_cast<int>(rows.size());
     if (from < 0 || from >= count || to < 0 || to >= count || from == to) return;
     RouteEditor::MoveRow(*profile, rows, from, to);
-    rebuild(selected, false);
+    rebuild(selected, true);
     emit changed();
 }
 
