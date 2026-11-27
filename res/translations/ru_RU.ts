@@ -1605,12 +1605,12 @@ Throne will restart to complete the restore.</source>
         <translation>Копировать ссылки профилей (deep links)</translation>
     </message>
     <message>
-        <source>Default (%1)</source>
-        <translation>По умолчанию (%1)</translation>
+        <source>Global (%1)</source>
+        <translation>Глобальный (%1)</translation>
     </message>
     <message>
-        <source>Default</source>
-        <translation>По умолчанию</translation>
+        <source>Global</source>
+        <translation>Глобальный</translation>
     </message>
     <message>
         <source>%1 (from this subscription)</source>
@@ -1625,8 +1625,8 @@ Throne will restart to complete the restore.</source>
         <translation>Использовать профиль маршрутизации из подписки</translation>
     </message>
     <message>
-        <source>Routing profile this group&apos;s profiles use. Default: the Routing menu&apos;s choice.</source>
-        <translation>Профиль маршрутизации для профилей этой группы. По умолчанию: выбор в меню «Маршруты».</translation>
+        <source>Routing profile this group&apos;s profiles use. Global: the Routing menu&apos;s choice.</source>
+        <translation>Профиль маршрутизации для профилей этой группы. Глобальный: выбор в меню «Маршруты».</translation>
     </message>
     <message>
         <source>Each update saves the subscription&apos;s Happ routing profile for this group.</source>

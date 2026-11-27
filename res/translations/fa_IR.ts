@@ -1538,12 +1538,12 @@ Included: %2</source>
         <translation>پروکسی مقصد</translation>
     </message>
     <message>
-        <source>Default (%1)</source>
-        <translation>پیش فرض (%1)</translation>
+        <source>Global (%1)</source>
+        <translation>سراسری (%1)</translation>
     </message>
     <message>
-        <source>Default</source>
-        <translation>پیش فرض</translation>
+        <source>Global</source>
+        <translation>سراسری</translation>
     </message>
     <message>
         <source>%1 (from this subscription)</source>
@@ -1558,8 +1558,8 @@ Included: %2</source>
         <translation>استفاده از نمایه مسیریابی اشتراک</translation>
     </message>
     <message>
-        <source>Routing profile this group&apos;s profiles use. Default: the Routing menu&apos;s choice.</source>
-        <translation>نمایه مسیریابی که نمایه‌های این گروه از آن استفاده می‌کنند. «پیش فرض»: گزینهٔ انتخاب‌شده در منوی مسیریابی.</translation>
+        <source>Routing profile this group&apos;s profiles use. Global: the Routing menu&apos;s choice.</source>
+        <translation>نمایه مسیریابی که نمایه‌های این گروه از آن استفاده می‌کنند. «سراسری»: گزینهٔ انتخاب‌شده در منوی مسیریابی.</translation>
     </message>
     <message>
         <source>Each update saves the subscription&apos;s Happ routing profile for this group.</source>

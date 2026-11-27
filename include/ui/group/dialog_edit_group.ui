@@ -99,7 +99,7 @@
       <item row="4" column="1">
        <widget class="QComboBox" name="route">
         <property name="toolTip">
-         <string>Routing profile this group's profiles use. Default: the Routing menu's choice.</string>
+         <string>Routing profile this group's profiles use. Global: the Routing menu's choice.</string>
         </property>
        </widget>
       </item>

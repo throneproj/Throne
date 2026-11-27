@@ -1537,8 +1537,8 @@ Included: %2</source>
         <translation>路由配置档</translation>
     </message>
     <message>
-        <source>Routing profile this group&apos;s profiles use. Default: the Routing menu&apos;s choice.</source>
-        <translation>这个分组的配置档使用的路由配置档。“默认”：「路由」菜单中的选择。</translation>
+        <source>Routing profile this group&apos;s profiles use. Global: the Routing menu&apos;s choice.</source>
+        <translation>这个分组的配置档使用的路由配置档。“全局”：「路由」菜单中的选择。</translation>
     </message>
     <message>
         <source>Auto clear unavailable profiles</source>
@@ -1577,12 +1577,12 @@ Included: %2</source>
         <translation>复制配置档分享链接(深度链接)</translation>
     </message>
     <message>
-        <source>Default (%1)</source>
-        <translation>默认 (%1)</translation>
+        <source>Global (%1)</source>
+        <translation>全局 (%1)</translation>
     </message>
     <message>
-        <source>Default</source>
-        <translation>默认</translation>
+        <source>Global</source>
+        <translation>全局</translation>
     </message>
     <message>
         <source>%1 (from this subscription)</source>

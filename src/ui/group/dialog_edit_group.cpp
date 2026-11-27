@@ -59,12 +59,12 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
 
     const auto &routesRepo = Configs::dataManager->routesRepo;
     const auto globalRoute = routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
-    ui->route->addItem(globalRoute != nullptr ? tr("Default (%1)").arg(globalRoute->name) : tr("Default"), QVariant(-1));
+    ui->route->addItem(globalRoute != nullptr ? tr("Global (%1)").arg(globalRoute->name) : tr("Global"), QVariant(-1));
     for (const auto &route : routesRepo->GetAllRouteProfiles()) {
         const bool owned = ent->id >= 0 && route->source_gid == ent->id;
         ui->route->addItem(owned ? tr("%1 (from this subscription)").arg(route->name) : route->name, QVariant(route->id));
     }
-    // A dangling id builds with the global routing profile, so it shows as Default.
+    // A dangling id builds with the global routing profile, so it shows as Global.
     ui->route->setCurrentIndex(std::max(0, ui->route->findData(QVariant(ent->route_id))));
     subOptions = ent->sub_options;
     endpoint = ent->endpoint;
