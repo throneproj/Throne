@@ -818,7 +818,11 @@ void RouteRuleEditor::fillLine(const QString& attr) {
     const auto it = lines.find(attr);
     if (it == lines.end() || current == nullptr) return;
     Line& line = it.value();
-    if (inlineState.attr == attr) detachInline(true);
+    if (inlineState.attr == attr) {
+        if (QWidget* widget = inlineWidget(); widget != nullptr && widget->hasFocus()) focusInline = true;
+        detachInline(true);
+    }
+    line.host->setFocusProxy(nullptr);
     line.flow->clear();
     line.chips.clear();
     line.add = nullptr;
@@ -943,6 +947,8 @@ QLineEdit* RouteRuleEditor::makeInlineEdit(const QString& attr, QWidget* host) {
         if (edit != inlineState.edit.data()) return;
         if (text.contains(QLatin1Char('\n')) || text.contains(QLatin1Char('\r'))) commitInline(true, true);
     });
+    // A click on the line's buttons then leaves the focus here instead of closing the field under them.
+    host->setFocusProxy(edit);
     inlineState.edit = edit;
     return edit;
 }
@@ -957,6 +963,7 @@ QPlainTextEdit* RouteRuleEditor::makeTextBox(const QString& attr, QWidget* host)
         if (!box->extraSelections().isEmpty()) box->setExtraSelections({});
     });
     box->installEventFilter(this);
+    host->setFocusProxy(box);
     inlineState.box = box;
     return box;
 }
@@ -1000,10 +1007,19 @@ void RouteRuleEditor::scheduleRefill(const QString& attr) {
     if (!attr.isEmpty()) refillAttrs.insert(attr);
     if (applyQueued) return;
     applyQueued = true;
+    releaseWaits = 0;
+    QTimer::singleShot(0, this, [this] { runScheduled(); });
+}
+
+void RouteRuleEditor::runScheduled() {
     // reveal() may have run it already.
-    QTimer::singleShot(0, this, [this] {
-        if (applyQueued) applyScheduled();
-    });
+    if (!applyQueued) return;
+    // A button state stuck after a lost release gives up after 2 s.
+    if (QGuiApplication::mouseButtons() != Qt::NoButton && releaseWaits++ < 80) {
+        QTimer::singleShot(25, this, [this] { runScheduled(); });
+        return;
+    }
+    applyScheduled();
 }
 
 void RouteRuleEditor::applyScheduled() {
@@ -1301,6 +1317,8 @@ void RouteRuleEditor::chooseApps(const QString& attr) {
     if (rule == nullptr) return;
     const QStringList picked = ProcessPicker::Pick(this, {ruleEditorMatchOf(key)});
     if (picked.isEmpty() || rule != current) return;
+    // The field beside the button closes as if left: typed values go in first.
+    if (inlineState.open && inlineState.attr == key) closeInline();
     QStringList values = rule->get_current_value_string(key);
     bool added = false;
     for (const QString& value : picked) {

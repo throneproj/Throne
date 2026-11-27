@@ -122,6 +122,8 @@ private:
     // Stops watching the inline field before it goes; keepText carries its text into the next one.
     void detachInline(bool keepText);
     void scheduleRefill(const QString& attr);
+    // Waits while a mouse button is held, so the pressed button outlives the rebuild until its click lands.
+    void runScheduled();
     void applyScheduled();
     void focusLine(const QString& attr, int index);
 
@@ -192,6 +194,7 @@ private:
 
     QSet<QString> refillAttrs;
     bool applyQueued = false;
+    int releaseWaits = 0;
     bool focusInline = false;
     QString focusAttr;
     int focusIndex = -1;

@@ -785,40 +785,41 @@ namespace QuickListsDetail {
         const auto visual = [&option](const QRect& rect) { return QStyle::visualRect(option.direction, option.rect, rect); };
 
         painter->save();
-        if (item.issue && !selected) {
-            QColor tint = item.error ? tokens.danger : tokens.warning;
-            tint.setAlphaF(0.10f);
-            painter->fillRect(option.rect, tint);
+        // A tint of our own with the usual text colours, as the rule list does: windows11 draws a pale selection under white HighlightedText.
+        QColor background;
+        if (selected) {
+            background = RouteEditor::Mix(tokens.accent, tokens.surface, (option.state & QStyle::State_HasFocus) ? 0.2 : 0.14);
+        } else if (item.issue) {
+            background = item.error ? tokens.danger : tokens.warning;
+            background.setAlphaF(0.10f);
+        } else if (option.state & QStyle::State_MouseOver) {
+            background = RouteEditor::Mix(tokens.onSurface, tokens.surface, 0.035);
         }
-        QStyleOptionViewItem panel(option);
-        initStyleOption(&panel, index);
-        const QStyle* style = option.widget != nullptr ? option.widget->style() : QApplication::style();
-        style->drawPrimitive(QStyle::PE_PanelItemViewItem, &panel, painter, option.widget);
+        if (background.isValid()) painter->fillRect(option.rect, background);
         painter->setRenderHint(QPainter::Antialiasing);
 
-        const QColor highlighted = option.palette.color(QPalette::HighlightedText);
         const QRect line(option.rect.left() + m.pad, option.rect.top() + m.vpad, option.rect.width() - m.pad * 2, m.line);
 
         const QRect chip(line.left(), line.top() + (m.line - m.chipHeight) / 2, m.chipWidth, m.chipHeight);
-        QColor chipFill = selected ? highlighted : tokens.onSurface;
-        chipFill.setAlphaF(selected ? 0.18f : 0.08f);
+        QColor chipFill = tokens.onSurface;
+        chipFill.setAlphaF(0.08f);
         painter->setPen(Qt::NoPen);
         painter->setBrush(chipFill);
         painter->drawRoundedRect(QRectF(visual(chip)), 3, 3);
         painter->setFont(m.small);
-        painter->setPen(selected ? highlighted : tokens.muted);
+        painter->setPen(tokens.muted);
         painter->drawText(visual(chip), Qt::AlignCenter, item.label);
 
         const QRect remove = EntryDelegate::removeRect(option.rect, m, option.direction);
         const bool hover = view != nullptr && view->hoverRow == index.row() && view->hoverRemove;
         if (hover) {
-            QColor ring = selected ? highlighted : tokens.onSurface;
+            QColor ring = tokens.onSurface;
             ring.setAlphaF(0.14f);
             painter->setPen(Qt::NoPen);
             painter->setBrush(ring);
             painter->drawEllipse(QRectF(remove));
         }
-        const QColor cross = selected ? highlighted : hover ? tokens.onSurface : tokens.muted;
+        const QColor cross = hover ? tokens.onSurface : tokens.muted;
         painter->setPen(QPen(cross, 1.4, Qt::SolidLine, Qt::RoundCap));
         const qreal inset = remove.width() * 0.32;
         const QRectF mark = QRectF(remove).adjusted(inset, inset, -inset, -inset);
@@ -829,7 +830,7 @@ namespace QuickListsDetail {
         const int valueRight = option.rect.right() - m.pad * 2 - m.removeSize;
         const QRect valueRect(valueLeft, line.top(), qMax(0, valueRight - valueLeft + 1), m.line);
         painter->setFont(option.font);
-        painter->setPen(selected ? highlighted : item.error ? tokens.danger : item.issue ? tokens.warning : tokens.onSurface);
+        painter->setPen(item.error ? tokens.danger : item.issue ? tokens.warning : tokens.onSurface);
         const QString value = model->entries.at(index.row()).value;
         painter->drawText(visual(valueRect), Qt::AlignLeft | Qt::AlignVCenter,
                           option.fontMetrics.elidedText(value, item.middleElide ? Qt::ElideMiddle : Qt::ElideRight, valueRect.width()));
@@ -837,7 +838,7 @@ namespace QuickListsDetail {
         if (item.issue) {
             const QRect messageRect(valueLeft, line.bottom() + 2, qMax(0, line.right() - valueLeft + 1), m.messageHeight);
             painter->setFont(m.small);
-            painter->setPen(selected ? highlighted : item.error ? tokens.danger : tokens.warning);
+            painter->setPen(item.error ? tokens.danger : tokens.warning);
             const QString message = model->entries.at(index.row()).issue.message;
             painter->drawText(visual(messageRect), Qt::AlignLeft | Qt::AlignVCenter,
                               QFontMetrics(m.small).elidedText(message, Qt::ElideRight, messageRect.width()));
@@ -940,7 +941,7 @@ struct QuickListEditor::Private {
     EntryInput* input = nullptr;
     QPushButton* addButton = nullptr;
     QLabel* addError = nullptr;
-    QToolButton* textButton = nullptr;
+    QPushButton* textButton = nullptr;
     EntryText* text = nullptr;
     bool textMode = false;
     // The first line the last apply rejected.
@@ -971,15 +972,9 @@ QuickListEditor::QuickListEditor(std::shared_ptr<Configs::RouteProfile> profile,
     d->title = makeLabel(this, Tone::Text, false);
     boldFont(d->title, 1.3);
     d->pill = new RouteEditor::ThenPill(this);
-    d->textButton = new QToolButton(this);
-    d->textButton->setText(tr("Edit as text"));
-    d->textButton->setAutoRaise(true);
-    d->textButton->setToolButtonStyle(Qt::ToolButtonTextOnly);
-    d->textButton->setCursor(Qt::PointingHandCursor);
     header->addWidget(d->title);
     header->addWidget(d->pill);
     header->addStretch(1);
-    header->addWidget(d->textButton);
     layout->addLayout(header);
 
     d->intro = makeLabel(this, Tone::Muted, true);
@@ -1005,10 +1000,6 @@ QuickListEditor::QuickListEditor(std::shared_ptr<Configs::RouteProfile> profile,
     d->text->onLeave = [this] { applyText(false); };
     d->text->hide();
     layout->addWidget(d->text, 1);
-    connect(d->textButton, &QToolButton::clicked, this, [this] {
-        if (d->textMode) applyText(true);
-        else openText();
-    });
 
     auto* addRow = new QHBoxLayout();
     d->input = new EntryInput(this);
@@ -1021,6 +1012,16 @@ QuickListEditor::QuickListEditor(std::shared_ptr<Configs::RouteProfile> profile,
     connect(d->addButton, &QPushButton::clicked, this, [this] { submit(); });
     addRow->addWidget(d->input, 1);
     addRow->addWidget(d->addButton);
+    d->textButton = new QPushButton(tr("Edit as text"), this);
+    d->textButton->setAutoDefault(false);
+    // Clicked, it leaves the focus in the text box: the box applies on leaving, which would end text mode before the click.
+    d->textButton->setFocusPolicy(Qt::TabFocus);
+    // Aligned, so it keeps its width and stays at the end once text mode hides the field and Add.
+    addRow->addWidget(d->textButton, 0, Qt::AlignRight);
+    connect(d->textButton, &QPushButton::clicked, this, [this] {
+        if (d->textMode) applyText(true);
+        else openText();
+    });
     layout->addLayout(addRow);
 
     d->addError = makeLabel(this, Tone::Danger, true);
@@ -1167,6 +1168,7 @@ void QuickListEditor::openText() {
     d->input->hide();
     d->addButton->hide();
     d->text->show();
+    setFocusProxy(d->text);
     d->textButton->setText(tr("Done"));
     d->text->moveCursor(QTextCursor::End);
     d->text->setFocus(Qt::OtherFocusReason);
@@ -1182,6 +1184,7 @@ void QuickListEditor::closeText() {
     d->addButton->show();
     if (d->text->hasFocus()) d->view->setFocus(Qt::OtherFocusReason);
     d->text->hide();
+    setFocusProxy(nullptr);
     d->text->setExtraSelections({});
     d->text->clear();
     d->textButton->setText(tr("Edit as text"));
