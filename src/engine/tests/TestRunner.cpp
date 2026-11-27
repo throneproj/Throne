@@ -53,7 +53,7 @@ namespace Engine {
         }
 
         // Mirror the core's URLTestTimeout, TunnelStartupTimeout, TunnelHandshakeTimeout and normalizeConcurrency.
-        constexpr int kTestRunnerCoreDefaultTimeoutMs = 3000;
+        constexpr int kTestRunnerCoreDefaultTimeoutMs = 5000;
         constexpr int kTestRunnerTunnelStartupMs = 5000;
         constexpr int kTestRunnerTunnelHandshakeMs = 10000;
         constexpr int kTestRunnerCoreMaxConcurrency = 100;

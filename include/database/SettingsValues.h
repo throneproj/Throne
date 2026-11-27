@@ -32,7 +32,7 @@ namespace Configs {
         QString exit_lookup_provider = "auto";
         // Service Check ids turned off; checks that a newer definitions revision adds stay on.
         QStringList service_check_disabled = {};
-        int url_test_timeout_ms = 3000;
+        int url_test_timeout_ms = 5000;
         bool disable_tray = false;
         int test_concurrent = 10;
         int current_group = 0;

@@ -13,7 +13,7 @@ import (
 var URLReporter resultBuffer[URLTestResult]
 
 const (
-	URLTestTimeout    = 3 * time.Second
+	URLTestTimeout    = 5 * time.Second
 	urlTestDrainLimit = 64 * 1024
 )
 
