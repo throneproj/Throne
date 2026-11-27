@@ -140,6 +140,7 @@ func prepareTestEnv(current *Instance, testCurrent bool, platform PlatformInterf
 			return nil, nil, err
 		}
 		probe.LimitWireGuardWorkers(&options)
+		probe.CollectXrayProbeRoutes(&options, request.XrayConfig, request.xrayFullConfigs).Register(ctx)
 		ctx, cancel := context.WithCancel(ctx)
 		boxInstance, err := box.New(box.Options{
 			Context: ctx,

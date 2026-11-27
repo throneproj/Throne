@@ -115,7 +115,7 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 	}
 
 	var routeRules []option.Rule
-	var xrayTunnelHops map[string]int
+	var probeRoutes probe.XrayProbeRoutes
 	box, cancel, err := boxmain.Create([]byte(*in.CoreConfig), stack.PublishBoxContext, func(options *option.Options) {
 		if options.Route != nil {
 			routeRules = options.Route.Rules
@@ -123,14 +123,13 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		if systemDNS {
 			sysdns.AdjustInbound(options)
 		}
-		if in.GetNeedXray() {
-			xrayTunnelHops = probe.XrayDNSTunnelHops(options, in.GetXrayConfig())
-		}
+		probeRoutes = probe.CollectXrayProbeRoutes(options, in.GetXrayConfig(), in.GetXrayFullConfigs())
 	})
 	if err != nil {
 		stopSidecars()
 		return
 	}
+	probeRoutes.Register(box.Context())
 	setBoxInstance(box, cancel, routeRules)
 
 	if systemDNS {
@@ -142,8 +141,6 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 			return
 		}
 	}
-
-	untrackDNSTunnels = probe.TrackDNSTunnels(box, xrayTunnelHops)
 
 	if in.GetTunIpv4Cidr() != "" {
 		stopEgressForwardingWatch = watchEgressForwarding(box.Network())
@@ -177,11 +174,6 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 	if stopEgressForwardingWatch != nil {
 		stopEgressForwardingWatch()
 		stopEgressForwardingWatch = nil
-	}
-
-	if untrackDNSTunnels != nil {
-		untrackDNSTunnels()
-		untrackDNSTunnels = nil
 	}
 
 	// Unpublished first, so a poll mid-teardown sees no instance rather than a dying one.

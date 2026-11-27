@@ -151,6 +151,7 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 		xrayStack.Close()
 		return nil, err
 	}
+	probe.CollectXrayProbeRoutes(&boxOptions, options.XrayConfig, options.xrayFullConfigs).Register(ctx)
 	ctx, cancel := context.WithCancel(ctx)
 	urlTestHistory := urltest.NewHistoryStorage()
 	ctx = service.ContextWithPtr(ctx, urlTestHistory)

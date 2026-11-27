@@ -35,20 +35,17 @@ func prepareTestEnv(current bool, needXray bool, xrayConfig string, xrayFullConf
 		UseDefaultOutbound: useDefaultOutbound,
 	}
 	return testenv.Prepare(request, currentEgress, func(publish func(context.Context)) (*boxmain.Box, func(), error) {
-		var xrayTunnelHops map[string]int
+		var probeRoutes probe.XrayProbeRoutes
 		box, cancel, err := boxmain.Create([]byte(coreConfig), publish, func(options *option.Options) {
 			applyAutoRedirectMark(options, autoRedirectMark.Load())
 			probe.LimitWireGuardWorkers(options)
-			if needXray {
-				xrayTunnelHops = probe.XrayDNSTunnelHops(options, xrayConfig)
-			}
+			probeRoutes = probe.CollectXrayProbeRoutes(options, xrayConfig, xrayFullConfigs)
 		})
 		if err != nil {
 			return nil, nil, err
 		}
-		untrack := probe.TrackDNSTunnels(box, xrayTunnelHops)
+		probeRoutes.Register(box.Context())
 		return box, func() {
-			untrack()
 			box.CloseWithTimeout(cancel, 2*time.Second, log.Println, false)
 		}, nil
 	})

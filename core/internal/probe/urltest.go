@@ -42,9 +42,10 @@ func BatchURLTestTo(ctx context.Context, i Box, outboundTags []string, url strin
 			}
 			client, closeClient := outboundHTTPClient(ctx, i, tag, outbound)
 			defer closeClient()
-			duration, err := urlTest(ctx, client, url, firstRequestTimeout(i, tag, twice, timeout))
+			first, regular := requestTimeouts(i, tag, twice, timeout)
+			duration, err := urlTest(ctx, client, url, first)
 			if err == nil && twice {
-				duration, err = urlTest(ctx, client, url, timeout)
+				duration, err = urlTest(ctx, client, url, regular)
 			}
 			return &URLTestResult{Duration: duration, Tag: tag, Error: err}
 		},

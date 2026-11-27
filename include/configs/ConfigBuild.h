@@ -71,6 +71,9 @@ namespace Configs
         QList<RouteRuleOrigin> routeRuleOrigins;
     };
 
+    // RPC deadlines cover the slowest possible tag; the core applies this floor per finalmask route.
+    inline constexpr int kFinalMaskTestMinTimeoutMs = 10000;
+
     class BuildTestConfigResult {
     public:
         QString error;
