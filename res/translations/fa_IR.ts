@@ -6116,6 +6116,14 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>Validation</name>
     <message>
+        <source>An Xray full config used in a routing rule cannot have a group front or landing proxy.</source>
+        <translation>پیکربندی کامل Xray در یک قانون مسیریابی نمی‌تواند پروکسی ورودی یا خروجی گروه داشته باشد.</translation>
+    </message>
+    <message>
+        <source>Traffic uses the routing rules from the Xray config %1.</source>
+        <translation>ترافیک طبق قوانین مسیریابی داخلی پروفایل Xray با نام %1 هدایت می‌شود.</translation>
+    </message>
+    <message>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>

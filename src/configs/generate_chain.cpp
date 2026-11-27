@@ -391,6 +391,12 @@ namespace Configs {
                     {"routeOnly", false}
                 };
                 RouteXrayListenerRulesViaBridge(userXrayConfig);
+                if (req.xrayRuleTarget) {
+                    // A second instance must not reopen the subscription's listeners or process-wide services.
+                    static const QSet<QString> isolated = {"inbounds", "api", "metrics", "reverse", "env", "geodata"};
+                    for (const auto &key : userXrayConfig.keys())
+                        if (isolated.contains(key.toLower())) userXrayConfig.remove(key);
+                }
                 auto inbounds = (!ctx.policy.listeners || req.soleXrayInbound) ? QJsonArray()
                                                                                : userXrayConfig["inbounds"].toArray();
                 inbounds.prepend(bridgeInbound);

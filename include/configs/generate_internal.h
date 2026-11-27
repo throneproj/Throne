@@ -254,6 +254,7 @@ namespace Configs {
             int xrayFullConfigPort = -1;
             // Sibling configs from one subscription repeat these ports and would fail to bind.
             bool soleXrayInbound = false;
+            bool xrayRuleTarget = false;
             bool warpWrap = false;
             bool auxiliary = false;
             QSet<QString> addressableTags;

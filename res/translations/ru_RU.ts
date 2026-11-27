@@ -13366,6 +13366,14 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>Validation</name>
     <message>
+        <source>An Xray full config used in a routing rule cannot have a group front or landing proxy.</source>
+        <translation>Полную конфигурацию Xray можно использовать в правиле только без входного и выходного прокси группы.</translation>
+    </message>
+    <message>
+        <source>Traffic uses the routing rules from the Xray config %1.</source>
+        <translation>Трафик пойдёт по встроенным правилам маршрутизации профиля Xray «%1».</translation>
+    </message>
+    <message>
         <source>Add at least one profile to the chain.</source>
         <translation>Добавьте в цепочку хотя бы один профиль.</translation>
     </message>
