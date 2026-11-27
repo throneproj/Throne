@@ -1,5 +1,10 @@
 #include "LogHighlighter.hpp"
 
+#include <QHostAddress>
+#include <QSet>
+
+#include <algorithm>
+
 namespace Qv2ray::ui {
     namespace {
         struct Span {
@@ -37,6 +42,36 @@ namespace Qv2ray::ui {
             static const QRegularExpression re(QStringLiteral(
                 R"re((\b(?:NXDOMAIN|SERVFAIL|REFUSED|FORMERR|NOTIMP)\b)|(=> (?:reject|block)\b|\brejected\b))re"));
             return re;
+        }
+
+        // [IPv6], IPv4, bare IPv6 or a domain (group 4 = its TLD), then an optional :port or /prefix.
+        // The TLD must be lowercase, so Go identifiers like net.OpError never match.
+        const QRegularExpression &addressTokens() {
+            static const QRegularExpression re(QStringLiteral(
+                R"re((?<![\w.-])(?:\[([0-9A-Fa-f.]*:[0-9A-Fa-f:.]*(?:%[\w.-]+)?)\]|((?:\d{1,3}\.){3}\d{1,3})|(?<!:)((?:[0-9A-Fa-f]{0,4}:){2,7}(?:(?:\d{1,3}\.){3}\d{1,3}|[0-9A-Fa-f]{1,4})?(?:%[\w.-]+)?)|(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+([a-z][a-z0-9-]{0,61}[a-z0-9]))(?::\d{1,5}|/\d{1,3})?(?![\w(\[-]|[.:]\w))re"));
+            return re;
+        }
+
+        bool isAddress(const QRegularExpressionMatch &match) {
+            if (match.capturedStart(1) >= 0) return !QHostAddress(match.captured(1)).isNull();
+            if (match.capturedStart(2) >= 0) return !QHostAddress(match.captured(2)).isNull();
+            if (match.capturedStart(3) >= 0) {
+                // A digit rules out hex words around "::"; parsing rules out clock times and MACs.
+                const auto v6 = match.capturedView(3);
+                return std::any_of(v6.begin(), v6.end(), [](QChar c) { return c.isDigit(); }) && !QHostAddress(v6.toString()).isNull();
+            }
+            static const QSet<QString> fileExtensions{
+                QStringLiteral("bat"),  QStringLiteral("bin"),  QStringLiteral("cfg"),  QStringLiteral("conf"), QStringLiteral("cpp"),
+                QStringLiteral("crt"),  QStringLiteral("css"),  QStringLiteral("dat"),  QStringLiteral("db"),   QStringLiteral("dll"),
+                QStringLiteral("dylib"), QStringLiteral("exe"), QStringLiteral("go"),   QStringLiteral("gz"),   QStringLiteral("hpp"),
+                QStringLiteral("html"), QStringLiteral("ini"),  QStringLiteral("js"),   QStringLiteral("json"), QStringLiteral("jsonc"),
+                QStringLiteral("key"),  QStringLiteral("lock"), QStringLiteral("log"),  QStringLiteral("mmdb"), QStringLiteral("pem"),
+                QStringLiteral("png"),  QStringLiteral("ps1"),  QStringLiteral("qm"),   QStringLiteral("qss"),  QStringLiteral("so"),
+                QStringLiteral("srs"),  QStringLiteral("svg"),  QStringLiteral("sys"),  QStringLiteral("tar"),  QStringLiteral("tmp"),
+                QStringLiteral("toml"), QStringLiteral("txt"),  QStringLiteral("ui"),   QStringLiteral("xml"),  QStringLiteral("xz"),
+                QStringLiteral("yaml"), QStringLiteral("yml"),  QStringLiteral("zip"),
+            };
+            return !fileExtensions.contains(match.captured(4));
         }
 
         Span span(const QRegularExpressionMatch &match, int group) {
@@ -123,6 +158,7 @@ namespace Qv2ray::ui {
         for (const auto &color : colors.connections) connectionFormats.append(makeFormat(color));
         warnTokenFormat = makeFormat(colors.warn);
         errorTokenFormat = makeFormat(colors.error);
+        addressFormat = makeFormat(colors.address);
         searchFormat.setBackground(colors.searchBackground);
         searchFormat.setForeground(colors.searchForeground);
     }
@@ -148,6 +184,12 @@ namespace Qv2ray::ui {
             const auto colon = text.lastIndexOf(QLatin1String(": "));
             const int from = colon >= bodyStart ? static_cast<int>(colon) + 2 : bodyStart;
             if (from < text.size()) setFormat(from, static_cast<int>(text.size()) - from, levelTextFormats[static_cast<int>(p.level)]);
+        }
+
+        auto addresses = addressTokens().globalMatch(text, bodyStart);
+        while (addresses.hasNext()) {
+            const auto match = addresses.next();
+            if (isAddress(match)) setFormat(static_cast<int>(match.capturedStart(0)), static_cast<int>(match.capturedLength(0)), addressFormat);
         }
 
         auto tokens = bodyTokens().globalMatch(text, bodyStart);

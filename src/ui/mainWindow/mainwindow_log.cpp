@@ -138,6 +138,8 @@ void MainWindow::setLogHighlighter(bool darkMode) {
     colors.warn = levels[2];
     colors.error = levels[3];
     colors.connections = connectionColors(tokens.surface);
+    // Cyan, so it never reads as the blue INFO word.
+    colors.address = ContrastSeparated(calmLogColor(QColor::fromHslF(190.0f / 360.0f, 0.6f, 0.5f), tokens.onSurface, 0.5f), tokens.surface, 4.5);
     colors.searchBackground = darkMode ? QColor(150, 110, 0) : QColor(255, 225, 90);
     colors.searchForeground = darkMode ? QColor(Qt::white) : QColor(Qt::black);
 

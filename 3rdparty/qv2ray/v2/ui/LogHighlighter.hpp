@@ -11,7 +11,7 @@ namespace Qv2ray::ui {
     enum class LogLevel : quint8 { Debug, Info, Warn, Error };
 
     struct LogColors {
-        QColor muted, info, warn, error;
+        QColor muted, info, warn, error, address;
         // One is picked per connection id, so every line of a connection shares it.
         QList<QColor> connections;
         QColor searchBackground, searchForeground;
@@ -38,6 +38,7 @@ namespace Qv2ray::ui {
         std::array<QTextCharFormat, 4> levelTextFormats;
         QList<QTextCharFormat> connectionFormats;
         QTextCharFormat warnTokenFormat, errorTokenFormat;
+        QTextCharFormat addressFormat;
         QTextCharFormat searchFormat;
         QRegularExpression searchPattern;
     };
