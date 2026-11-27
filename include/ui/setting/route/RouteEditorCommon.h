@@ -131,7 +131,7 @@ namespace RouteEditor {
     QString RuleSummary(const Configs::RouteRule& rule);
 
     // validate(), an Error for an enabled final rule without conditions, and a disabled rule's errors as warnings.
-    QList<Configs::RuleIssue> RuleProblems(const Configs::RouteRule& rule);
+    QList<Configs::RuleIssue> RuleProblems(const Configs::RouteRule& rule, bool profilePinsXray);
 
     // Text lines, trimmed, without blank lines, comment lines (#, !, //) and list bullets.
     QStringList ValueLines(const QString& text);

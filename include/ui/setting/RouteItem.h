@@ -41,6 +41,7 @@ signals:
     void settingsChanged(std::shared_ptr<Configs::RouteProfile> routingChain);
 
 protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
 
     void keyPressEvent(QKeyEvent *event) override;

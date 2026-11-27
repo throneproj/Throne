@@ -170,13 +170,15 @@ namespace Engine::RouteService {
                 if (!always && routeServiceAtDefault(rule, attr)) continue;
                 attributes.insert(attr, routeServiceValue(rule, attr));
             }
-            return {
+            QJsonObject json{
                 {"type", Configs::ruleTypeToToken(rule.type)},
                 {"name", rule.name},
                 {"disabled", rule.disabled},
                 {"remote", rule.remote},
                 {"attributes", attributes},
             };
+            if (rule.type == Configs::custom) json["ignore_xray_routing"] = rule.ignoreXrayRouting;
+            return json;
         }
 
         std::optional<QString> routeServiceScalarText(const QJsonValue &value) {
@@ -231,10 +233,11 @@ namespace Engine::RouteService {
             std::optional<QString> token;
             std::optional<QString> name;
             std::optional<bool> disabled;
-            std::optional<bool> remote;
+            std::optional<bool> ignoreXray, remote;
             if (auto error = routeServiceReadString(object, QStringLiteral("type"), &token)) return bad(error->message);
             if (auto error = routeServiceReadString(object, QStringLiteral("name"), &name)) return bad(error->message);
             if (auto error = routeServiceReadBool(object, QStringLiteral("disabled"), &disabled)) return bad(error->message);
+            if (auto error = routeServiceReadBool(object, QStringLiteral("ignore_xray_routing"), &ignoreXray)) return bad(error->message);
             if (auto error = routeServiceReadBool(object, QStringLiteral("remote"), &remote)) return bad(error->message);
             const int type = Configs::tokenToRuleType(token.value_or(QStringLiteral("custom")));
             if (Configs::ruleTypeToToken(type) != token.value_or(QStringLiteral("custom"))) {
@@ -269,6 +272,7 @@ namespace Engine::RouteService {
                 }
             }
             if (disabled && type != Configs::endpointPreferredBy) rule->disabled = *disabled;
+            if (type == Configs::custom) rule->ignoreXrayRouting = ignoreXray.value_or(false);
             // Echoed back from a read, it keeps the rule replaced by the next update.
             if (remote && type != Configs::endpointPreferredBy) rule->remote = *remote;
             *out = rule;
@@ -409,6 +413,7 @@ namespace Engine::RouteService {
             std::optional<QString> rawRoute;
             std::optional<QString> remoteUrl;
             std::optional<bool> preventModifications;
+            std::optional<bool> ignoreXrayRouting;
             std::optional<bool> autoUpdate;
             std::optional<bool> customDns;
             std::optional<int> defaultOutbound;
@@ -418,6 +423,7 @@ namespace Engine::RouteService {
             if (auto error = routeServiceReadInt(body, QStringLiteral("default_outbound"), &defaultOutbound)) return error;
             if (auto error = routeServiceReadString(body, QStringLiteral("raw_route"), &rawRoute)) return error;
             if (auto error = routeServiceReadBool(body, QStringLiteral("prevent_modifications"), &preventModifications)) return error;
+            if (auto error = routeServiceReadBool(body, QStringLiteral("ignore_xray_routing"), &ignoreXrayRouting)) return error;
             if (auto error = routeServiceReadString(body, QStringLiteral("remote_url"), &remoteUrl)) return error;
             if (auto error = routeServiceReadBool(body, QStringLiteral("auto_update"), &autoUpdate)) return error;
             if (auto error = routeServiceReadBool(body, QStringLiteral("custom_dns"), &customDns)) return error;
@@ -431,6 +437,8 @@ namespace Engine::RouteService {
             if (preventModifications.value_or(false) && !raw) {
                 return routeServiceBad(QStringLiteral("\"prevent_modifications\" applies only to raw routing profiles"));
             }
+            if (ignoreXrayRouting.value_or(false) && raw)
+                return routeServiceBad(QStringLiteral("\"ignore_xray_routing\" applies only to structured routing profiles"));
             if (remoteUrl && !remote && !remoteUrl->isEmpty()) {
                 return routeServiceBad(QStringLiteral("\"remote_url\" applies only to remote routing profiles"));
             }
@@ -469,6 +477,7 @@ namespace Engine::RouteService {
 
             if (name) route.name = name->trimmed();
             if (defaultOutbound) route.defaultOutboundID = *defaultOutbound;
+            if (!raw && ignoreXrayRouting) route.ignoreXrayRouting = *ignoreXrayRouting;
             if (raw && rawRoute) {
                 // Stored the way the window's raw editor stores it; validation reports a text that is not an object.
                 const auto document = QJsonDocument::fromJson(rawRoute->toUtf8());
@@ -514,7 +523,7 @@ namespace Engine::RouteService {
             }
             for (qsizetype i = 0; i < route.Rules.size(); ++i) {
                 const auto &rule = *route.Rules[i];
-                for (const auto &issue : rule.validate()) {
+                for (const auto &issue : rule.validate(route.ignoreXrayRouting)) {
                     (issue.severity == Validation::Severity::Error ? *problems : *warnings) << routeServiceIssueLine(i + 1, rule, issue);
                 }
             }
@@ -558,6 +567,7 @@ namespace Engine::RouteService {
         return {
             {"kind", kind},
             {"default_outbound", route.defaultOutboundID},
+            {"ignore_xray_routing", route.ignoreXrayRouting},
             {"rules", rules},
             {"simple", QJsonObject{
                 {"proxy", route.GetSimpleRules(Configs::proxy)},

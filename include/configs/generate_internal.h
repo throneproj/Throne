@@ -94,10 +94,12 @@ namespace Configs {
         struct RoutingDeps {
             QStringList neededRuleSets;
             std::map<int, QString> outboundMap;
+            std::map<int, QString> pinnedOutbounds;
             struct RouteOutboundGroup {
                 QList<int> hopIDs;
                 std::shared_ptr<Profile> chainWrapper;
                 std::shared_ptr<Profile> profile;
+                bool pinXrayExit = false;
             };
             QList<RouteOutboundGroup> routeOutboundGroups;
             struct AuxEndpointGroup {
@@ -186,6 +188,7 @@ namespace Configs {
             std::shared_ptr<Profile> ent = std::make_shared<Profile>(nullptr, nullptr);
             // The routing profile this build uses (BuildSingBoxConfig only).
             int routeId = -1;
+            bool ignoreXrayRouting = false;
             // That routing profile's DNS; routeOwnsDns also overrides the global DNS object.
             RouteDns dns;
             bool routeOwnsDns = false;
@@ -254,6 +257,8 @@ namespace Configs {
             int xrayFullConfigPort = -1;
             // Sibling configs from one subscription repeat these ports and would fail to bind.
             bool soleXrayInbound = false;
+            bool xrayRuleTarget = false;
+            bool pinXrayExit = false;
             bool warpWrap = false;
             bool auxiliary = false;
             QSet<QString> addressableTags;

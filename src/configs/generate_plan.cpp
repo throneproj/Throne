@@ -194,6 +194,7 @@ namespace Configs {
                 ctx.error = "Routing profile does not exist, try resetting the routing profile in Routing Settings";
                 return;
             }
+            ctx.ignoreXrayRouting = routeChain->ignoreXrayRouting;
             // A verbatim raw profile takes no twins, and an unreachable bridge still starts a tun.
             ctx.l3Bridge = l3BridgeEnabled(ctx) && !(routeChain->isRaw && routeChain->preventModifications);
 
@@ -209,17 +210,29 @@ namespace Configs {
             preReqs.routing.outboundMap[warpBypassID] = exitWrapperOn() ? tags::warpBypass : tags::proxy;
             int suffix = 0;
             if (proxyPathUsesXray(ctx, ctx.ent)) ctx.proxyUsesXray = true;
-            for (const auto &item: *neededOutbounds) {
-                if (item < 0) continue;
-                auto neededEnt = getProfile(item);
+            for (const auto &[item, wantsPin] : neededOutbounds) {
+                const bool mainProxy = item == proxyID;
+                if (item < 0 && !(mainProxy && wantsPin)) continue;
+                const auto neededEnt = mainProxy ? ctx.ent : getProfile(item);
+                if (mainProxy && !isXrayFullConfig(neededEnt)) continue;
                 if (neededEnt == nullptr) {
                     ctx.error = "The routing profile is referencing outbounds that no longer exist, consider revising your settings";
                     return;
                 }
-                if ((neededEnt->outbound != nullptr && neededEnt->outbound->IsExtraCore()) || isCustomFullConfig(neededEnt) || isXrayFullConfig(neededEnt)) {
+                if ((neededEnt->outbound != nullptr && neededEnt->outbound->IsExtraCore()) || isCustomFullConfig(neededEnt)) {
                     ctx.error = "Outbounds used in routing profile cannot use an extra core or be a custom full config";
                     return;
                 }
+                const bool pin = wantsPin && isXrayFullConfig(neededEnt) && !ctx.ignoreXrayRouting && !neededEnt->Custom()->ignoreXrayRouting;
+                if (mainProxy && !pin) continue; // The ordinary proxy already has the requested policy.
+                if (mainProxy && exitWrapperOn()) {
+                    ctx.error = QObject::tr("A rule cannot override Xray routing through a WARP exit. Use the routing profile setting instead.");
+                    return;
+                }
+                auto &tagsById = pin ? preReqs.routing.pinnedOutbounds : preReqs.routing.outboundMap;
+                const auto [entry, fresh] = tagsById.try_emplace(neededEnt->id, hopTag(tags::routeChainPrefix, suffix));
+                if (mainProxy) tagsById[proxyID] = entry->second;
+                if (!fresh) continue;
                 QList<int> hopIDs;
                 if (neededEnt->type == "chain") {
                     auto chain = neededEnt->Chain();
@@ -248,10 +261,14 @@ namespace Configs {
                     hopIDs = {chain->list.rbegin(), chain->list.rend()};
                 } else {
                     if (usesXrayCore(neededEnt)) ctx.proxyUsesXray = true;
-                    hopIDs = {item};
+                    hopIDs = {neededEnt->id};
                 }
                 // Wrapped in its own group's landing/front, as when the profile is started on its own.
                 if (const auto group = dataManager->groupsRepo->GetGroup(neededEnt->gid); group != nullptr) {
+                    if (isXrayFullConfig(neededEnt) && (group->landing_proxy_id >= 0 || group->front_proxy_id >= 0)) {
+                        ctx.error = QCoreApplication::translate("Validation", "An Xray full config used in a routing rule cannot have a group front or landing proxy.");
+                        return;
+                    }
                     for (const int proxyID : {group->landing_proxy_id, group->front_proxy_id}) {
                         const auto proxyEnt = proxyID >= 0 ? getProfile(proxyID) : nullptr;
                         if (proxyEnt == nullptr) continue;
@@ -265,8 +282,7 @@ namespace Configs {
                     if (group->landing_proxy_id >= 0) hopIDs.prepend(group->landing_proxy_id);
                     if (group->front_proxy_id >= 0) hopIDs.append(group->front_proxy_id);
                 }
-                preReqs.routing.outboundMap[item] = hopTag(tags::routeChainPrefix, suffix);
-                preReqs.routing.routeOutboundGroups << RoutingDeps::RouteOutboundGroup{hopIDs, neededEnt->type == "chain" ? neededEnt : nullptr, neededEnt};
+                preReqs.routing.routeOutboundGroups << RoutingDeps::RouteOutboundGroup{hopIDs, neededEnt->type == "chain" ? neededEnt : nullptr, neededEnt, pin};
                 suffix += static_cast<int>(hopIDs.size());
             }
 

@@ -123,6 +123,7 @@ namespace Configs {
         int type = custom;
         // Kept in the profile but left out of the generated config.
         bool disabled = false;
+        bool ignoreXrayRouting = false;
         // Came from the profile's remote source, so the next update replaces it. Local state, never shared.
         bool remote = false;
         QString ip_version;
@@ -203,7 +204,7 @@ namespace Configs {
         // One list item or scalar value of attr, on its own; the outbound and cross-field rules are validate()'s.
         [[nodiscard]] static RuleIssue check_value(const QString& attr, const QString& value);
         // Every problem the core would refuse at start, or that leaves the rule not doing what it says.
-        [[nodiscard]] QList<RuleIssue> validate() const;
+        [[nodiscard]] QList<RuleIssue> validate(bool profilePinsXray = false) const;
         // The (attr, related, severity) shapes validate() reports cross-field problems in.
         [[nodiscard]] static QList<RuleIssue> cross_checks();
     };

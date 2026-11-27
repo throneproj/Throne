@@ -184,6 +184,7 @@ namespace Configs {
             return true;
         };
 
+        QHash<int, bool> ignoreXrayRoutingByGroup;
         for (const auto& item : profiles)
         {
             const auto candidate = classifyTestCandidate(item);
@@ -192,6 +193,12 @@ namespace Configs {
                 MW_show_log(candidate.skipReason);
                 continue;
             }
+            // A batch may span groups with different effective routing profiles.
+            if (!ignoreXrayRoutingByGroup.contains(item->gid)) {
+                const auto route = dataManager->routesRepo->GetRouteProfile(RouteIdFor(item->gid));
+                ignoreXrayRoutingByGroup.insert(item->gid, route && route->ignoreXrayRouting);
+            }
+            ctx.ignoreXrayRouting = ignoreXrayRoutingByGroup.value(item->gid);
             if (candidate.kind == testCandidate::XrayFullConfig)
             {
                 if (options.validate && !IsValid(item)) {
