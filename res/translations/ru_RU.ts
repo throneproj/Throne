@@ -8245,6 +8245,18 @@ Close without saving?</source>
         <translation>Восстановить исходный порядок</translation>
     </message>
     <message>
+        <source>Restore default order</source>
+        <translation>Восстановить порядок по умолчанию</translation>
+    </message>
+    <message>
+        <source>Reorder columns</source>
+        <translation>Изменить порядок колонок</translation>
+    </message>
+    <message>
+        <source>Drag the columns into the order you want.</source>
+        <translation>Перетащите колонки в нужном порядке.</translation>
+    </message>
+    <message>
         <source>Show:</source>
         <translation>Показывать:</translation>
     </message>

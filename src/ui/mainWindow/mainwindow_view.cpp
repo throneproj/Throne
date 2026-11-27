@@ -5,11 +5,17 @@
 #include <limits>
 
 #include <QApplication>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QHeaderView>
+#include <QLabel>
+#include <QListWidget>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QSet>
 #include <QTimer>
 #include <QToolButton>
+#include <QVBoxLayout>
 
 #include "include/api/RPC.h"
 #include "include/database/GroupsRepo.h"
@@ -530,6 +536,48 @@ void MainWindow::refresh_proxy_list_column_size() {
         vBar->blockSignals(vBarBlocked);
         m_adjustingColumns = false;
     });
+}
+
+void MainWindow::editProfileColumnOrder() {
+    auto *header = static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader());
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Reorder columns"));
+    auto *layout = new QVBoxLayout(&dialog);
+    layout->addWidget(new QLabel(tr("Drag the columns into the order you want."), &dialog));
+    auto *list = new QListWidget(&dialog);
+    list->setDragDropMode(QAbstractItemView::InternalMove);
+    list->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    layout->addWidget(list);
+    const auto fill = [this, list](const QList<int> &order) {
+        list->clear();
+        for (const int column : order) {
+            auto *item = new QListWidgetItem(profilesTableModel->headerData(column, Qt::Horizontal).toString(), list);
+            item->setData(Qt::UserRole, column);
+        }
+    };
+    QList<int> order;
+    for (int visual = 0; visual < header->count(); ++visual) order << header->logicalIndex(visual);
+    fill(order);
+    const auto listedOrder = [list] {
+        QList<int> listed;
+        for (int row = 0; row < list->count(); ++row) listed << list->item(row)->data(Qt::UserRole).toInt();
+        return listed;
+    };
+    QList<int> defaults;
+    for (int column = 0; column < header->count(); ++column) defaults << column;
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    auto *restoreDefault = buttons->addButton(tr("Restore default order"), QDialogButtonBox::ResetRole);
+    const auto updateRestore = [restoreDefault, listedOrder, defaults] { restoreDefault->setEnabled(listedOrder() != defaults); };
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    connect(restoreDefault, &QPushButton::clicked, &dialog, [fill, defaults] { fill(defaults); });
+    // A drop that QListWidget cannot move falls back to remove + insert.
+    connect(list->model(), &QAbstractItemModel::rowsMoved, &dialog, updateRestore);
+    connect(list->model(), &QAbstractItemModel::rowsInserted, &dialog, updateRestore);
+    updateRestore();
+    layout->addWidget(buttons);
+    if (dialog.exec() != QDialog::Accepted) return;
+    header->setColumnOrder(listedOrder());
 }
 
 void MainWindow::refresh_proxy_list(const QList<int>& ids, bool mayNeedReset, RefreshAnchor anchor) {

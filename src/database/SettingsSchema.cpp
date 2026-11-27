@@ -122,6 +122,7 @@ namespace Configs::SettingsSchema {
                 {"skip_delete_confirmation", &SettingsValues::skip_delete_confirmation},
                 {"show_config_security", &SettingsValues::show_config_security, Portable, UiProfileList},
                 {"last_filter_column", &SettingsValues::last_filter_column},
+                {"profile_column_order", &SettingsValues::profile_column_order},
                 {"url_scheme_mirror", &SettingsValues::url_scheme_mirror, Host},
                 {"url_scheme_auto_register", &SettingsValues::url_scheme_auto_register, Host},
                 {"file_assoc_mirror", &SettingsValues::file_assoc_mirror, Host},

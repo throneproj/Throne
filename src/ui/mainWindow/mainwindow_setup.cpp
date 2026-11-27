@@ -520,11 +520,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             if (!menu.isEmpty()) menu.addSeparator();
             QAction *restoreOrder = group->KeepsSorted() ? menu.addAction(tr("Restore original order")) : nullptr;
             menu.addAction(ui->actionRefresh_Column_Widths);
+            auto *reorderColumns = menu.addAction(tr("Reorder columns"));
             menu.addSeparator();
             auto *showLabel = menu.addAction(tr("Show:"));
             showLabel->setEnabled(false);
             std::array<QAction*, ProfilesTableModel::ColumnCount> visibilityActions{};
-            for (int column = 0; column < ProfilesTableModel::ColumnCount; ++column) {
+            for (int visual = 0; visual < ProfilesTableModel::ColumnCount; ++visual) {
+                const int column = header->logicalIndex(visual);
+                if (column < 0) continue;
                 auto *action = menu.addAction(profilesTableModel->headerData(column, Qt::Horizontal).toString());
                 action->setCheckable(true);
                 action->setChecked(group->visible_columns & (1 << column));
@@ -557,6 +560,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 if (testKind == Engine::TestKind::Ip && group->show_services) {
                     Engine::host()->clearTestResults(profileIds, Engine::TestKind::Service);
                 }
+                return nullptr;
+            }
+            if (chosen == reorderColumns) {
+                editProfileColumnOrder();
                 return nullptr;
             }
             if (chosen == restoreOrder) {
@@ -680,6 +687,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(filterHeader, &ProfilesTableFilterHeader::lastFilterColumnChanged, this, [](int column)
     {
         Configs::dataManager->settingsRepo->last_filter_column = column;
+        Configs::dataManager->settingsRepo->Save();
+    });
+    QList<int> columnOrder;
+    for (const auto &column : Configs::dataManager->settingsRepo->profile_column_order) {
+        bool ok = false;
+        if (const int logical = column.toInt(&ok); ok) columnOrder << logical;
+    }
+    filterHeader->setColumnOrder(columnOrder);
+    connect(filterHeader, &ProfilesTableFilterHeader::columnOrderChanged, this, [filterHeader] {
+        QStringList order;
+        for (const int column : filterHeader->columnOrder()) order << QString::number(column);
+        Configs::dataManager->settingsRepo->profile_column_order = order;
         Configs::dataManager->settingsRepo->Save();
     });
 

@@ -3857,6 +3857,18 @@ Close without saving?</source>
         <translation>بازیابی ترتیب اولیه</translation>
     </message>
     <message>
+        <source>Restore default order</source>
+        <translation>بازیابی ترتیب پیش‌فرض</translation>
+    </message>
+    <message>
+        <source>Reorder columns</source>
+        <translation>تغییر ترتیب ستون‌ها</translation>
+    </message>
+    <message>
+        <source>Drag the columns into the order you want.</source>
+        <translation>ستون‌ها را به ترتیب دلخواه بکشید و رها کنید.</translation>
+    </message>
+    <message>
         <source>Show:</source>
         <translation>نمایش:</translation>
     </message>

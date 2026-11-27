@@ -454,6 +454,8 @@ private:
 
     void refresh_proxy_list_column_size();
 
+    void editProfileColumnOrder();
+
     void refresh_sort_indicator();
 
     // Keeps the current group sorted by `action` from now on.
