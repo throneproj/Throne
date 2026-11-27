@@ -23,7 +23,7 @@ namespace DnsServerHistory {
     }
 
     const QStringList& DirectPresets() {
-        static const QStringList presets = {"localhost", "223.5.5.5", "119.29.29.29", "178.22.122.100", "77.88.8.8"};
+        static const QStringList presets = {"localhost", "223.5.5.5", "119.29.29.29", "178.22.122.100", "https://77.88.8.8/dns-query", "77.88.8.8"};
         return presets;
     }
 
