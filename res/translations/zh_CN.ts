@@ -13266,6 +13266,14 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>Validation</name>
     <message>
+        <source>An Xray full config used in a routing rule cannot have a group front or landing proxy.</source>
+        <translation>用于路由规则的完整 Xray 配置不能带有组的前置或落地代理。</translation>
+    </message>
+    <message>
+        <source>Traffic uses the routing rules from the Xray config %1.</source>
+        <translation>流量将按 Xray 配置 %1 的内置路由规则转发。</translation>
+    </message>
+    <message>
         <source>Add at least one profile to the chain.</source>
         <translation>添加至少一个配置档到链。</translation>
     </message>

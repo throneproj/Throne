@@ -210,13 +210,13 @@ namespace Configs {
             int suffix = 0;
             if (proxyPathUsesXray(ctx, ctx.ent)) ctx.proxyUsesXray = true;
             for (const auto &item: *neededOutbounds) {
-                if (item < 0) continue;
+                if (item < 0 || preReqs.routing.outboundMap.contains(item)) continue;
                 auto neededEnt = getProfile(item);
                 if (neededEnt == nullptr) {
                     ctx.error = "The routing profile is referencing outbounds that no longer exist, consider revising your settings";
                     return;
                 }
-                if ((neededEnt->outbound != nullptr && neededEnt->outbound->IsExtraCore()) || isCustomFullConfig(neededEnt) || isXrayFullConfig(neededEnt)) {
+                if ((neededEnt->outbound != nullptr && neededEnt->outbound->IsExtraCore()) || isCustomFullConfig(neededEnt)) {
                     ctx.error = "Outbounds used in routing profile cannot use an extra core or be a custom full config";
                     return;
                 }
@@ -252,6 +252,10 @@ namespace Configs {
                 }
                 // Wrapped in its own group's landing/front, as when the profile is started on its own.
                 if (const auto group = dataManager->groupsRepo->GetGroup(neededEnt->gid); group != nullptr) {
+                    if (isXrayFullConfig(neededEnt) && (group->front_proxy_id >= 0 || group->landing_proxy_id >= 0)) {
+                        ctx.error = QCoreApplication::translate("Validation", "An Xray full config used in a routing rule cannot have a group front or landing proxy.");
+                        return;
+                    }
                     for (const int proxyID : {group->landing_proxy_id, group->front_proxy_id}) {
                         const auto proxyEnt = proxyID >= 0 ? getProfile(proxyID) : nullptr;
                         if (proxyEnt == nullptr) continue;
