@@ -21,7 +21,7 @@ env:
   # thronectl's source for the Linux zips and packages, the Docker image and the tests; the commit must be pushed to
   # throneproj/Throne-api.
   # A THRONE_API_REF repository variable overrides it.
-  THRONE_API_REF: ${{ vars.THRONE_API_REF || 'b5758e3ca341aab6d4124aedc4d04845ca1ab069' }}
+  THRONE_API_REF: ${{ vars.THRONE_API_REF || '0883d8f8212de7b7e0408b49cb66297b80b4267d' }}
   # Part of the Qt archive cache keys: bump it whenever throneproj/buildqt republishes a Qt_<version> release.
   QT_BUILD_REV: "1"
 jobs:
