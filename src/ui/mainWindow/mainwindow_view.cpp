@@ -646,6 +646,7 @@ void MainWindow::url_test_current() {
         if (!rpcOK || result.results.empty()) return;
 
         auto latency = result.results[0].latency_ms.value();
+        const bool inconclusive = result.results[0].inconclusive.value();
         last_test_time = QDateTime::currentSecsSinceEpoch();
         // Blocking RPC, so it has to resolve here rather than on the UI thread.
         const auto vpnText = latency <= 0 ? Stats::LiveVpnStateText() : QString();
@@ -655,7 +656,8 @@ void MainWindow::url_test_current() {
                 MW_show_log(QString("URL test error: %1").arg(QString::fromStdString(result.results[0].error.value())));
             }
             if (latency <= 0) {
-                ui->label_running->setText(tr("Test Result") + ": " + (vpnText.isEmpty() ? tr("Unavailable") : vpnText));
+                const auto failed = inconclusive ? tr("No network") : tr("Unavailable");
+                ui->label_running->setText(tr("Test Result") + ": " + (vpnText.isEmpty() ? failed : vpnText));
             } else if (latency > 0) {
                 ui->label_running->setText(tr("Test Result") + ": " + QString("%1 ms").arg(latency));
             }

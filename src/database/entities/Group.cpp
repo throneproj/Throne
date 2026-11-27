@@ -229,7 +229,7 @@ namespace Configs
         };
 
         int latencyForSort(int latency) {
-            if (latency == 0) return 100000;
+            if (latency == 0 || latency == kLatencyInconclusive) return 100000;
             if (latency < 0) return 99999;
             return latency;
         }

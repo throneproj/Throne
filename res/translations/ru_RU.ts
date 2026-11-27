@@ -9931,23 +9931,15 @@ Error: %2</source>
         <translation>Профиль тем временем был удалён.</translation>
     </message>
     <message>
-        <source>Network unavailable</source>
-        <translation>Сеть недоступна</translation>
-    </message>
-    <message>
-        <source>Retest</source>
-        <translation>Повторить тест</translation>
-    </message>
-    <message>
-        <source>Ignore</source>
-        <translation>Игнорировать</translation>
+        <source>No network</source>
+        <translation>Нет сети</translation>
     </message>
     <message numerus="yes">
-        <source>%n profile(s) could not be tested because the network was unavailable. Their earlier results were kept.</source>
+        <source>%n profile(s) could not be tested because the network was unavailable.</source>
         <translation>
-            <numerusform>%n профиль не удалось протестировать: сеть была недоступна. Прежние результаты сохранены.</numerusform>
-            <numerusform>%n профиля не удалось протестировать: сеть была недоступна. Прежние результаты сохранены.</numerusform>
-            <numerusform>%n профилей не удалось протестировать: сеть была недоступна. Прежние результаты сохранены.</numerusform>
+            <numerusform>%n профиль не удалось протестировать: сеть была недоступна.</numerusform>
+            <numerusform>%n профиля не удалось протестировать: сеть была недоступна.</numerusform>
+            <numerusform>%n профилей не удалось протестировать: сеть была недоступна.</numerusform>
         </translation>
     </message>
 </context>
@@ -10034,6 +10026,10 @@ Error: %2</source>
     <message>
         <source>Traffic</source>
         <translation>Трафик</translation>
+    </message>
+    <message>
+        <source>The network was down during the test, so it says nothing about this profile.</source>
+        <translation>Во время теста сеть была недоступна, поэтому о профиле ничего не известно.</translation>
     </message>
 </context>
 <context>
@@ -10781,6 +10777,10 @@ Throne продолжает попытки в фоне; перезапуск Thr
     <message>
         <source>Unavailable</source>
         <translation>Недоступен</translation>
+    </message>
+    <message>
+        <source>No network</source>
+        <translation>Нет сети</translation>
     </message>
     <message>
         <source>%1 route prefer</source>
@@ -12348,6 +12348,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Unavailable</source>
         <translation>Недоступен</translation>
+    </message>
+    <message>
+        <source>No network</source>
+        <translation>Нет сети</translation>
     </message>
     <message>
         <source>N/A</source>

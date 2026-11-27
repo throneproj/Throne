@@ -102,9 +102,6 @@ namespace Engine {
         // Interactive test requests only.
         virtual void testSessionBusy(const QString &text) = 0;
 
-        // A URL test run left these profiles untested because the local network was down; their earlier results stay.
-        virtual void testsInconclusive(const QList<int> &profileIds) = 0;
-
         // Ends the program the way the front end does (relaunch, updater, elevation); the engine passes only None and Restart.
         // unattended: no dialog during the teardown.
         virtual void exitProgram(ExitReason reason, bool unattended) = 0;

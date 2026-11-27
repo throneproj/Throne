@@ -36,6 +36,7 @@ namespace Configs
 
     QString Profile::DisplayLatency() const {
         if (latency == kLatencyConnectOnly) return QObject::tr("Connect OK");
+        if (latency == kLatencyInconclusive) return QObject::tr("No network");
         if (latency < 0) return QObject::tr("Unavailable");
         return latency > 0 ? QStringLiteral("%1 ms").arg(latency) : QString();
     }
@@ -80,6 +81,8 @@ namespace Configs
     QColor Profile::DisplayLatencyColor() const {
         if (latency == kLatencyConnectOnly) {
             return Qt::darkCyan;
+        } else if (latency == kLatencyInconclusive) {
+            return Qt::gray;
         } else if (latency < 0) {
             return Qt::darkGray;
         } else if (latency > 0) {

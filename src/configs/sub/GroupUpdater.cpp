@@ -522,7 +522,7 @@ namespace Subscription {
                 QList<int> doomed;
                 QStringList names;
                 forEachProfile(withoutSelectors(group->Profiles()), [&](const std::shared_ptr<Configs::Profile> &ent) {
-                    // Only this test's failures: an inconclusive or aborted test leaves the earlier result in place.
+                    // Only this test's failures: an aborted test leaves the earlier result in place.
                     if (!ent->IsUnavailable() || ent->latency_at < testedSince) return;
                     doomed << ent->id;
                     names << ent->outbound->DisplayTypeAndName();

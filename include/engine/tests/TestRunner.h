@@ -154,9 +154,8 @@ namespace Engine {
         // The running session's flag: an unattended session never prompts for geo assets.
         std::atomic<bool> interactive_ = true;
 
-        // The running URL session's profiles whose failure the core put down to the local network.
-        QMutex inconclusiveMu_;
-        QList<int> inconclusive_;
+        // How many of the running URL session's failures the core put down to the local network.
+        std::atomic<int> inconclusive_ = 0;
 
         // Tests bypass the clash tracker, so their bytes are counted only here, diffed per tag.
         QMutex creditMu_;

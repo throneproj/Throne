@@ -83,7 +83,7 @@ namespace Configs
 
         bool hasFreshResult(const std::shared_ptr<Profile> &member, qint64 now)
         {
-            if (member == nullptr || member->latency == 0) return false;
+            if (member == nullptr || !member->HasLatencyResult()) return false;
             // Rows written before the timestamp column existed carry 0: expired, not fresh.
             if (member->latency_at <= 0) return false;
             return (now - member->latency_at) <= AutoSelectorResultValiditySecs(*member);

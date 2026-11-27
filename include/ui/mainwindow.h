@@ -649,8 +649,6 @@ private:
 
     void testSessionBusy(const QString &text) override;
 
-    void testsInconclusive(const QList<int> &profileIds) override;
-
     void exitProgram(ExitReason reason, bool unattended) override;
 
     // TestObserver, in mainwindow_view.cpp; synchronous, so a panel seed never lands after the next session's clear.

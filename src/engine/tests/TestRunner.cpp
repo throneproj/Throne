@@ -382,7 +382,7 @@ namespace Engine {
         }
 
         TestRunnerUpdates updates;
-        QList<int> inconclusive;
+        TestRunnerUpdates inconclusive;
         for (const auto& res : result.results) {
             const int entid = testRunnerResolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
             if (entid == -1) {
@@ -403,17 +403,16 @@ namespace Engine {
             } else if (testRunnerIsVpnProfile(ent) && vpnConnected.value(tag, false)) {
                 latency = Configs::kLatencyConnectOnly;
             } else if (res.inconclusive.value()) {
-                inconclusive << entid;
+                inconclusive.append({ent, [](Configs::Profile& p) { p.SetLatency(Configs::kLatencyInconclusive); }});
                 continue;
             } else {
                 MW_show_log(MainWindowTr::tr("[%1] test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
             }
             updates.append({ent, [latency](Configs::Profile& p) { p.SetLatency(latency); }});
         }
-        if (!inconclusive.isEmpty()) {
-            QMutexLocker locker(&inconclusiveMu_);
-            inconclusive_ << inconclusive;
-        }
+        inconclusive_.fetch_add(static_cast<int>(inconclusive.size()));
+        // Without the hook: a ranking sweep must not count a no-network result as measured.
+        testRunnerApply(observer_, std::move(inconclusive), Configs::ProfileColumn::Latency);
         testRunnerApply(observer_, std::move(updates), Configs::ProfileColumn::Latency, target.onResult);
     }
 
@@ -741,12 +740,7 @@ namespace Engine {
             // Once the run is over, so rows do not jump while results stream in.
             Configs::RepositionLater(tested, Configs::SortInput::TestResult);
 
-            QList<int> inconclusive;
-            {
-                QMutexLocker locker(&inconclusiveMu_);
-                inconclusive.swap(inconclusive_);
-            }
-            const QSet<int> kept(inconclusive.cbegin(), inconclusive.cend());
+            const int inconclusive = inconclusive_.exchange(0);
 
             // Read before unlocking: the next session resets stopRequested_. A hook means ranking, which never deletes members.
             QList<int> clearable;
@@ -754,9 +748,7 @@ namespace Engine {
                 for (auto it = tested.cbegin(); it != tested.cend(); ++it) {
                     const auto group = Configs::dataManager->groupsRepo->GetGroup(it.key());
                     if (group == nullptr || !group->auto_clear_unavailable) continue;
-                    for (const int id : it.value()) {
-                        if (!kept.contains(id)) clearable << id;
-                    }
+                    clearable << it.value();
                 }
             }
 
@@ -772,10 +764,8 @@ namespace Engine {
                     ProfileService::RemoveUnavailable(clearable);
                 });
             }
-            if (!inconclusive.isEmpty()) {
-                MW_show_log(MainWindowTr::tr("%n profile(s) could not be tested because the network was unavailable. Their earlier results were kept.",
-                                             nullptr, static_cast<int>(inconclusive.size())));
-                if (!onResult) runOnUiThread([this, inconclusive] { policy_->testsInconclusive(inconclusive); });
+            if (inconclusive > 0) {
+                MW_show_log(MainWindowTr::tr("%n profile(s) could not be tested because the network was unavailable.", nullptr, inconclusive));
             }
             MW_show_log(isUrl ? MainWindowTr::tr("URL test finished!") : MainWindowTr::tr("Exit IP test finished!"));
         });

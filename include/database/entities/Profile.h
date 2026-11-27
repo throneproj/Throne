@@ -37,6 +37,8 @@
 namespace Configs {
     // `latency` sentinel: egress probe failed, but the core reports the tunnel up.
     constexpr int kLatencyConnectOnly = -2;
+    // `latency` sentinel: the test failed while the local network was down, so it says nothing about the profile.
+    constexpr int kLatencyInconclusive = -3;
 
     class Profile {
     public:
@@ -76,7 +78,12 @@ namespace Configs {
         // Untested profiles are neither; a kLatencyConnectOnly tunnel counts as working.
         [[nodiscard]] bool IsWorking() const { return latency > 0 || latency == kLatencyConnectOnly; }
 
-        [[nodiscard]] bool IsUnavailable() const { return latency < 0 && latency != kLatencyConnectOnly; }
+        [[nodiscard]] bool IsUnavailable() const {
+            return latency < 0 && latency != kLatencyConnectOnly && latency != kLatencyInconclusive;
+        }
+
+        // Untested and inconclusive profiles have none: a no-network result counts as never measured.
+        [[nodiscard]] bool HasLatencyResult() const { return latency != 0 && latency != kLatencyInconclusive; }
 
         [[nodiscard]] QString DisplayLatency() const;
 

@@ -228,7 +228,7 @@ namespace Configs {
                 ctx.result->outboundNames.insert(tag, profileDisplayName(member));
                 if (member->id == selector->pinnedID) pinnedTag = tag;
                 // A direct result does not describe a member reached through the upstream.
-                if (!viaUpstream && member->latency != 0 && member->latency_at > 0)
+                if (!viaUpstream && member->HasLatencyResult() && member->latency_at > 0)
                 {
                     if (const auto age = builtAt - member->latency_at;
                         age >= 0 && age <= AutoSelectorResultValiditySecs(*member))

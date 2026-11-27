@@ -165,6 +165,9 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         if (index.column() == ColExitIP && !profile->service_checks.isEmpty() && showsServices(*profile)) {
             return ServiceCheckHtml::summaryLine(*profile);
         }
+        if (index.column() == ColLatency && profile->latency == Configs::kLatencyInconclusive) {
+            return tr("The network was down during the test, so it says nothing about this profile.");
+        }
         return {};
     }
     if (role == Qt::ForegroundRole) {

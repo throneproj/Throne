@@ -9845,21 +9845,13 @@ Error: %2</source>
         <translation>该配置档已在此期间被删除。</translation>
     </message>
     <message>
-        <source>Network unavailable</source>
-        <translation>网络不可用</translation>
-    </message>
-    <message>
-        <source>Retest</source>
-        <translation>重新测试</translation>
-    </message>
-    <message>
-        <source>Ignore</source>
-        <translation>忽略</translation>
+        <source>No network</source>
+        <translation>无网络</translation>
     </message>
     <message numerus="yes">
-        <source>%n profile(s) could not be tested because the network was unavailable. Their earlier results were kept.</source>
+        <source>%n profile(s) could not be tested because the network was unavailable.</source>
         <translation>
-            <numerusform>%n 个配置档因网络不可用而未能测试，已保留之前的结果。</numerusform>
+            <numerusform>%n 个配置档因网络不可用而未能测试。</numerusform>
         </translation>
     </message>
 </context>
@@ -10005,6 +9997,10 @@ Error: %2</source>
     <message>
         <source>Traffic</source>
         <translation>流量</translation>
+    </message>
+    <message>
+        <source>The network was down during the test, so it says nothing about this profile.</source>
+        <translation>测试期间网络不可用，因此无法判断此配置档的状态。</translation>
     </message>
 </context>
 <context>
@@ -10704,6 +10700,10 @@ Deleted %5 Profiles:
     <message>
         <source>Unavailable</source>
         <translation>不可用</translation>
+    </message>
+    <message>
+        <source>No network</source>
+        <translation>无网络</translation>
     </message>
     <message>
         <source>%1 route prefer</source>
@@ -12366,6 +12366,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Unavailable</source>
         <translation>不可用</translation>
+    </message>
+    <message>
+        <source>No network</source>
+        <translation>无网络</translation>
     </message>
     <message>
         <source>N/A</source>

@@ -4877,21 +4877,13 @@ Error: %2</source>
         <translation>نمایه در این فاصله حذف شد.</translation>
     </message>
     <message>
-        <source>Network unavailable</source>
-        <translation>شبکه در دسترس نیست</translation>
-    </message>
-    <message>
-        <source>Retest</source>
-        <translation>تست دوباره</translation>
-    </message>
-    <message>
-        <source>Ignore</source>
-        <translation>نادیده گرفتن</translation>
+        <source>No network</source>
+        <translation>بدون شبکه</translation>
     </message>
     <message numerus="yes">
-        <source>%n profile(s) could not be tested because the network was unavailable. Their earlier results were kept.</source>
+        <source>%n profile(s) could not be tested because the network was unavailable.</source>
         <translation>
-            <numerusform>%n نمایه به دلیل در دسترس نبودن شبکه تست نشد. نتایج قبلی حفظ شد.</numerusform>
+            <numerusform>%n نمایه به دلیل در دسترس نبودن شبکه تست نشد.</numerusform>
         </translation>
     </message>
 </context>
@@ -4935,6 +4927,10 @@ Error: %2</source>
     <message>
         <source>Traffic</source>
         <translation type="unfinished">ترافیک</translation>
+    </message>
+    <message>
+        <source>The network was down during the test, so it says nothing about this profile.</source>
+        <translation>هنگام تست شبکه قطع بود، پس نتیجه چیزی درباره این نمایه نمی‌گوید.</translation>
     </message>
 </context>
 <context>
@@ -5092,6 +5088,10 @@ Error: %2</source>
     <message>
         <source>After the country test of %1:</source>
         <translation>پس از آزمایش کشور %1:</translation>
+    </message>
+    <message>
+        <source>No network</source>
+        <translation>بدون شبکه</translation>
     </message>
 </context>
 <context>
@@ -6617,6 +6617,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>capabilities</source>
         <translation>قابلیت‌ها</translation>
+    </message>
+    <message>
+        <source>No network</source>
+        <translation>بدون شبکه</translation>
     </message>
 </context>
 <context>

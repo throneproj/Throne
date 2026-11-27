@@ -495,8 +495,9 @@ void RuntimeStatsWidget::probeEgress() {
             if (ok && !res.results.empty()) {
                 const int lat = res.results[0].latency_ms.value();
                 const auto vpnText = lat > 0 ? QString() : Stats::LiveVpnConnectOkText();
-                pingText = lat > 0 ? QStringLiteral("%1 ms").arg(lat)
-                                   : (vpnText.isEmpty() ? RuntimeStatsWidget::tr("Unavailable") : vpnText);
+                const auto failed = res.results[0].inconclusive.value() ? RuntimeStatsWidget::tr("No network")
+                                                                        : RuntimeStatsWidget::tr("Unavailable");
+                pingText = lat > 0 ? QStringLiteral("%1 ms").arg(lat) : (vpnText.isEmpty() ? failed : vpnText);
             } else {
                 pingText = RuntimeStatsWidget::tr("N/A");
             }

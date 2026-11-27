@@ -73,7 +73,7 @@ namespace RemoteApi::RouterImpl {
 
     // A result this request's own test produced counts even under max_age 0.
     bool resultCounts(const Configs::Profile &profile, qint64 requestedAt, qint64 maxAge) {
-        if (profile.latency_at <= 0) return false;
+        if (profile.latency_at <= 0 || !profile.HasLatencyResult()) return false;
         return profile.latency_at >= requestedAt || requestedAt - profile.latency_at < maxAge;
     }
 
@@ -535,7 +535,7 @@ namespace RemoteApi {
     QJsonObject Router::profileJson(const std::shared_ptr<Configs::Profile> &profile) const {
         const auto running = engine_->runningSnapshot();
         int latency = profile->latency;
-        if (latency < 0 && latency != Configs::kLatencyConnectOnly) latency = -1;
+        if (profile->IsUnavailable()) latency = -1;
         return {
             {"id", profile->id},
             {"group", profile->gid},
