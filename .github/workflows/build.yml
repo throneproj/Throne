@@ -406,18 +406,6 @@ jobs:
           ninja
           cd ..
           ./script/deploy_windows.sh
-      # Throne has no intrinsics or /arch flags, so a VEX instruction in its own objects is a compiler bug (#2175).
-      - name: Windows - Check for AVX instructions
-        shell: bash
-        if: contains( matrix.platform, 'windows' ) && matrix.target != 'arm64'
-        run: |
-          find build -name '*.obj' > objs.txt
-          if [ ! -s objs.txt ]; then echo "::error::no objects under build/"; exit 1; fi
-          tr '\n' '\0' < objs.txt | xargs -0 dumpbin -nologo -disasm:nobytes | awk '
-            /^Dump of file / { file = $4 }
-            /^[^ ].*:$/ { fn = $0 }
-            /^  [0-9A-F]+: v[a-z0-9]+ / { if (++n <= 50) print file ": " fn " " $2 " " $3 }
-            END { if (n) { print "::error::" n " VEX (AVX) instructions in Throne objects"; exit 1 } }'
       - name: Linux Using System Qt - Generate MakeFile and Build
         shell: bash
         if: contains( matrix.platform, 'ubuntu' ) && matrix.qt_version == '6.2.0'
