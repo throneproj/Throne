@@ -484,20 +484,6 @@ void MainWindow::refresh_proxy_list_column_size() {
         const bool vBarBlocked = vBar->blockSignals(true);
         // Header signals stay live: QTableView repaints its cells from sectionResized.
         constexpr int columnCount = ProfilesTableModel::ColumnCount;
-        QList<int> columnOrder;
-        for (const int column : group->column_order) {
-            if (column >= 0 && column < columnCount && !columnOrder.contains(column)) {
-                columnOrder.append(column);
-            }
-        }
-        // Groups without a saved order use the default; new columns follow saved ones.
-        for (int column = 0; column < columnCount; ++column) {
-            if (!columnOrder.contains(column)) columnOrder.append(column);
-        }
-        // m_adjustingColumns prevents these moves from saving an intermediate order.
-        for (int visualIndex = 0; visualIndex < columnOrder.size(); ++visualIndex) {
-            hHeader->moveSection(hHeader->visualIndex(columnOrder.at(visualIndex)), visualIndex);
-        }
         for (int column = 0; column < columnCount; ++column) {
             ui->profilesTableView->setColumnHidden(column, !(group->visible_columns & (1 << column)));
         }

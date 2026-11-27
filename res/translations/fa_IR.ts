@@ -3857,6 +3857,10 @@ Close without saving?</source>
         <translation>بازیابی ترتیب اولیه</translation>
     </message>
     <message>
+        <source>Reset column order</source>
+        <translation>بازنشانی ترتیب ستون‌ها</translation>
+    </message>
+    <message>
         <source>Show:</source>
         <translation>نمایش:</translation>
     </message>

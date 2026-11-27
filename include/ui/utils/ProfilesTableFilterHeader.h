@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <memory>
 
@@ -70,7 +71,11 @@ public:
         for (QLineEdit *edit : filterEdits()) edit->installEventFilter(this);
 
         connect(this, &QHeaderView::sectionResized, this, &ProfilesTableFilterHeader::adjustPositions);
-        connect(this, &QHeaderView::sectionMoved, this, &ProfilesTableFilterHeader::adjustPositions);
+        connect(this, &QHeaderView::sectionMoved, this, [this] {
+            adjustPositions();
+            updateFilterTabOrder();
+            if (!m_applyingOrder) emit columnOrderChanged();
+        });
 
         setFiltersVisible(false);
     }
@@ -86,6 +91,38 @@ public:
     }
 
     bool filtersVisible() const { return m_filtersVisible; }
+
+    // Logical columns in display order; empty while that is the model order.
+    QList<int> columnOrder() const {
+        QList<int> order;
+        bool moved = false;
+        for (int visual = 0; visual < count(); ++visual) {
+            order << logicalIndex(visual);
+            moved |= order.last() != visual;
+        }
+        return moved ? order : QList<int>{};
+    }
+
+    // Unknown and repeated columns are skipped; the ones left out follow in model order.
+    void setColumnOrder(const QList<int> &order) {
+        QList<int> wanted;
+        for (const int column : order) {
+            if (column >= 0 && column < count() && !wanted.contains(column)) wanted << column;
+        }
+        for (int column = 0; column < count(); ++column) {
+            if (!wanted.contains(column)) wanted << column;
+        }
+        bool moved = false;
+        m_applyingOrder = true;
+        for (int visual = 0; visual < wanted.size(); ++visual) {
+            const int from = visualIndex(wanted[visual]);
+            if (from == visual) continue;
+            moveSection(from, visual);
+            moved = true;
+        }
+        m_applyingOrder = false;
+        if (moved) emit columnOrderChanged();
+    }
 
     // Section -1 hides the arrow. Returns whether the section moved, which changes the reserved room and so the fitted widths.
     bool setSortSection(int section, bool descending) {
@@ -103,7 +140,7 @@ public:
         QLineEdit *edit = editForColumn(m_lastFilterColumn);
         if (!edit || isSectionHidden(columnOf(edit))) {
             edit = nullptr;
-            for (auto *candidate : filterEdits()) {
+            for (auto *candidate : filterEditsOnScreen()) {
                 if (!isSectionHidden(columnOf(candidate))) {
                     edit = candidate;
                     break;
@@ -250,12 +287,24 @@ signals:
     void testFilterChanged(const QString &text);
     void focusTableRequested(bool selectFirst);
     void lastFilterColumnChanged(int column);
+    void columnOrderChanged();
     // The checkable toolbutton owns the visible state, so it has to be the one to untoggle us.
     void closeRequested();
 
 private:
     std::array<QLineEdit*, 4> filterEdits() const {
         return {type_filter, address_filter, name_filter, test_filter};
+    }
+
+    std::array<QLineEdit*, 4> filterEditsOnScreen() const {
+        auto edits = filterEdits();
+        std::ranges::sort(edits, {}, [this](QLineEdit *edit) { return visualIndex(columnOf(edit)); });
+        return edits;
+    }
+
+    void updateFilterTabOrder() {
+        const auto edits = filterEditsOnScreen();
+        for (size_t i = 1; i < edits.size(); ++i) setTabOrder(edits[i - 1], edits[i]);
     }
 
     static bool isTextEditingKey(QKeyEvent *key) {
@@ -303,6 +352,7 @@ private:
     QLineEdit* name_filter;
     QLineEdit* test_filter;
     bool m_filtersVisible = false;
+    bool m_applyingOrder = false;
     int m_lastFilterColumn = ProfilesTableModel::ColName;
     int m_sortSection = -1;
     bool m_sortDescending = false;
