@@ -2,57 +2,59 @@ package xray
 
 import (
 	"bytes"
+	"context"
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/infra/conf/serial"
 )
 
 func CreateXrayInstance(config string) (*core.Instance, error) {
-	r := bytes.NewReader([]byte(config))
-	conf, err := serial.DecodeJSONConfig(r)
+	b, err := parseConfig(config)
 	if err != nil {
 		return nil, err
 	}
+	return core.New(b)
+}
 
-	b, err := conf.Build()
+func parseConfig(config string) (*core.Config, error) {
+	conf, err := serial.DecodeJSONConfig(bytes.NewReader([]byte(config)))
 	if err != nil {
 		return nil, err
 	}
-
-	server, err := core.New(b)
-	if err != nil {
-		return nil, err
-	}
-
-	return server, nil
+	return conf.Build()
 }
 
 // prepare runs between core.New and Start; an instance that fails either is closed.
 func StartInstance(config string, prepare func(*core.Instance) error) (*core.Instance, error) {
-	instance, err := CreateXrayInstance(config)
+	return RestartInstance(nil, config, prepare)
+}
+
+func newProbe(ctx context.Context, config string) (*core.Instance, error) {
+	b, err := parseConfig(config)
 	if err != nil {
 		return nil, err
 	}
-	if err = prepare(instance); err != nil {
-		_ = instance.Close()
-		return nil, err
-	}
-	if err = instance.Start(); err != nil {
-		_ = instance.Close()
-		return nil, err
-	}
-	return instance, nil
+	return core.NewProbe(ctx, b)
 }
 
 // On failure the ones already started are closed; on success the caller must close them.
-func StartInstances(configs []string, prepare func(*core.Instance) error) ([]*core.Instance, error) {
+func StartInstances(ctx context.Context, configs []string, prepare func(*core.Instance) error) ([]*core.Instance, error) {
 	instances := make([]*core.Instance, 0, len(configs))
 	for _, config := range configs {
-		instance, err := StartInstance(config, prepare)
+		if err := ctx.Err(); err != nil {
+			CloseInstances(instances)
+			return nil, err
+		}
+		instance, err := newProbe(ctx, config)
+		if err == nil {
+			instances = append(instances, instance)
+			if err = prepare(instance); err == nil {
+				err = instance.Start()
+			}
+		}
 		if err != nil {
 			CloseInstances(instances)
 			return nil, err
 		}
-		instances = append(instances, instance)
 	}
 	return instances, nil
 }
@@ -93,11 +95,6 @@ func RestartInstance(running *core.Instance, config string, prepare func(*core.I
 
 // Stops short of core.New on purpose: bulk validation runs concurrently while a live Xray instance is up.
 func CheckXrayConfig(config string) error {
-	r := bytes.NewReader([]byte(config))
-	conf, err := serial.DecodeJSONConfig(r)
-	if err != nil {
-		return err
-	}
-	_, err = conf.Build()
+	_, err := parseConfig(config)
 	return err
 }

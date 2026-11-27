@@ -110,7 +110,7 @@ type SpeedTestHandler interface {
 }
 
 // The probe box gets no PlatformLogWriter: it shares no cache.db and keeps no accounting.
-func prepareTestEnv(current *Instance, testCurrent bool, platform PlatformInterface, request *TestRequest) (*testenv.Env[*boxHandle], error) {
+func prepareTestEnv(parent context.Context, current *Instance, testCurrent bool, platform PlatformInterface, request *TestRequest) (*testenv.Env[*boxHandle], error) {
 	if testCurrent {
 		if current == nil || !current.running() {
 			return nil, errInstanceNotRunning
@@ -129,7 +129,7 @@ func prepareTestEnv(current *Instance, testCurrent bool, platform PlatformInterf
 		UseDefaultOutbound: request.UseDefaultOutbound,
 	}
 	// No egress, as for the running instance: the protect controller covers the probe's Xray sockets.
-	return testenv.Prepare(envRequest, nil, func(publish func(context.Context)) (*boxHandle, func(), error) {
+	return testenv.Prepare(parent, envRequest, nil, func(publish func(context.Context)) (*boxHandle, func(), error) {
 		var platformInterface adapter.PlatformInterface
 		if platform != nil {
 			platformInterface = newPlatformInterfaceWrapper(platform)
@@ -309,12 +309,11 @@ func StartURLTest(current *Instance, platform PlatformInterface, request *TestRe
 	if request == nil || handler == nil {
 		return E.New("nil request or handler")
 	}
-	env, err := prepareTestEnv(current, request.TestCurrent, platform, request)
+	testCtx := probe.TestContext()
+	env, err := prepareTestEnv(testCtx, current, request.TestCurrent, platform, request)
 	if err != nil {
 		return err
 	}
-	// Held, not re-read: StopTests rearms a fresh context.
-	testCtx := probe.TestContext()
 	if request.TestCurrent {
 		testCtx = probe.LiveInstance(testCtx)
 	}
@@ -355,11 +354,11 @@ func StartIPTest(platform PlatformInterface, request *TestRequest, handler IPTes
 	if request == nil || handler == nil {
 		return E.New("nil request or handler")
 	}
-	env, err := prepareTestEnv(nil, false, platform, request)
+	testCtx := probe.TestContext()
+	env, err := prepareTestEnv(testCtx, nil, false, platform, request)
 	if err != nil {
 		return err
 	}
-	testCtx := probe.TestContext()
 	timeout := time.Duration(request.TimeoutMs) * time.Millisecond
 	go func() {
 		defer handler.OnDone()
@@ -399,11 +398,11 @@ func StartSpeedTest(current *Instance, platform PlatformInterface, request *Test
 	if !request.TestDownload && !request.TestUpload && !request.SimpleDownload && !request.OnlyCountry {
 		return E.New("cannot run empty test")
 	}
-	env, err := prepareTestEnv(current, request.TestCurrent, platform, request)
+	testCtx := probe.TestContext()
+	env, err := prepareTestEnv(testCtx, current, request.TestCurrent, platform, request)
 	if err != nil {
 		return err
 	}
-	testCtx := probe.TestContext()
 	timeout := time.Duration(request.TimeoutMs) * time.Millisecond
 	go func() {
 		defer handler.OnDone()

@@ -42,43 +42,55 @@ type Request struct {
 }
 
 // The Xray instances start first and resolve through build's box, so build must publish its context between New and Start.
-func Prepare[B probe.Box](request Request, egress func() (string, uint32),
+func Prepare[B probe.Box](parent context.Context, request Request, egress func() (string, uint32),
 	build func(publish func(context.Context)) (B, func(), error)) (*Env[B], error) {
+	if err := parent.Err(); err != nil {
+		return nil, err
+	}
 	var boxCtx xray.BoxContext
 	prepare := xray.Preparer(egress, request.XrayDNSStrategy, boxCtx.Get)
 
-	var cleanups []func()
-	unwind := func() {
-		for i := len(cleanups) - 1; i >= 0; i-- {
-			cleanups[i]()
-		}
-	}
-
+	configs := request.XrayFullConfigs
 	if request.NeedXray {
-		instance, err := xray.StartInstance(request.XrayConfig, prepare)
-		if err != nil {
-			return nil, err
+		configs = append([]string{request.XrayConfig}, configs...)
+	}
+	ctx, cancel := context.WithCancel(parent)
+	instances, err := xray.StartInstances(ctx, configs, prepare)
+	if err != nil {
+		cancel()
+		return nil, err
+	}
+	var closeBox func()
+	var cancelDNS context.CancelFunc
+	closeEnv := func() {
+		cancel()
+		if cancelDNS != nil {
+			cancelDNS()
 		}
-		cleanups = append(cleanups, func() { _ = instance.Close() })
+		xray.CloseInstances(instances)
+		if closeBox != nil {
+			closeBox()
+		}
 	}
 
-	fullXray, err := xray.StartInstances(request.XrayFullConfigs, prepare)
+	box, closeBox, err := build(func(box context.Context) {
+		// LookupIP has no request context; retire in-flight resolver calls with the sidecars.
+		var dnsCtx context.Context
+		dnsCtx, cancelDNS = context.WithCancel(box)
+		context.AfterFunc(ctx, cancelDNS)
+		boxCtx.Publish(dnsCtx)
+	})
+	if err == nil {
+		err = ctx.Err()
+	}
 	if err != nil {
-		unwind()
+		closeEnv()
 		return nil, err
 	}
-	cleanups = append(cleanups, func() { xray.CloseInstances(fullXray) })
-
-	box, closeBox, err := build(boxCtx.Publish)
-	if err != nil {
-		unwind()
-		return nil, err
-	}
-	cleanups = append(cleanups, closeBox)
 
 	outTags := request.Tags
 	if request.UseDefaultOutbound {
 		outTags = []string{box.Outbound().Default().Tag()}
 	}
-	return &Env[B]{Box: box, Tags: outTags, close: unwind}, nil
+	return &Env[B]{Box: box, Tags: outTags, close: closeEnv}, nil
 }

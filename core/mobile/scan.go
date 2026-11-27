@@ -389,13 +389,13 @@ func ScanURLTest(platform PlatformInterface, sessionID string, request *TestRequ
 	if egressLost() {
 		return "", scan.ErrEgressLost
 	}
-	env, err := prepareTestEnv(nil, false, platform, request)
+	scanCtx := session.Context()
+	env, err := prepareTestEnv(scanCtx, nil, false, platform, request)
 	if err != nil {
 		return "", err
 	}
 	defer env.Close()
 
-	scanCtx := session.Context()
 	labelOf := make(map[string]string, len(env.Tags))
 	for idx, tag := range env.Tags {
 		labelOf[tag] = tag

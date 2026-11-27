@@ -13,7 +13,7 @@ func (s *server) ResolveDomains(ctx context.Context, in *gen.ResolveDomainsReque
 		running = box.Context()
 	}
 	results, err := resolve.Domains(running, func() (context.Context, func(), error) {
-		env, err := prepareTestEnv(false, false, "", nil, in.GetConfig(), nil, false, "")
+		env, err := prepareTestEnv(ctx, false, false, "", nil, in.GetConfig(), nil, false, "")
 		if err != nil {
 			return nil, nil, err
 		}

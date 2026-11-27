@@ -47,7 +47,7 @@ func ResolveDomains(current *Instance, platform PlatformInterface, request *Reso
 		running = current.handle.ctx
 	}
 	results, err := resolve.Domains(running, func() (context.Context, func(), error) {
-		env, err := prepareTestEnv(nil, false, platform, &TestRequest{CoreConfig: request.CoreConfig})
+		env, err := prepareTestEnv(context.Background(), nil, false, platform, &TestRequest{CoreConfig: request.CoreConfig})
 		if err != nil {
 			return nil, nil, err
 		}
