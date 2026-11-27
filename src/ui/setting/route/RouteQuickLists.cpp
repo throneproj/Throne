@@ -1035,6 +1035,10 @@ QuickListEditor::QuickListEditor(std::shared_ptr<Configs::RouteProfile> profile,
 
 QuickListEditor::~QuickListEditor() = default;
 
+bool QuickListEditor::hasPendingEntry() const {
+    return !d->input->text().trimmed().isEmpty();
+}
+
 void QuickListEditor::setRow(const RouteEditor::Row& row, const QList<RouteEditor::Row>& rows) {
     const auto first = row.first >= 0 && row.first < d->profile->Rules.size() ? d->profile->Rules.at(row.first) : nullptr;
     const bool same = first != nullptr && first == d->firstRule;
@@ -1043,6 +1047,7 @@ void QuickListEditor::setRow(const RouteEditor::Row& row, const QList<RouteEdito
     d->firstRule = first;
     if (!same) {
         closeText();
+        d->input->clear();
         d->addError->clear();
         d->addError->hide();
     }

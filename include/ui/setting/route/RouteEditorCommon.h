@@ -29,8 +29,8 @@ namespace RouteEditor {
         Configs::simpleAction list = Configs::proxy;
     };
 
-    // The "Everything else" row is not among them: it always follows the last one.
-    QList<Row> BuildRows(const Configs::RouteProfile& profile);
+    // Empty quick-list runs are kept in the profile, but normally have no visible row.
+    QList<Row> BuildRows(const Configs::RouteProfile& profile, bool includeEmptyLists = false);
 
     // The row holding profile.Rules[ruleIndex], -1 when none.
     int RowOfRule(const QList<Row>& rows, int ruleIndex);
