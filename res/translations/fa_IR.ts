@@ -6524,6 +6524,10 @@ Remove that endpoint from this routing profile as well?</source>
         <source>The kill switch needs the core to run as administrator.</source>
         <translation>کیل سوییچ نیاز دارد هسته با دسترسی مدیر اجرا شود.</translation>
     </message>
+    <message>
+        <source>Throne was updated: grant the core administrator rights again to turn the kill switch back on.</source>
+        <translation>Throne به‌روزرسانی شد: برای روشن شدن دوباره‌ی کیل سوییچ، دسترسی مدیر را دوباره به هسته بدهید.</translation>
+    </message>
 </context>
 <context>
     <name>Sys::CoreElevation</name>

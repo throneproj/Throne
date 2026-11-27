@@ -30,7 +30,7 @@ namespace Engine {
 
         SlowOperation slowOperation(SlowOperationKind kind, int delayMs) override;
 
-        bool requestCorePrivileges() override;
+        bool requestCorePrivileges(bool confirmed) override;
 
         void systemProxyNeedsMixedInbound() override;
 

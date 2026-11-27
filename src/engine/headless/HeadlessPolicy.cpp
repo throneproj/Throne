@@ -102,7 +102,7 @@ namespace Engine {
         });
     }
 
-    bool HeadlessPolicy::requestCorePrivileges() {
+    bool HeadlessPolicy::requestCorePrivileges(bool) {
 #if defined(Q_OS_WIN)
         MW_show_log(QStringLiteral("The core lacks the privileges Tun needs: run Throne as a service or from an elevated prompt."));
 #elif defined(Q_OS_MACOS)

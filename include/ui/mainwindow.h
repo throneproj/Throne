@@ -627,7 +627,7 @@ private:
 
     Engine::SlowOperation slowOperation(Engine::SlowOperationKind kind, int delayMs) override;
 
-    bool requestCorePrivileges() override;
+    bool requestCorePrivileges(bool confirmed) override;
 
     void systemProxyNeedsMixedInbound() override;
 

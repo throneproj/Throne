@@ -13099,6 +13099,10 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>急停开关需要核心以管理员身份运行。</translation>
     </message>
     <message>
+        <source>Throne was updated: grant the core administrator rights again to turn the kill switch back on.</source>
+        <translation>Throne 已更新：请重新授予核心管理员权限，以重新启用急停开关。</translation>
+    </message>
+    <message>
         <source>The kill switch needs the core to have root privileges.</source>
         <translation>急停开关需要核心拥有 root 权限。</translation>
     </message>

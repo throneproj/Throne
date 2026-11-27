@@ -167,7 +167,7 @@ void MainWindow::killSwitchProblem() {
             return;
         }
         // Otherwise the core restarts once it is privileged, and onCoreStarted retries.
-        if (connection()->ensureTunPrivileges(true)) Sys::KillSwitch::instance()->apply();
+        if (connection()->ensureTunPrivileges(true, true)) Sys::KillSwitch::instance()->apply();
     });
     box->open();
 }
@@ -246,7 +246,7 @@ Engine::SlowOperation MainWindow::slowOperation(Engine::SlowOperationKind, int d
     return Engine::SlowOperation([restartPrompt] { if (restartPrompt) restartPrompt->dismiss(); });
 }
 
-bool MainWindow::requestCorePrivileges() {
+bool MainWindow::requestCorePrivileges(bool confirmed) {
 #ifdef NKR_ELEVATION_HINT
     MessageBoxWarning(software_name, tr("This installation cannot grant the core privileges by itself.") + "\n\n" + NKR_ELEVATION_HINT);
     return false;
@@ -256,8 +256,8 @@ bool MainWindow::requestCorePrivileges() {
         MessageBoxWarning(software_name, "Please install \"pkexec\" first.");
         return false;
     }
-    auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
-    if (n == QMessageBox::Yes) {
+    if (confirmed || QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"),
+                                          QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
         runOnNewThread([=,this]
         {
             auto chownArgs = QString("root:root " + Configs::FindCoreRealPath());
@@ -287,16 +287,18 @@ bool MainWindow::requestCorePrivileges() {
         return false;
     }
     if (Sys::CoreElevation::CanGrant()) {
-        QMessageBox box(QMessageBox::Warning, software_name,
-                        tr("Tun mode and the kill switch need the core to run with administrator rights.\n\n"
-                           "Grant them once with a Windows confirmation; Throne itself keeps running as a standard user."),
-                        QMessageBox::NoButton, GetMessageBoxParent());
-        auto *grant = box.addButton(tr("Grant privileges"), QMessageBox::AcceptRole);
-        auto *cancel = box.addButton(QMessageBox::Cancel);
-        box.setDefaultButton(grant);
-        box.setEscapeButton(cancel);
-        box.exec();
-        if (box.clickedButton() != grant) return false;
+        if (!confirmed) {
+            QMessageBox box(QMessageBox::Warning, software_name,
+                            tr("Tun mode and the kill switch need the core to run with administrator rights.\n\n"
+                               "Grant them once with a Windows confirmation; Throne itself keeps running as a standard user."),
+                            QMessageBox::NoButton, GetMessageBoxParent());
+            auto *grant = box.addButton(tr("Grant privileges"), QMessageBox::AcceptRole);
+            auto *cancel = box.addButton(QMessageBox::Cancel);
+            box.setDefaultButton(grant);
+            box.setEscapeButton(cancel);
+            box.exec();
+            if (box.clickedButton() != grant) return false;
+        }
         Sys::CoreElevation::GrantAsync(this, [this](int code) {
             const auto result = Sys::CoreElevation::ResultText(code);
             if (code == Sys::CoreElevation::HelperOk) {
@@ -328,8 +330,8 @@ bool MainWindow::requestCorePrivileges() {
         StopVPNProcess();
         return true;
     }
-    auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
-    if (n == QMessageBox::Yes)
+    if (confirmed || QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"),
+                                          QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
     {
         auto Command = QString("sudo chown root:wheel '%1' && sudo chmod u+s '%1'").arg(Configs::FindCoreRealPath());
         auto ret = Mac_Run_Command(Command);

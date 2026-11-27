@@ -53,7 +53,7 @@ namespace {
 }
 
 namespace Engine {
-    bool ConnectionManager::ensureTunPrivileges(bool interactive) {
+    bool ConnectionManager::ensureTunPrivileges(bool interactive, bool confirmed) {
         if (Configs::dataManager->settingsRepo->disable_privilege_req)
         {
             MW_show_log(MainWindowTr::tr("User opted for no privilege req, some features may not work"));
@@ -66,7 +66,7 @@ namespace Engine {
         }
         if (tunPrivileged()) return true;
         if (!interactive) return false;
-        return policy()->requestCorePrivileges();
+        return policy()->requestCorePrivileges(confirmed);
     }
 
     bool ConnectionManager::tunPrivileged() {

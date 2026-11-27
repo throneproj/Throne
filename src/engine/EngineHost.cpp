@@ -95,8 +95,8 @@ namespace Engine {
             return target(__func__)->slowOperation(kind, delayMs);
         }
 
-        bool requestCorePrivileges() override {
-            return target(__func__)->requestCorePrivileges();
+        bool requestCorePrivileges(bool confirmed) override {
+            return target(__func__)->requestCorePrivileges(confirmed);
         }
 
         void systemProxyNeedsMixedInbound() override {

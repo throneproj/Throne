@@ -184,10 +184,14 @@ namespace Sys {
         QString text;
         if (failureCode_ == kPrivilege) {
 #ifdef Q_OS_WIN
-            text = tr("The kill switch needs the core to run as administrator.");
+            text = CoreElevation::CurrentStatus() == CoreElevation::Status::Stale
+                       ? tr("Throne was updated: grant the core administrator rights again to turn the kill switch back on.")
+                       : tr("The kill switch needs the core to run as administrator.");
 #else
             text = tr("The kill switch needs the core to have root privileges.");
 #endif
+            // The guard's own text for an unprivileged core only repeats the line above.
+            if (failureMessage_.startsWith(QLatin1String("the kill switch needs the core"))) return text;
         } else if (failureCode_ == kUnsupported) {
             return failureMessage_.isEmpty() ? tr("The kill switch is not supported on this system.") : failureMessage_;
         } else if (failureCode_ == kTampered) {

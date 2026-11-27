@@ -91,7 +91,7 @@ namespace Engine {
         // Any thread. Queued on one worker thread in call order; wait spins a nested loop until this change ran.
         void applySystemProxy(bool enable, bool wait = false);
 
-        bool ensureTunPrivileges(bool interactive);
+        bool ensureTunPrivileges(bool interactive, bool confirmed = false);
 
         void disableKillSwitch();
 

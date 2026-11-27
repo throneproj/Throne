@@ -13199,6 +13199,10 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Для kill switch ядро должно работать от имени администратора.</translation>
     </message>
     <message>
+        <source>Throne was updated: grant the core administrator rights again to turn the kill switch back on.</source>
+        <translation>Throne обновлён: выдайте ядру права администратора ещё раз, чтобы снова включить kill switch.</translation>
+    </message>
+    <message>
         <source>The kill switch needs the core to have root privileges.</source>
         <translation>Для kill switch ядру нужны права root.</translation>
     </message>
