@@ -358,18 +358,19 @@ func awaitTunnels(ctx context.Context, i Box, tag string) error {
 }
 
 // A DNS tunnel opens its session on the first dial whether or not the request is a warm-up.
-func firstRequestTimeout(i Box, tag string, cold bool, timeout time.Duration) time.Duration {
-	timeout += startupAllowance(i, tag)
+func requestTimeouts(i Box, tag string, cold bool, timeout time.Duration) (first, regular time.Duration) {
+	regular, startup := routeProbeTimeout(i, tag, timeout)
+	first = regular + startup
 	if !cold {
-		return timeout
+		return first, regular
 	}
 	for _, endpoint := range tunnelEndpoints(i, tag) {
 		// An awaited tunnel is already up; only the others can still be holding the first dial.
 		if handshakeOf(endpoint) == nil {
-			return timeout + TunnelStartupTimeout
+			return first + TunnelStartupTimeout, regular
 		}
 	}
-	return timeout
+	return first, regular
 }
 
 func getNetDialer(dialer func(ctx context.Context, network string, destination metadata.Socksaddr) (net.Conn, error)) func(ctx context.Context, network string, address string) (net.Conn, error) {

@@ -23,8 +23,6 @@ type IPInfo struct {
 
 var IPReporter resultBuffer[IPTestResult]
 
-const IPTestTimeout = 3 * time.Second
-
 type IPTestResult struct {
 	Result IPInfo
 	Tag    string
@@ -34,7 +32,7 @@ type IPTestResult struct {
 // provider is an exit_lookup_provider id as the GUI stores it; "" or "auto" tries several.
 func BatchIPTest(ctx context.Context, i Box, outboundTags []string, maxConcurrency int, cold bool, timeout time.Duration, provider string) []*IPTestResult {
 	if timeout <= 0 {
-		timeout = IPTestTimeout
+		timeout = URLTestTimeout
 	}
 	chain := ipLookupChain(provider)
 
@@ -45,7 +43,8 @@ func BatchIPTest(ctx context.Context, i Box, outboundTags []string, maxConcurren
 			}
 			client, closeClient := outboundHTTPClient(ctx, i, tag, outbound)
 			defer closeClient()
-			info, err := ipTest(ctx, client, chain, firstRequestTimeout(i, tag, cold, timeout), timeout)
+			first, regular := requestTimeouts(i, tag, cold, timeout)
+			info, err := ipTest(ctx, client, chain, first, regular)
 			return &IPTestResult{Result: info, Tag: tag, Error: err}
 		},
 		fail: func(tag string, err error) *IPTestResult {
