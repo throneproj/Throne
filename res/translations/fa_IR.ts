@@ -4877,8 +4877,8 @@ Error: %2</source>
         <translation>نمایه در این فاصله حذف شد.</translation>
     </message>
     <message>
-        <source>No network</source>
-        <translation>بدون شبکه</translation>
+        <source>Unknown</source>
+        <translation>نامشخص</translation>
     </message>
     <message numerus="yes">
         <source>%n profile(s) could not be tested because the network was unavailable.</source>
@@ -5088,10 +5088,6 @@ Error: %2</source>
     <message>
         <source>After the country test of %1:</source>
         <translation>پس از آزمایش کشور %1:</translation>
-    </message>
-    <message>
-        <source>No network</source>
-        <translation>بدون شبکه</translation>
     </message>
 </context>
 <context>
@@ -6619,8 +6615,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>قابلیت‌ها</translation>
     </message>
     <message>
-        <source>No network</source>
-        <translation>بدون شبکه</translation>
+        <source>Unknown</source>
+        <translation>نامشخص</translation>
     </message>
 </context>
 <context>

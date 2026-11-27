@@ -36,7 +36,7 @@ namespace Configs
 
     QString Profile::DisplayLatency() const {
         if (latency == kLatencyConnectOnly) return QObject::tr("Connect OK");
-        if (latency == kLatencyInconclusive) return QObject::tr("No network");
+        if (latency == kLatencyInconclusive) return QObject::tr("Unknown");
         if (latency < 0) return QObject::tr("Unavailable");
         return latency > 0 ? QStringLiteral("%1 ms").arg(latency) : QString();
     }

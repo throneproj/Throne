@@ -9931,8 +9931,8 @@ Error: %2</source>
         <translation>Профиль тем временем был удалён.</translation>
     </message>
     <message>
-        <source>No network</source>
-        <translation>Нет сети</translation>
+        <source>Unknown</source>
+        <translation>Неизвестно</translation>
     </message>
     <message numerus="yes">
         <source>%n profile(s) could not be tested because the network was unavailable.</source>
@@ -10777,10 +10777,6 @@ Throne продолжает попытки в фоне; перезапуск Thr
     <message>
         <source>Unavailable</source>
         <translation>Недоступен</translation>
-    </message>
-    <message>
-        <source>No network</source>
-        <translation>Нет сети</translation>
     </message>
     <message>
         <source>%1 route prefer</source>
@@ -12350,8 +12346,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Недоступен</translation>
     </message>
     <message>
-        <source>No network</source>
-        <translation>Нет сети</translation>
+        <source>Unknown</source>
+        <translation>Неизвестно</translation>
     </message>
     <message>
         <source>N/A</source>

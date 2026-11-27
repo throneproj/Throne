@@ -9845,8 +9845,8 @@ Error: %2</source>
         <translation>该配置档已在此期间被删除。</translation>
     </message>
     <message>
-        <source>No network</source>
-        <translation>无网络</translation>
+        <source>Unknown</source>
+        <translation>未知</translation>
     </message>
     <message numerus="yes">
         <source>%n profile(s) could not be tested because the network was unavailable.</source>
@@ -10700,10 +10700,6 @@ Deleted %5 Profiles:
     <message>
         <source>Unavailable</source>
         <translation>不可用</translation>
-    </message>
-    <message>
-        <source>No network</source>
-        <translation>无网络</translation>
     </message>
     <message>
         <source>%1 route prefer</source>
@@ -12368,8 +12364,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>不可用</translation>
     </message>
     <message>
-        <source>No network</source>
-        <translation>无网络</translation>
+        <source>Unknown</source>
+        <translation>未知</translation>
     </message>
     <message>
         <source>N/A</source>

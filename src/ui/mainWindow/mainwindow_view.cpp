@@ -656,7 +656,7 @@ void MainWindow::url_test_current() {
                 MW_show_log(QString("URL test error: %1").arg(QString::fromStdString(result.results[0].error.value())));
             }
             if (latency <= 0) {
-                const auto failed = inconclusive ? tr("No network") : tr("Unavailable");
+                const auto failed = inconclusive ? tr("Unknown") : tr("Unavailable");
                 ui->label_running->setText(tr("Test Result") + ": " + (vpnText.isEmpty() ? failed : vpnText));
             } else if (latency > 0) {
                 ui->label_running->setText(tr("Test Result") + ": " + QString("%1 ms").arg(latency));
