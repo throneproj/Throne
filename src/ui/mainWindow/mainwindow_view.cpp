@@ -558,19 +558,26 @@ void MainWindow::editProfileColumnOrder() {
     QList<int> order;
     for (int visual = 0; visual < header->count(); ++visual) order << header->logicalIndex(visual);
     fill(order);
-    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::RestoreDefaults, &dialog);
+    const auto listedOrder = [list] {
+        QList<int> listed;
+        for (int row = 0; row < list->count(); ++row) listed << list->item(row)->data(Qt::UserRole).toInt();
+        return listed;
+    };
+    QList<int> defaults;
+    for (int column = 0; column < header->count(); ++column) defaults << column;
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+    auto *restoreDefault = buttons->addButton(tr("Restore default order"), QDialogButtonBox::ResetRole);
+    const auto updateRestore = [restoreDefault, listedOrder, defaults] { restoreDefault->setEnabled(listedOrder() != defaults); };
     connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-    connect(buttons->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, &dialog, [header, fill] {
-        QList<int> defaults;
-        for (int column = 0; column < header->count(); ++column) defaults << column;
-        fill(defaults);
-    });
+    connect(restoreDefault, &QPushButton::clicked, &dialog, [fill, defaults] { fill(defaults); });
+    // A drop that QListWidget cannot move falls back to remove + insert.
+    connect(list->model(), &QAbstractItemModel::rowsMoved, &dialog, updateRestore);
+    connect(list->model(), &QAbstractItemModel::rowsInserted, &dialog, updateRestore);
+    updateRestore();
     layout->addWidget(buttons);
     if (dialog.exec() != QDialog::Accepted) return;
-    order.clear();
-    for (int row = 0; row < list->count(); ++row) order << list->item(row)->data(Qt::UserRole).toInt();
-    header->setColumnOrder(order);
+    header->setColumnOrder(listedOrder());
 }
 
 void MainWindow::refresh_proxy_list(const QList<int>& ids, bool mayNeedReset, RefreshAnchor anchor) {

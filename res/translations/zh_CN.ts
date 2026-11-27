@@ -8163,8 +8163,8 @@ Close without saving?</source>
         <translation>恢复原顺序</translation>
     </message>
     <message>
-        <source>Reset column order</source>
-        <translation>重置列顺序</translation>
+        <source>Restore default order</source>
+        <translation>恢复默认顺序</translation>
     </message>
     <message>
         <source>Reorder columns</source>
