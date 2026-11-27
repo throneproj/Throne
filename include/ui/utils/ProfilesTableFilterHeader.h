@@ -28,7 +28,6 @@ public:
     explicit ProfilesTableFilterHeader(QWidget *parent = nullptr)
         : QHeaderView(Qt::Horizontal, parent), m_subCard(new SubscriptionInfoCard(parent)) {
         setSectionsClickable(true);
-        setSectionsMovable(true);
         setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
         // Clicks on the band must not reach QHeaderView, which would sort by the section under them.
@@ -74,7 +73,6 @@ public:
         connect(this, &QHeaderView::sectionMoved, this, [this] {
             adjustPositions();
             updateFilterTabOrder();
-            if (!m_applyingOrder) emit columnOrderChanged();
         });
 
         setFiltersVisible(false);
@@ -113,14 +111,12 @@ public:
             if (!wanted.contains(column)) wanted << column;
         }
         bool moved = false;
-        m_applyingOrder = true;
         for (int visual = 0; visual < wanted.size(); ++visual) {
             const int from = visualIndex(wanted[visual]);
             if (from == visual) continue;
             moveSection(from, visual);
             moved = true;
         }
-        m_applyingOrder = false;
         if (moved) emit columnOrderChanged();
     }
 
@@ -352,7 +348,6 @@ private:
     QLineEdit* name_filter;
     QLineEdit* test_filter;
     bool m_filtersVisible = false;
-    bool m_applyingOrder = false;
     int m_lastFilterColumn = ProfilesTableModel::ColName;
     int m_sortSection = -1;
     bool m_sortDescending = false;

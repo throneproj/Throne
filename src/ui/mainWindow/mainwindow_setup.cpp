@@ -521,6 +521,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             QAction *restoreOrder = group->KeepsSorted() ? menu.addAction(tr("Restore original order")) : nullptr;
             menu.addAction(ui->actionRefresh_Column_Widths);
             auto *filterHeader = static_cast<ProfilesTableFilterHeader*>(header);
+            auto *reorderColumns = menu.addAction(tr("Reorder columns"));
             QAction *resetColumnOrder = filterHeader->columnOrder().isEmpty() ? nullptr : menu.addAction(tr("Reset column order"));
             menu.addSeparator();
             auto *showLabel = menu.addAction(tr("Show:"));
@@ -561,6 +562,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 if (testKind == Engine::TestKind::Ip && group->show_services) {
                     Engine::host()->clearTestResults(profileIds, Engine::TestKind::Service);
                 }
+                return nullptr;
+            }
+            if (chosen == reorderColumns) {
+                editProfileColumnOrder();
                 return nullptr;
             }
             if (chosen == resetColumnOrder) {

@@ -8167,6 +8167,14 @@ Close without saving?</source>
         <translation>重置列顺序</translation>
     </message>
     <message>
+        <source>Reorder columns</source>
+        <translation>调整列顺序</translation>
+    </message>
+    <message>
+        <source>Drag the columns into the order you want.</source>
+        <translation>拖动各列以调整顺序。</translation>
+    </message>
+    <message>
         <source>Show:</source>
         <translation>显示：</translation>
     </message>
