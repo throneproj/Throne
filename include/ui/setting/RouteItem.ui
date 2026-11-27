@@ -61,6 +61,44 @@
     </layout>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="xrayRoutingRow">
+     <item>
+      <spacer name="xrayRoutingSpacer">
+       <property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property>
+       <property name="sizeHint" stdset="0"><size><width>0</width><height>0</height></size></property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="ignoreXrayRoutingCheck">
+       <property name="text">
+          <string>Ignore built-in Xray routing rules for the whole profile</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="xrayRoutingInfo">
+       <property name="accessibleName"><string>About this option</string></property>
+       <property name="focusPolicy"><enum>Qt::FocusPolicy::StrongFocus</enum></property>
+       <property name="autoRaise"><bool>true</bool></property>
+       <property name="checkable"><bool>true</bool></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="xrayRoutingHelp">
+     <property name="text">
+      <string>Xray sends Throne traffic through the selected proxy, even if the JSON says direct.</string>
+     </property>
+     <property name="textFormat"><enum>Qt::TextFormat::PlainText</enum></property>
+     <property name="wordWrap"><bool>true</bool></property>
+     <property name="alignment"><set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter</set></property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Ignored" vsizetype="Preferred"><horstretch>0</horstretch><verstretch>0</verstretch></sizepolicy>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QFrame" name="remoteBox">
      <property name="frameShape">
       <enum>QFrame::Shape::StyledPanel</enum>

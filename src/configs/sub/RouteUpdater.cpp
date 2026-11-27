@@ -226,12 +226,14 @@ namespace RouteUpdate {
                 return nullptr;
             }
             profile->customDns = false;
+            profile->ignoreXrayRouting = false;
             profile->dns.reset();
             profile->endpointProfileIDs.clear();
             profile->innerHopEndpointIDs.clear();
             QList<std::shared_ptr<Configs::RouteRule>> kept;
             for (const auto& rule : profile->Rules) {
                 if (subscriptionSafeRule(*rule)) {
+                    rule->ignoreXrayRouting = false;
                     kept << rule;
                     ++*imported;
                 } else {

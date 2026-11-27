@@ -595,10 +595,10 @@ namespace RouteEditor {
         return rule.invert ? tr("Not: %1").arg(summary) : summary;
     }
 
-    QList<Configs::RuleIssue> RuleProblems(const Configs::RouteRule& rule) {
+    QList<Configs::RuleIssue> RuleProblems(const Configs::RouteRule& rule, bool profilePinsXray) {
         QList<Configs::RuleIssue> out;
         const bool catchAll = rule.type == Configs::custom && IsFinal(ThenOf(rule)) && !rule.has_match_conditions();
-        for (auto issue : rule.validate()) {
+        for (auto issue : rule.validate(profilePinsXray)) {
             // validate()'s own catch-all warning; the error below replaces it.
             if (catchAll && issue.attr == QLatin1String("action") && issue.severity == Validation::Severity::Warning && issue.related.isEmpty()) continue;
             if (rule.disabled) issue.severity = Validation::Severity::Warning;

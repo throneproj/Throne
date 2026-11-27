@@ -19,6 +19,7 @@
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDialogButtonBox>
+#include <QEvent>
 #include <QFrame>
 #include <QGuiApplication>
 #include <QHBoxLayout>
@@ -38,6 +39,7 @@
 #include <QTabBar>
 #include <QTabWidget>
 #include <QTimer>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 // User text and names from shared profiles must not render as rich text.
@@ -145,6 +147,7 @@ static QJsonObject routeItemRuleJson(Configs::RouteRule& rule) {
     obj["name"] = rule.name;
     obj["type"] = Configs::ruleTypeToToken(rule.type);
     obj["disabled"] = rule.disabled;
+    if (rule.ignoreXrayRouting) obj["ignore_xray_routing"] = true;
     return obj;
 }
 
@@ -219,6 +222,41 @@ void RouteItem::setupHeader() {
         ui->defaultCombo->addItem(RouteEditor::ThenLabel(RouteEditor::ThenOfOutbound(id)), id);
     }
     setDefaultOutbound(chain->defaultOutboundID);
+    ui->ignoreXrayRoutingCheck->setChecked(chain->ignoreXrayRouting);
+    connect(ui->ignoreXrayRoutingCheck, &QCheckBox::toggled, this, [this](bool on) {
+        chain->ignoreXrayRouting = on;
+        if (rulesPage) rulesPage->reload();
+        if (form) form->refresh();
+    });
+
+    auto *info = ui->xrayRoutingInfo;
+    auto *help = ui->xrayRoutingHelp;
+    help->hide();
+    const auto styleInfo = [info, help] {
+        info->setIcon(themeManager()->standardIcon(QStyle::SP_MessageBoxInformation));
+        help->setStyleSheet(QStringLiteral("color: %1;").arg(themeManager()->tokens.warning.name(QColor::HexArgb)));
+    };
+    styleInfo();
+    connect(themeManager(), &ThemeManager::themeChanged, info, styleInfo);
+    connect(info, &QToolButton::toggled, help, &QWidget::setVisible);
+    for (QWidget *widget : {static_cast<QWidget *>(ui->ignoreXrayRoutingCheck), static_cast<QWidget *>(info)}) {
+        widget->setAccessibleDescription(help->text());
+        widget->setToolTip(help->text());
+        widget->installEventFilter(this);
+    }
+}
+
+bool RouteItem::eventFilter(QObject *watched, QEvent *event) {
+    if (watched == ui->ignoreXrayRoutingCheck || watched == ui->xrayRoutingInfo) {
+        if (event->type() == QEvent::ToolTip) {
+            // Use the normal hover delay, but keep the translated text inside the dialog.
+            ui->xrayRoutingHelp->show();
+            return true;
+        }
+        if (event->type() == QEvent::Leave && !ui->xrayRoutingInfo->isChecked())
+            ui->xrayRoutingHelp->hide();
+    }
+    return QDialog::eventFilter(watched, event);
 }
 
 void RouteItem::setDefaultOutbound(int outboundID) {
@@ -547,6 +585,7 @@ QString RouteItem::fingerprint() const {
     const QJsonObject object{
         {"name", copy.name},
         {"defaultOutboundID", copy.defaultOutboundID},
+        {"ignoreXrayRouting", ui->ignoreXrayRoutingCheck->isChecked()},
         {"isRemote", copy.isRemote},
         {"remoteURL", copy.remoteURL},
         {"autoUpdate", copy.autoUpdate},
@@ -581,6 +620,7 @@ void RouteItem::accept() {
         chain->autoUpdate = ui->autoUpdateCheck->isChecked();
     }
     chain->defaultOutboundID = defaultOutbound();
+    chain->ignoreXrayRouting = ui->ignoreXrayRoutingCheck->isChecked();
 
     // Disabled custom rules stay even when empty: they never block saving.
     QList<std::shared_ptr<Configs::RouteRule>> kept;

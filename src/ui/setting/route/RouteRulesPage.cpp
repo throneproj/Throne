@@ -162,7 +162,7 @@ RouteRulesPage::RouteRulesPage(std::shared_ptr<Configs::RouteProfile> routeProfi
     auto* placeholderText = rulesPageLabel(tr("Select a rule to edit it."), placeholder, true, 1.0);
     placeholderText->setAlignment(Qt::AlignCenter);
     placeholderLayout->addWidget(placeholderText);
-    ruleEditor = new RouteRuleEditor(stack);
+    ruleEditor = new RouteRuleEditor(profile, stack);
     quickListEditor = new QuickListEditor(profile, stack);
     endpointPanel = new EndpointRulePanel(profile, stack);
     stack->addWidget(placeholder);
@@ -227,7 +227,7 @@ QList<Validation::FormIssue> RouteRulesPage::issues() {
         if (current.kind == RouteEditor::RowKind::Rule) {
             const auto rule = profile->Rules.at(current.first);
             const QString base = tr("Rule %1 \"%2\"").arg(QString::number(row + 1), rule->name);
-            QList<Configs::RuleIssue> problems = RouteEditor::RuleProblems(*rule);
+            QList<Configs::RuleIssue> problems = RouteEditor::RuleProblems(*rule, profile->ignoreXrayRouting);
             // Values typed but rejected are not in the rule yet, and saving would drop them.
             if (rule == ruleEditor->rule()) {
                 if (Configs::RuleIssue pending = ruleEditor->pendingIssue(); !pending.message.isEmpty()) problems.prepend(pending);

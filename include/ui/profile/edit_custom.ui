@@ -59,12 +59,19 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
+      <item>
+       <widget class="QLabel" name="routeExitLabel">
+        <property name="text"><string>Xray proxy exit</string></property>
+        <property name="buddy"><cstring>routeExit</cstring></property>
+       </widget>
+      </item>
+      <item><widget class="QComboBox" name="routeExit"/></item>
      </layout>
     </widget>
    </item>
    <item>
     <widget class="QWidget" name="w_ext2" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <layout class="QVBoxLayout" name="routingOptionsLayout">
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -77,6 +84,17 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
+      <item>
+       <widget class="QCheckBox" name="ignoreXrayRouting">
+        <property name="text"><string>Ignore built-in Xray routing rules</string></property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="ignoreXrayRoutingHint">
+        <property name="text"><string>When enabled, traffic from Throne uses the selected proxy exit. This can also be enabled in a routing profile or an individual rule.</string></property>
+        <property name="wordWrap"><bool>true</bool></property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

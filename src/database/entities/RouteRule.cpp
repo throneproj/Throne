@@ -164,6 +164,7 @@ namespace Configs {
         obj["name"] = name;
         obj["type"] = ruleTypeToToken(type);
         if (disabled) obj["disabled"] = true;
+        if (type == custom && ignoreXrayRouting) obj["ignore_xray_routing"] = true;
         return obj;
     }
 
@@ -439,7 +440,7 @@ namespace Configs {
         }
 
         // Mirrors calculatePrerequisites' checks of route outbounds, which otherwise fail the start without naming the rule.
-        QString routeRuleOutboundProblem(int id, Validation::Severity &severity) {
+        QString routeRuleOutboundProblem(int id, bool pin, Validation::Severity &severity) {
             if (id == proxyID || id == directID || id == warpBypassID) return {};
             if (id < 0) return QCoreApplication::translate("Validation", "Not a valid outbound; pick another one.");
             const auto ent = dataManager->profilesRepo->GetProfile(id);
@@ -450,8 +451,15 @@ namespace Configs {
                 const auto group = dataManager->groupsRepo->GetGroup(ent->gid);
                 if (group && (group->front_proxy_id >= 0 || group->landing_proxy_id >= 0))
                     return QCoreApplication::translate("Validation", "An Xray full config used in a routing rule cannot have a group front or landing proxy.");
+                const auto *custom = ent->Custom();
+                if (!pin && !custom->ignoreXrayRouting) {
+                    severity = Validation::Severity::Warning;
+                    return QCoreApplication::translate("Validation", "Traffic uses the routing rules from the Xray config %1.").arg(name);
+                }
+                const auto pinned = PinXrayExit(QString2QJsonObject(custom->config), custom->routeExitTag);
+                if (!pinned.error.isEmpty()) return pinned.error;
                 severity = Validation::Severity::Warning;
-                return QCoreApplication::translate("Validation", "Traffic uses the routing rules from the Xray config %1.").arg(name);
+                return QCoreApplication::translate("Validation", "Traffic uses the selected proxy in %1, ignoring its built-in Xray routing rules.").arg(name);
             }
             if (routeRuleUnroutable(ent))
                 return QCoreApplication::translate("Validation", "Routing rules cannot use \"%1\": extra core profiles and full configs are not supported. Pick another outbound.").arg(name);
@@ -625,7 +633,7 @@ namespace Configs {
         return {severity, attr, message, is_list_attribute(attr) ? value : QString(), {}};
     }
 
-    QList<RuleIssue> RouteRule::validate() const {
+    QList<RuleIssue> RouteRule::validate(bool profilePinsXray) const {
         using Validation::Severity;
         QList<RuleIssue> out;
         if (type == endpointPreferredBy) return out;
@@ -648,7 +656,7 @@ namespace Configs {
 
         if (act == "route" || act == "bypass") {
             auto severity = Severity::Error;
-            if (const auto message = routeRuleOutboundProblem(outboundID, severity); !message.isEmpty()) add(severity, "outbound", message);
+            if (const auto message = routeRuleOutboundProblem(outboundID, profilePinsXray || ignoreXrayRouting, severity); !message.isEmpty()) add(severity, "outbound", message);
         }
         // The core's RouteOptionsActionOptions.UnmarshalJSON checks; route and bypass rules accept both fragment kinds.
         if (act == "route-options") {

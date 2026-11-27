@@ -6,9 +6,14 @@
 
 #include <QMessageBox>
 #include <QClipboard>
+#include <QSignalBlocker>
 
 EditCustom::EditCustom(QWidget *parent) : QWidget(parent), ui(new Ui::EditCustom) {
     ui->setupUi(this);
+    connect(ui->config_simple, &QPlainTextEdit::textChanged, this, [this] {
+        if (preset_core == Configs::Custom::CustomXrayFullConfig)
+            refreshRouteExits(ui->routeExit->currentData().toString());
+    });
     ui->config_simple->setPlaceholderText(
         "example:\n"
         "  server-address: \"127.0.0.1:%mapping_port%\"\n"
@@ -20,6 +25,18 @@ EditCustom::EditCustom(QWidget *parent) : QWidget(parent), ui(new Ui::EditCustom
 
 EditCustom::~EditCustom() {
     delete ui;
+}
+
+void EditCustom::refreshRouteExits(const QString &selected) {
+    QStringList tags;
+    Configs::PinXrayExit(QString2QJsonObject(ui->config_simple->toPlainText()), selected, &tags);
+    const QSignalBlocker block(ui->routeExit);
+    ui->routeExit->clear();
+    ui->routeExit->addItem(tr("Automatic (single proxy)"), QString());
+    for (const auto &tag : tags) ui->routeExit->addItem(tag, tag);
+    if (!selected.isEmpty() && !tags.contains(selected))
+        ui->routeExit->addItem(tr("Unavailable: %1").arg(selected), selected);
+    ui->routeExit->setCurrentIndex(selected.isEmpty() ? 0 : ui->routeExit->findData(selected));
 }
 
 void EditCustom::onStart(std::shared_ptr<Configs::Profile> _ent) {
@@ -68,8 +85,13 @@ void EditCustom::onStart(std::shared_ptr<Configs::Profile> _ent) {
     } else {
         ui->core_l->setText(tr("Please fill the complete config."));
     }
-    ui->w_ext1->hide();
-    ui->w_ext2->hide();
+    const bool fullXray = preset_core == Configs::Custom::CustomXrayFullConfig;
+    ui->w_ext1->setVisible(fullXray);
+    ui->w_ext2->setVisible(fullXray);
+    if (fullXray) {
+        refreshRouteExits(outbound->routeExitTag);
+        ui->ignoreXrayRouting->setChecked(outbound->ignoreXrayRouting);
+    }
 }
 
 bool EditCustom::onEnd() {
@@ -82,6 +104,10 @@ bool EditCustom::onEnd() {
 
     outbound->config = ui->config_simple->toPlainText();
     outbound->type = preset_core;
+    if (preset_core == Configs::Custom::CustomXrayFullConfig) {
+        outbound->routeExitTag = ui->routeExit->currentData().toString();
+        outbound->ignoreXrayRouting = ui->ignoreXrayRouting->isChecked();
+    }
 
     return true;
 }
@@ -92,6 +118,13 @@ void EditCustom::bindValidation(Validation::Form &form) {
     form.bind(ui->config_simple, [this](const QString &text) { return Configs::Checks::CustomConfig(preset_core, text); }, this)
         .raw()
         .label(tr("Config"));
+    if (preset_core == Configs::Custom::CustomXrayFullConfig) {
+        form.addRule({ui->routeExit, ui->ignoreXrayRouting, ui->config_simple}, [this]() -> QString {
+            if (!ui->ignoreXrayRouting->isChecked()) return {};
+            return Configs::PinXrayExit(QString2QJsonObject(ui->config_simple->toPlainText()),
+                                        ui->routeExit->currentData().toString()).error;
+        }, this, Validation::Severity::Error, ui->routeExitLabel->text());
+    }
 }
 
 void EditCustom::on_as_json_clicked() {

@@ -399,6 +399,14 @@ namespace Configs {
                 }
                 auto inbounds = (!ctx.policy.listeners || req.soleXrayInbound) ? QJsonArray()
                                                                                : userXrayConfig["inbounds"].toArray();
+                if (req.pinXrayExit || ctx.ignoreXrayRouting || custom->ignoreXrayRouting) {
+                    auto pinned = PinXrayExit(std::move(userXrayConfig), custom->routeExitTag);
+                    if (!pinned.error.isEmpty()) {
+                        out.error = custom->DisplayName() + ": " + pinned.error;
+                        return out;
+                    }
+                    userXrayConfig = std::move(pinned.object);
+                }
                 inbounds.prepend(bridgeInbound);
                 userXrayConfig["inbounds"] = inbounds;
                 if (dataManager->settingsRepo->xray_use_system_ca) {

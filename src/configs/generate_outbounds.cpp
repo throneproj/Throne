@@ -487,6 +487,7 @@ namespace Configs {
                     .startSuffix = routeSuffix,
                     .xrayFullConfigPort = ownInstance ? ports.takeFirst() : -1,
                     .xrayRuleTarget = ownInstance,
+                    .pinXrayExit = routeGroup.pinXrayExit,
                 });
                 absorbChain(ctx, out);
                 if (!ctx.error.isEmpty()) return;

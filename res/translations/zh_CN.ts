@@ -5787,6 +5787,26 @@ Close without saving?</source>
 <context>
     <name>EditCustom</name>
     <message>
+        <source>Xray proxy exit</source>
+        <translation>Xray 代理出站</translation>
+    </message>
+    <message>
+        <source>Ignore built-in Xray routing rules</source>
+        <translation>忽略 Xray 内置路由规则</translation>
+    </message>
+    <message>
+        <source>When enabled, traffic from Throne uses the selected proxy exit. This can also be enabled in a routing profile or an individual rule.</source>
+        <translation>启用后，Throne 流量将使用所选代理出站。也可以在路由配置或单条规则中启用此选项。</translation>
+    </message>
+    <message>
+        <source>Automatic (single proxy)</source>
+        <translation>自动（仅一个代理）</translation>
+    </message>
+    <message>
+        <source>Unavailable: %1</source>
+        <translation>不可用：%1</translation>
+    </message>
+    <message>
         <source>Core</source>
         <translation>核心</translation>
     </message>
@@ -10028,6 +10048,10 @@ Error: %2</source>
 <context>
     <name>QObject</name>
     <message>
+        <source>A rule cannot override Xray routing through a WARP exit. Use the routing profile setting instead.</source>
+        <translation>使用 WARP 出口时，无法为单条规则覆盖 Xray 路由。请在整个路由配置中启用此设置。</translation>
+    </message>
+    <message>
         <source>Auto Selector</source>
         <translation>自动选择器</translation>
     </message>
@@ -12053,6 +12077,18 @@ Throne 会在后台持续重试，重启 Throne 也会重试。</translation>
 <context>
     <name>RouteItem</name>
     <message>
+        <source>About this option</source>
+        <translation>关于此选项</translation>
+    </message>
+    <message>
+        <source>Ignore built-in Xray routing rules for the whole profile</source>
+        <translation>为整个配置忽略 Xray 内置路由规则</translation>
+    </message>
+    <message>
+        <source>Xray sends Throne traffic through the selected proxy, even if the JSON says direct.</source>
+        <translation>即使 JSON 规则指定直连，Xray 也会通过所选代理转发来自 Throne 的流量。</translation>
+    </message>
+    <message>
         <source>Routing Profile</source>
         <translation>路由配置档</translation>
     </message>
@@ -13265,6 +13301,26 @@ Remove that endpoint from this routing profile as well?</source>
 </context>
 <context>
     <name>Validation</name>
+    <message>
+        <source>The Xray config has invalid or ambiguous outbound tags or routing fields.</source>
+        <translation>Xray 配置中的出站标签或路由字段无效或存在歧义。</translation>
+    </message>
+    <message>
+        <source>This Xray config has no proxy outbound for routing rules.</source>
+        <translation>此 Xray 配置没有可用于路由规则的代理出站。</translation>
+    </message>
+    <message>
+        <source>Choose a tagged proxy under Xray proxy exit in the profile editor. Untagged outbounds must be named before they can be selected.</source>
+        <translation>请在配置编辑器的“Xray 代理出站”中选择带标签的代理。没有标签的出站需先命名。</translation>
+    </message>
+    <message>
+        <source>An Xray routing script cannot be combined with a Throne bridge rule.</source>
+        <translation>Xray 路由脚本不能与 Throne 桥接规则同时使用。</translation>
+    </message>
+    <message>
+        <source>Traffic uses the selected proxy in %1, ignoring its built-in Xray routing rules.</source>
+        <translation>流量将通过 %1 中选定的代理，忽略其内置 Xray 路由规则。</translation>
+    </message>
     <message>
         <source>An Xray full config used in a routing rule cannot have a group front or landing proxy.</source>
         <translation>用于路由规则的完整 Xray 配置不能带有组的前置或落地代理。</translation>
@@ -16811,6 +16867,10 @@ Remove that endpoint from this routing profile as well?</source>
 </context>
 <context>
     <name>RouteRuleEditor</name>
+    <message>
+        <source>Ignore built-in Xray routing rules for this rule</source>
+        <translation>为此规则忽略 Xray 内置路由规则</translation>
+    </message>
     <message>
         <source>Rule name</source>
         <translation>规则名称</translation>
