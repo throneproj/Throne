@@ -38,6 +38,12 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
+     <property name="elideMode">
+      <enum>Qt::TextElideMode::ElideNone</enum>
+     </property>
+     <property name="usesScrollButtons">
+      <bool>false</bool>
+     </property>
      <widget class="QWidget" name="tab_general">
       <attribute name="title">
        <string>General</string>

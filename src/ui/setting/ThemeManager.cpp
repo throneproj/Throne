@@ -5,7 +5,11 @@
 #include <QPalette>
 #include <QColor>
 #include <QMap>
+#include <QProxyStyle>
 #include <QScopedValueRollback>
+#include <QStyleFactory>
+#include <QStyleOptionViewItem>
+#include <QTableView>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
 #include <QStyleHints>
@@ -31,6 +35,34 @@ ThemeManager *themeManager() {
 }
 
 extern QString ReadFileText(const QString &path);
+
+namespace {
+    // Qt 6.12.1's windows11 style marks every cell of a selected table row and insets all table text to clear the mark;
+    // tables keep the 6.12.0 look, without either (#2184).
+    class Windows11TableStyle : public QProxyStyle {
+    public:
+        using QProxyStyle::QProxyStyle;
+
+        QRect subElementRect(SubElement element, const QStyleOption *option, const QWidget *widget) const override {
+            const bool cellPart = element == SE_ItemViewItemText || element == SE_ItemViewItemDecoration || element == SE_ItemViewItemCheckIndicator;
+            // The inset keys on the widget argument, while the cell layout itself reads the option's widget.
+            if (cellPart && qobject_cast<const QTableView *>(widget)) return QProxyStyle::subElementRect(element, option, nullptr);
+            return QProxyStyle::subElementRect(element, option, widget);
+        }
+
+        void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const override {
+            if (element == PE_PanelItemViewRow && option->state & State_Selected && qobject_cast<const QTableView *>(widget)) {
+                if (const auto *cell = qstyleoption_cast<const QStyleOptionViewItem *>(option)) {
+                    QStyleOptionViewItem unmarked(*cell);
+                    unmarked.state &= ~State_Selected;
+                    QProxyStyle::drawPrimitive(element, &unmarked, painter, widget);
+                    return;
+                }
+            }
+            QProxyStyle::drawPrimitive(element, option, painter, widget);
+        }
+    };
+}
 
 struct ThemeColors {
     QColor window, windowText;
@@ -404,8 +436,13 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
             qApp->setPalette(system_palette);
         }
         const QString styleName = lowerTheme == "system" ? system_style_name : theme;
-        qApp->setStyle(styleName);
         windows11Tabs = styleName.compare(QStringLiteral("windows11"), Qt::CaseInsensitive) == 0;
+        if (QStyle *style = QStyleFactory::create(styleName)) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 12, 1)
+            if (windows11Tabs) style = new Windows11TableStyle(style);
+#endif
+            qApp->setStyle(style);
+        }
         macosPane = styleName.compare(QStringLiteral("macos"), Qt::CaseInsensitive) == 0;
     }
 
