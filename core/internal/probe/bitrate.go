@@ -12,6 +12,10 @@ const (
 )
 
 func BrateToStr(brate float64) string {
+	// speedtest-go reports -1 when a direction could not be measured
+	if brate < 0 {
+		return "N/A"
+	}
 	brate *= 8
 	if brate >= Gb {
 		return fmt.Sprintf("%.2f%s", brate/Gb, "Gbps")

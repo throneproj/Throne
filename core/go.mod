@@ -3,7 +3,7 @@ module ThroneCore
 go 1.27
 
 require (
-	github.com/Mahdi-zarei/speedtest-go v1.7.13-0.20261125001431-254983598f6d
+	github.com/Mahdi-zarei/speedtest-go v1.7.13-0.20261127160606-f658d6e5ea1c
 	github.com/andybalholm/brotli v1.2.7
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-ole/go-ole v1.3.0
