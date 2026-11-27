@@ -14,7 +14,7 @@ import (
 )
 
 // `current` measures the running instance instead of building one, and owns nothing.
-func prepareTestEnv(current bool, needXray bool, xrayConfig string, xrayFullConfigs []string,
+func prepareTestEnv(ctx context.Context, current bool, needXray bool, xrayConfig string, xrayFullConfigs []string,
 	coreConfig string, tags []string, useDefaultOutbound bool,
 	xrayDNSStrategy string) (*testenv.Env[*boxmain.Box], error) {
 
@@ -34,7 +34,7 @@ func prepareTestEnv(current bool, needXray bool, xrayConfig string, xrayFullConf
 		Tags:               tags,
 		UseDefaultOutbound: useDefaultOutbound,
 	}
-	return testenv.Prepare(request, currentEgress, func(publish func(context.Context)) (*boxmain.Box, func(), error) {
+	return testenv.Prepare(ctx, request, currentEgress, func(publish func(context.Context)) (*boxmain.Box, func(), error) {
 		var xrayTunnelHops map[string]int
 		box, cancel, err := boxmain.Create([]byte(coreConfig), publish, func(options *option.Options) {
 			applyAutoRedirectMark(options, autoRedirectMark.Load())

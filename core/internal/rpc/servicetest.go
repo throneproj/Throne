@@ -32,7 +32,8 @@ func (s *server) ServiceTest(ctx context.Context, in *gen.ServiceTestRequest) (*
 	}
 
 	current := in.GetTestCurrent()
-	env, err := prepareTestEnv(current, in.GetNeedXray(), in.GetXrayConfig(),
+	testCtx := probe.TestContext()
+	env, err := prepareTestEnv(testCtx, current, in.GetNeedXray(), in.GetXrayConfig(),
 		in.XrayFullConfigs, in.GetConfig(), in.OutboundTags, in.GetUseDefaultOutbound(),
 		in.GetXrayOutboundDnsStrategy())
 	if err != nil {
@@ -40,7 +41,6 @@ func (s *server) ServiceTest(ctx context.Context, in *gen.ServiceTestRequest) (*
 	}
 	defer env.Close()
 
-	testCtx := probe.TestContext()
 	if current {
 		testCtx = probe.LiveInstance(testCtx)
 	}

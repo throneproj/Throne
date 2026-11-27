@@ -54,7 +54,8 @@ func checkLocalNetwork() bool {
 }
 
 func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, error) {
-	env, err := prepareTestEnv(in.GetTestCurrent(), in.GetNeedXray(), in.GetXrayConfig(),
+	testCtx := probe.TestContext()
+	env, err := prepareTestEnv(testCtx, in.GetTestCurrent(), in.GetNeedXray(), in.GetXrayConfig(),
 		in.XrayFullConfigs, in.GetConfig(), in.OutboundTags, in.GetUseDefaultOutbound(),
 		in.GetXrayOutboundDnsStrategy())
 	if err != nil {
@@ -69,8 +70,6 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 	}
 	defer env.Close()
 
-	// Held, not re-read: StopTest rearms a fresh context, uncancelled.
-	testCtx := probe.TestContext()
 	if in.GetTestCurrent() {
 		testCtx = probe.LiveInstance(testCtx)
 	}
@@ -149,7 +148,8 @@ func (s *server) QueryURLTest(ctx context.Context, in *gen.EmptyReq) (out *gen.Q
 func (s *server) IPTest(ctx context.Context, in *gen.IPTestRequest) (*gen.IPTestResp, error) {
 	// Always builds its own box: there is no test-current variant of an IP test.
 	const current = false
-	env, err := prepareTestEnv(current, in.GetNeedXray(), in.GetXrayConfig(),
+	testCtx := probe.TestContext()
+	env, err := prepareTestEnv(testCtx, current, in.GetNeedXray(), in.GetXrayConfig(),
 		in.XrayFullConfigs, in.GetConfig(), in.OutboundTags, in.GetUseDefaultOutbound(),
 		in.GetXrayOutboundDnsStrategy())
 	if err != nil {
@@ -158,7 +158,7 @@ func (s *server) IPTest(ctx context.Context, in *gen.IPTestRequest) (*gen.IPTest
 	defer env.Close()
 
 	timeout := time.Duration(in.GetTestTimeoutMs()) * time.Millisecond
-	results := probe.BatchIPTest(probe.TestContext(), env.Box, env.Tags,
+	results := probe.BatchIPTest(testCtx, env.Box, env.Tags,
 		int(in.GetMaxConcurrency()), !current, timeout, in.GetProvider())
 
 	res := make([]*gen.IPTestRes, 0, len(results))
