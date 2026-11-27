@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <initializer_list>
 #include <utility>
 
 #include <QHash>
@@ -35,7 +36,6 @@ public:
         outbound_filter = makeEdit();
 
         connect(this, &QHeaderView::sectionResized, this, &ConnectionsFilterHeader::adjustPositions);
-        connect(this, &QHeaderView::sectionHandleDoubleClicked, this, &ConnectionsFilterHeader::resetUserWidth);
 
         setFiltersVisible(false);
     }
@@ -62,7 +62,7 @@ public:
         for (auto it = widths.cbegin(); it != widths.cend(); ++it) {
             if (!isUserResizable(it.key()) || it.value() <= 0) continue;
             m_userWidths.insert(it.key(), it.value());
-            setSectionResizeMode(it.key(), Interactive);
+            setSectionResizeMode(it.key(), Fixed);
             resizeSection(it.key(), it.value());
         }
         applyAutoResizeModes();
@@ -72,14 +72,6 @@ public:
         if (m_userWidths.isEmpty()) return;
         m_userWidths.clear();
         applyAutoResizeModes();
-        resizeSections();
-        fitOutboundSection();
-        emit userWidthsChanged();
-    }
-
-    void resetUserWidth(int section) {
-        if (!m_userWidths.remove(section)) return;
-        setSectionResizeMode(section, autoResizeMode(section));
         resizeSections();
         fitOutboundSection();
         emit userWidthsChanged();
@@ -146,36 +138,51 @@ protected:
         if (logicalIndex == m_sortSection) HeaderSortArrow::paint(this, painter, rect, logicalIndex, m_sortDescending);
     }
 
-    // Qt offers a resize grip only on Interactive sections, so an auto-sized one turns Interactive when its edge is pressed.
+    // Qt's grip resizes only the section before it and the stretched Target pays, so the edge never moves; here a grip trades width between its neighbours.
     void mousePressEvent(QMouseEvent *event) override {
+        if (m_drag.right >= 0) endGripDrag();
         if (event->button() == Qt::LeftButton) {
-            const int section = resizeHandleAt(event->position().toPoint().x());
-            if (isUserResizable(section)) {
-                m_pressedHandle = section;
-                m_pressedHandleSize = sectionSize(section);
-                if (!m_userWidths.contains(section)) setSectionResizeMode(section, Interactive);
+            const auto [left, right] = gripAt(eventPos(event));
+            if (right >= 0) {
+                beginGripDrag(left, right, eventPos(event));
+                return;
             }
         }
         QHeaderView::mousePressEvent(event);
     }
 
-    void mouseReleaseEvent(QMouseEvent *event) override {
-        QHeaderView::mouseReleaseEvent(event);
-        if (m_pressedHandle < 0) return;
-        const int section = std::exchange(m_pressedHandle, -1);
-        if (sectionSize(section) == m_pressedHandleSize) {
-            if (!m_userWidths.contains(section)) setSectionResizeMode(section, autoResizeMode(section));
+    void mouseMoveEvent(QMouseEvent *event) override {
+        if (m_drag.right >= 0) {
+            if (event->buttons() & Qt::LeftButton) {
+                dragGripTo(eventPos(event));
+                return;
+            }
+            endGripDrag();
+        }
+        if (event->buttons() == Qt::NoButton && gripAt(eventPos(event)).second >= 0) {
+            setCursor(Qt::SplitHCursor);
             return;
         }
-        m_userWidths.insert(section, sectionSize(section));
-        emit userWidthsChanged();
+        QHeaderView::mouseMoveEvent(event);
     }
 
-    void mouseMoveEvent(QMouseEvent *event) override {
-        QHeaderView::mouseMoveEvent(event);
-        if (event->buttons() != Qt::NoButton) return;
-        const int section = resizeHandleAt(event->position().toPoint().x());
-        if (isUserResizable(section) && sectionResizeMode(section) != Interactive) setCursor(Qt::SplitHCursor);
+    void mouseReleaseEvent(QMouseEvent *event) override {
+        if (m_drag.right < 0) {
+            QHeaderView::mouseReleaseEvent(event);
+            return;
+        }
+        if (event->button() != Qt::LeftButton) return;
+        endGripDrag();
+        if (gripAt(eventPos(event)).second < 0) unsetCursor();
+    }
+
+    void mouseDoubleClickEvent(QMouseEvent *event) override {
+        const auto [left, right] = gripAt(eventPos(event));
+        if (event->button() != Qt::LeftButton || right < 0) {
+            QHeaderView::mouseDoubleClickEvent(event);
+            return;
+        }
+        resetUserWidthsOf({left, right});
     }
 
     // Runs after every relayout, expand, viewport resize and (via the view's column timer) section resize.
@@ -256,12 +263,76 @@ signals:
     void closeRequested();
 
 private:
+    struct GripDrag {
+        int left = -1;  // Target here means the stretch absorbs the change
+        int right = -1;
+        int pressPos = 0;
+        int leftSize = 0;
+        int rightSize = 0;
+        int minDelta = 0;
+        int maxDelta = 0;
+        int delta = 0;
+    };
+
+    static int eventPos(const QMouseEvent *event) { return event->position().toPoint().x(); }
+
+    void beginGripDrag(int left, int right, int pos) {
+        using Model = ConnectionsTreeModel;
+        // A poll re-measuring an auto section mid-drag would slide the grip out from under the mouse.
+        for (int section = 0; section < count(); ++section) {
+            if (section != Model::ColTarget && !m_userWidths.contains(section)) setSectionResizeMode(section, Fixed);
+        }
+        const int leftFloor = left == Model::ColTarget ? qMax(minimumSectionSize(), sectionSizeHint(left)) : minimumSectionSize();
+        m_drag = {left, right, pos, sectionSize(left), sectionSize(right)};
+        m_drag.minDelta = qMin(0, leftFloor - m_drag.leftSize);
+        m_drag.maxDelta = qMax(0, m_drag.rightSize - minimumSectionSize());
+        setCursor(Qt::SplitHCursor);
+    }
+
+    void dragGripTo(int pos) {
+        const int moved = isRightToLeft() ? m_drag.pressPos - pos : pos - m_drag.pressPos;
+        const int delta = qBound(m_drag.minDelta, moved, m_drag.maxDelta);
+        if (delta == m_drag.delta) return;
+        m_drag.delta = delta;
+        resizeSection(m_drag.right, m_drag.rightSize - delta);
+        if (m_drag.left != ConnectionsTreeModel::ColTarget) resizeSection(m_drag.left, m_drag.leftSize + delta);
+        // Qt only schedules the stretch pass; running it now keeps Target from lagging a frame behind the edge.
+        resizeSections();
+    }
+
+    void endGripDrag() {
+        using Model = ConnectionsTreeModel;
+        const GripDrag drag = std::exchange(m_drag, {});
+        if (drag.delta != 0) {
+            if (drag.left != Model::ColTarget) m_userWidths.insert(drag.left, sectionSize(drag.left));
+            m_userWidths.insert(drag.right, sectionSize(drag.right));
+        }
+        applyAutoResizeModes();
+        resizeSections();
+        // Moving Target's edge changes the room Outbound fits into, so refitting Outbound would pull the edge back.
+        if (drag.delta != 0 && drag.left == Model::ColTarget && !m_userWidths.contains(Model::ColOutbound)
+            && outboundFitWidth() != sectionSize(Model::ColOutbound)) {
+            m_userWidths.insert(Model::ColOutbound, sectionSize(Model::ColOutbound));
+        }
+        fitOutboundSection();
+        if (drag.delta != 0) emit userWidthsChanged();
+    }
+
+    void resetUserWidthsOf(std::initializer_list<int> sections) {
+        bool changed = false;
+        for (const int section : sections) changed |= m_userWidths.remove(section);
+        if (!changed) return;
+        applyAutoResizeModes();
+        resizeSections();
+        fitOutboundSection();
+        emit userWidthsChanged();
+    }
+
     // Outbound fits its content into what the stretched Target leaves past the Target's own content, so a long address wins.
-    void fitOutboundSection() {
+    int outboundFitWidth() const {
         using Model = ConnectionsTreeModel;
         const auto *view = qobject_cast<QAbstractItemView *>(parent());
-        if (view == nullptr || count() < Model::ColumnCount) return;
-        if (m_userWidths.contains(Model::ColOutbound) || m_pressedHandle == Model::ColOutbound) return;
+        if (view == nullptr || count() < Model::ColumnCount) return -1;
 
         const int floor = sectionSizeHint(Model::ColOutbound);
         const int wanted = qMax(floor, view->sizeHintForColumn(Model::ColOutbound));
@@ -270,8 +341,14 @@ private:
             if (section != Model::ColTarget && section != Model::ColOutbound && !isSectionHidden(section))
                 room -= sectionSize(section);
         }
-        const int width = qBound(floor, room, wanted);
-        if (width != sectionSize(Model::ColOutbound)) resizeSection(Model::ColOutbound, width);
+        return qBound(floor, room, wanted);
+    }
+
+    void fitOutboundSection() {
+        using Model = ConnectionsTreeModel;
+        if (m_drag.right >= 0 || m_userWidths.contains(Model::ColOutbound)) return;
+        const int width = outboundFitWidth();
+        if (width > 0 && width != sectionSize(Model::ColOutbound)) resizeSection(Model::ColOutbound, width);
     }
 
     // Target stretches into whatever the other columns leave, so it has no width of its own to keep.
@@ -279,23 +356,29 @@ private:
         return section > ConnectionsTreeModel::ColTarget && section < count();
     }
 
-    // Mirrors QHeaderViewPrivate::sectionHandleAt: a grip at a section's start belongs to the visible section before it.
-    int resizeHandleAt(int position) const {
+    int adjacentVisibleVisual(int visual, int step) const {
+        for (visual += step; visual >= 0 && visual < count(); visual += step) {
+            if (!isSectionHidden(logicalIndex(visual))) return visual;
+        }
+        return -1;
+    }
+
+    // Located as QHeaderViewPrivate::sectionHandleAt does; the last section's far edge is held at the viewport edge by the stretch, so it has no grip.
+    std::pair<int, int> gripAt(int position) const {
         int visual = visualIndexAt(position);
-        if (visual < 0) return -1;
+        if (visual < 0) return {-1, -1};
         const int section = logicalIndex(visual);
         const int grip = style()->pixelMetric(QStyle::PM_HeaderGripMargin, nullptr, this);
         const int start = sectionViewportPosition(section);
         bool atStart = position < start + grip;
         bool atEnd = position > start + sectionSize(section) - grip;
         if (isRightToLeft()) std::swap(atStart, atEnd);
-        if (atEnd) return section;
-        if (!atStart) return -1;
-        while (--visual >= 0) {
-            const int previous = logicalIndex(visual);
-            if (!isSectionHidden(previous)) return previous;
-        }
-        return -1;
+        if (atStart) visual = adjacentVisibleVisual(visual, -1);
+        else if (!atEnd) return {-1, -1};
+        if (visual < 0) return {-1, -1};
+        const int next = adjacentVisibleVisual(visual, 1);
+        if (next < 0) return {-1, -1};
+        return {logicalIndex(visual), logicalIndex(next)};
     }
 
     QLineEdit *makeEdit() {
@@ -351,6 +434,5 @@ private:
     bool m_sortDescending = false;
     QHash<int, int> m_grownWidths;
     QHash<int, int> m_userWidths;
-    int m_pressedHandle = -1;
-    int m_pressedHandleSize = 0;
+    GripDrag m_drag;
 };
