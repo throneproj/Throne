@@ -16018,6 +16018,61 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
+    <name>QScrollBar</name>
+    <message>
+        <source>Scroll here</source>
+        <translation>Прокрутить сюда</translation>
+    </message>
+    <message>
+        <source>Left edge</source>
+        <translation>К левому краю</translation>
+    </message>
+    <message>
+        <source>Top</source>
+        <translation>В начало</translation>
+    </message>
+    <message>
+        <source>Right edge</source>
+        <translation>К правому краю</translation>
+    </message>
+    <message>
+        <source>Bottom</source>
+        <translation>В конец</translation>
+    </message>
+    <message>
+        <source>Page left</source>
+        <translation>Страница влево</translation>
+    </message>
+    <message>
+        <source>Page up</source>
+        <translation>Страница вверх</translation>
+    </message>
+    <message>
+        <source>Page right</source>
+        <translation>Страница вправо</translation>
+    </message>
+    <message>
+        <source>Page down</source>
+        <translation>Страница вниз</translation>
+    </message>
+    <message>
+        <source>Scroll left</source>
+        <translation>Прокрутить влево</translation>
+    </message>
+    <message>
+        <source>Scroll up</source>
+        <translation>Прокрутить вверх</translation>
+    </message>
+    <message>
+        <source>Scroll right</source>
+        <translation>Прокрутить вправо</translation>
+    </message>
+    <message>
+        <source>Scroll down</source>
+        <translation>Прокрутить вниз</translation>
+    </message>
+</context>
+<context>
     <name>DialogRuleTester</name>
     <message numerus="yes">
         <source>%n endpoint rule(s) were skipped: they need a running profile.</source>
