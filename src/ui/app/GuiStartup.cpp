@@ -102,6 +102,19 @@ namespace {
         QT_TRANSLATE_NOOP("QAbstractSpinBox", "&Select All");
         QT_TRANSLATE_NOOP("QAbstractSpinBox", "&Step up");
         QT_TRANSLATE_NOOP("QAbstractSpinBox", "Step &down");
+        QT_TRANSLATE_NOOP("QScrollBar", "Scroll here");
+        QT_TRANSLATE_NOOP("QScrollBar", "Left edge");
+        QT_TRANSLATE_NOOP("QScrollBar", "Top");
+        QT_TRANSLATE_NOOP("QScrollBar", "Right edge");
+        QT_TRANSLATE_NOOP("QScrollBar", "Bottom");
+        QT_TRANSLATE_NOOP("QScrollBar", "Page left");
+        QT_TRANSLATE_NOOP("QScrollBar", "Page up");
+        QT_TRANSLATE_NOOP("QScrollBar", "Page right");
+        QT_TRANSLATE_NOOP("QScrollBar", "Page down");
+        QT_TRANSLATE_NOOP("QScrollBar", "Scroll left");
+        QT_TRANSLATE_NOOP("QScrollBar", "Scroll up");
+        QT_TRANSLATE_NOOP("QScrollBar", "Scroll right");
+        QT_TRANSLATE_NOOP("QScrollBar", "Scroll down");
         if (guiStartupTranslator != nullptr) {
             guiStartupTranslator->deleteLater();
         }
