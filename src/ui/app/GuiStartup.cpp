@@ -97,6 +97,11 @@ namespace {
         QT_TRANSLATE_NOOP("QLineEdit", "&Paste");
         QT_TRANSLATE_NOOP("QLineEdit", "Delete");
         QT_TRANSLATE_NOOP("QLineEdit", "Select All");
+        QT_TRANSLATE_NOOP("QKeySequenceEdit", "Press shortcut");
+        QT_TRANSLATE_NOOP("QKeySequenceEdit", "%1, ...");
+        QT_TRANSLATE_NOOP("QAbstractSpinBox", "&Select All");
+        QT_TRANSLATE_NOOP("QAbstractSpinBox", "&Step up");
+        QT_TRANSLATE_NOOP("QAbstractSpinBox", "Step &down");
         if (guiStartupTranslator != nullptr) {
             guiStartupTranslator->deleteLater();
         }
