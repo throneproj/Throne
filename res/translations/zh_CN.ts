@@ -15744,6 +15744,87 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
+    <name>QKeySequenceEdit</name>
+    <message>
+        <source>Press shortcut</source>
+        <translation>按下快捷键</translation>
+    </message>
+    <message>
+        <source>%1, ...</source>
+        <translation>%1, ...</translation>
+    </message>
+</context>
+<context>
+    <name>QAbstractSpinBox</name>
+    <message>
+        <source>&amp;Select All</source>
+        <translation>全选(&amp;S)</translation>
+    </message>
+    <message>
+        <source>&amp;Step up</source>
+        <translation>增大(&amp;S)</translation>
+    </message>
+    <message>
+        <source>Step &amp;down</source>
+        <translation>减小(&amp;D)</translation>
+    </message>
+</context>
+<context>
+    <name>QScrollBar</name>
+    <message>
+        <source>Scroll here</source>
+        <translation>滚动到此处</translation>
+    </message>
+    <message>
+        <source>Left edge</source>
+        <translation>最左侧</translation>
+    </message>
+    <message>
+        <source>Top</source>
+        <translation>顶部</translation>
+    </message>
+    <message>
+        <source>Right edge</source>
+        <translation>最右侧</translation>
+    </message>
+    <message>
+        <source>Bottom</source>
+        <translation>底部</translation>
+    </message>
+    <message>
+        <source>Page left</source>
+        <translation>向左翻页</translation>
+    </message>
+    <message>
+        <source>Page up</source>
+        <translation>向上翻页</translation>
+    </message>
+    <message>
+        <source>Page right</source>
+        <translation>向右翻页</translation>
+    </message>
+    <message>
+        <source>Page down</source>
+        <translation>向下翻页</translation>
+    </message>
+    <message>
+        <source>Scroll left</source>
+        <translation>向左滚动</translation>
+    </message>
+    <message>
+        <source>Scroll up</source>
+        <translation>向上滚动</translation>
+    </message>
+    <message>
+        <source>Scroll right</source>
+        <translation>向右滚动</translation>
+    </message>
+    <message>
+        <source>Scroll down</source>
+        <translation>向下滚动</translation>
+    </message>
+</context>
+<context>
     <name>DialogRuleTester</name>
     <message numerus="yes">
         <source>%n endpoint rule(s) were skipped: they need a running profile.</source>
