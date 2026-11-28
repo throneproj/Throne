@@ -15744,6 +15744,32 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
+    <name>QKeySequenceEdit</name>
+    <message>
+        <source>Press shortcut</source>
+        <translation>按下快捷键</translation>
+    </message>
+    <message>
+        <source>%1, ...</source>
+        <translation>%1, ...</translation>
+    </message>
+</context>
+<context>
+    <name>QAbstractSpinBox</name>
+    <message>
+        <source>&amp;Select All</source>
+        <translation>全选(&amp;S)</translation>
+    </message>
+    <message>
+        <source>&amp;Step up</source>
+        <translation>增大(&amp;S)</translation>
+    </message>
+    <message>
+        <source>Step &amp;down</source>
+        <translation>减小(&amp;D)</translation>
+    </message>
+</context>
+<context>
     <name>DialogRuleTester</name>
     <message numerus="yes">
         <source>%n endpoint rule(s) were skipped: they need a running profile.</source>
