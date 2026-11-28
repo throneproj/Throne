@@ -6709,6 +6709,32 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
+    <name>QKeySequenceEdit</name>
+    <message>
+        <source>Press shortcut</source>
+        <translation>کلید میان‌بر را فشار دهید</translation>
+    </message>
+    <message>
+        <source>%1, ...</source>
+        <translation>%1، ...</translation>
+    </message>
+</context>
+<context>
+    <name>QAbstractSpinBox</name>
+    <message>
+        <source>&amp;Select All</source>
+        <translation>انتخاب &amp;همه</translation>
+    </message>
+    <message>
+        <source>&amp;Step up</source>
+        <translation>&amp;افزایش</translation>
+    </message>
+    <message>
+        <source>Step &amp;down</source>
+        <translation>&amp;کاهش</translation>
+    </message>
+</context>
+<context>
     <name>DialogAutoSelector</name>
     <message>
         <source>%1 ok / %2 failed</source>
