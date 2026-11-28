@@ -6735,6 +6735,61 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
+    <name>QScrollBar</name>
+    <message>
+        <source>Scroll here</source>
+        <translation>پیمایش به اینجا</translation>
+    </message>
+    <message>
+        <source>Left edge</source>
+        <translation>لبه چپ</translation>
+    </message>
+    <message>
+        <source>Top</source>
+        <translation>بالا</translation>
+    </message>
+    <message>
+        <source>Right edge</source>
+        <translation>لبه راست</translation>
+    </message>
+    <message>
+        <source>Bottom</source>
+        <translation>پایین</translation>
+    </message>
+    <message>
+        <source>Page left</source>
+        <translation>یک صفحه به چپ</translation>
+    </message>
+    <message>
+        <source>Page up</source>
+        <translation>یک صفحه به بالا</translation>
+    </message>
+    <message>
+        <source>Page right</source>
+        <translation>یک صفحه به راست</translation>
+    </message>
+    <message>
+        <source>Page down</source>
+        <translation>یک صفحه به پایین</translation>
+    </message>
+    <message>
+        <source>Scroll left</source>
+        <translation>پیمایش به چپ</translation>
+    </message>
+    <message>
+        <source>Scroll up</source>
+        <translation>پیمایش به بالا</translation>
+    </message>
+    <message>
+        <source>Scroll right</source>
+        <translation>پیمایش به راست</translation>
+    </message>
+    <message>
+        <source>Scroll down</source>
+        <translation>پیمایش به پایین</translation>
+    </message>
+</context>
+<context>
     <name>DialogAutoSelector</name>
     <message>
         <source>%1 ok / %2 failed</source>
